@@ -1,0 +1,1662 @@
+<!DOCTYPE html><html><head><base target="_top"><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Princess Jasmine International School - Portal</title>
+<meta name="theme-color" content="#10213f">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Princess Jasmine">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="preconnect" href="https://identitytoolkit.googleapis.com"><link rel="preconnect" href="https://firestore.googleapis.com"><link rel="preconnect" href="https://securetoken.googleapis.com">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<style>
+:root{--bg:#f3f6fb;--card:#fff;--tx:#10213f;--mut:#6b7a96;--pri:#1c3f94;--acc:#e0147a;--gold:#f5b700;--side:#10213f;--ok:#12a150;--bad:#e5313d;--bd:#e3e9f4}
+body.student{--bg:#0e1a2e;--card:#16253d;--tx:#eef2fa;--mut:#9fb0cc;--bd:#243656;--side:#0a1424;--pri:#e8c77a}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--tx)}
+#loginBox{min-height:100vh;display:grid;place-items:center;background:linear-gradient(135deg,#10213f,#1c3f94 60%,#e0147a);padding:16px}
+.lbox{background:#fff;color:#10213f;border-radius:20px;padding:32px;width:min(400px,100%);text-align:center;box-shadow:0 20px 60px #0006}
+.lbox img{width:180px;height:180px;object-fit:contain;display:block;margin:0 auto 10px}.lbox small{color:#e0147a;font-weight:600}
+input,select,textarea,button{font:inherit;padding:10px 12px;border-radius:10px;border:1px solid var(--bd);width:100%;margin:5px 0;background:var(--card);color:var(--tx)}
+.lbox input{background:#fff;color:#10213f}
+button{background:var(--pri);color:#fff;border:0;cursor:pointer;font-weight:600;width:auto}body.student button{color:#10213f}
+button.s{background:var(--acc);color:#fff}button.g{background:transparent;color:var(--pri);border:1px solid var(--pri)}
+.pw{position:relative}.pw input{padding-right:44px}.pw span{position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;user-select:none;font-size:18px}
+.flink{display:block;margin-top:8px;font-size:13px;color:#1c3f94;cursor:pointer;text-decoration:underline}
+#appBox{display:none;grid-template-columns:240px minmax(0,1fr);min-height:100vh}
+aside{background:var(--side);color:#fff;padding:16px;position:sticky;top:0;height:100vh;overflow:auto}
+aside img{width:110px;height:110px;object-fit:contain;display:block;margin:0 auto 6px}aside h4{text-align:center;margin:0 0 14px;font-size:13px;color:var(--gold)}
+aside a{display:block;padding:10px 12px;border-radius:10px;color:#cfd9ee;cursor:pointer;margin:2px 0}aside a:hover,aside a.on{background:#ffffff22;color:#fff}
+main{padding:20px;min-width:0;overflow:hidden}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:10px}
+.top h2{margin:0}.top>div{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end}.top button{margin:0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}.card{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:18px;margin-bottom:14px;min-width:0}
+.stat b{font-size:24px;display:block}.stat span{color:var(--mut);font-size:13px}
+.hero{display:flex;gap:20px;align-items:center;flex-wrap:wrap}.pic{width:120px;height:120px;border-radius:50%;object-fit:cover;border:4px solid var(--gold);background:#ccd}
+table{width:100%;border-collapse:collapse;font-size:14px;display:block;overflow-x:auto;-webkit-overflow-scrolling:touch}td,th{padding:8px;border-bottom:1px solid var(--bd);text-align:left;white-space:nowrap}
+.red{color:var(--bad);font-weight:700}.green{color:var(--ok);font-weight:700}.tag{padding:3px 10px;border-radius:20px;font-size:12px;color:#fff}
+.row{display:flex;gap:8px;flex-wrap:wrap}.row>*{flex:1;min-width:130px}.row>button{flex:0 0 auto}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}.tabs button{margin:0}
+#menu{display:none;margin:0}#ov{display:none}
+/* ---- Student + staff dashboards ---- */
+.sd{display:grid;grid-template-columns:270px minmax(0,1fr) 310px;gap:16px;align-items:start}
+.sd2{display:grid;grid-template-columns:270px minmax(0,1fr);gap:16px;align-items:start}
+.sd>.card,.sd2>.card{margin:0}.mut{color:var(--mut);margin:2px 0;font-size:13px}
+.sdp{text-align:center;padding:26px 18px}
+.sdp .ph{width:170px;height:170px;border-radius:50%;object-fit:cover;border:4px solid var(--gold);box-shadow:0 0 0 7px rgba(245,183,0,.16),0 12px 30px rgba(0,0,0,.28);background:var(--bd)}
+.sdp h2{margin:18px 0 4px;font-size:22px;letter-spacing:.3px}
+.trio{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:18px}
+.trio div{border:1px solid var(--bd);border-radius:12px;padding:10px 4px}
+.trio span{display:block;font-size:11px;color:var(--mut)}.trio b{font-size:18px}
+.fb{margin-top:14px;text-align:left}.fb small{color:var(--mut)}
+.bar{height:6px;border-radius:6px;background:var(--bd);margin-top:5px;overflow:hidden}.bar i{display:block;height:100%;background:var(--gold);border-radius:6px}
+.sdtabs{display:flex;gap:24px;border-bottom:1px solid var(--bd);margin-bottom:6px;overflow-x:auto}
+.sdtabs a{padding:8px 0 11px;cursor:pointer;color:var(--mut);font-weight:600;border-bottom:2px solid transparent;white-space:nowrap}
+.sdtabs a.on{color:var(--pri);border-color:var(--pri)}
+.sdm{padding:18px 22px}
+.sdm .card{background:transparent;border:0;border-top:1px solid var(--bd);border-radius:0;padding:16px 0;margin:0}
+.sdm .card:first-child{border-top:0}
+.sdm h3,.sdm h4,.rc h4{margin:0 0 10px;font-size:14px;color:var(--pri);letter-spacing:.3px}
+.sum{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}.sum p{line-height:1.9;margin:0}
+.pf{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}.pf div{padding:10px 12px;border-radius:10px;background:var(--bg);overflow-wrap:anywhere}.pf span{display:block;font-size:12px;color:var(--mut)}
+.rc .card{margin-bottom:16px}.rc h5{margin:12px 0 8px;font-size:12px;color:var(--mut);font-weight:600}.rc h5:first-of-type{margin-top:0}
+.ev{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;background:var(--bg);border-left:3px solid var(--k);margin-bottom:7px;font-size:14px}
+.ev small{display:block;color:var(--mut)}.ev .dt{font-size:12px;color:var(--mut);white-space:nowrap}
+.sj{display:flex;justify-content:space-between;padding:9px 12px;border-radius:10px;background:var(--bg);border-left:3px solid var(--gold);margin-bottom:7px;font-size:14px}
+/* ---- Responsive ---- */
+@media(max-width:1100px){.sd{grid-template-columns:260px minmax(0,1fr)}.sd .rc{grid-column:1/-1}}
+@media(max-width:800px){
+ #appBox{grid-template-columns:minmax(0,1fr)}
+ aside{position:fixed;left:-270px;top:0;width:250px;z-index:30;transition:left .2s;padding-top:calc(16px + env(safe-area-inset-top,0px))}
+ aside.open{left:0}aside.open+#ov{display:block;position:fixed;inset:0;background:#0007;z-index:20}
+ #menu{display:inline-block}
+ main{padding:10px 12px calc(16px + env(safe-area-inset-bottom,0px))}
+ .top{position:sticky;top:0;z-index:10;background:var(--bg);padding:8px 0;margin-bottom:10px;flex-wrap:wrap}
+ .top h2{font-size:17px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;order:1}
+ #menu{order:0}.top>div{order:2}
+ input,select,textarea{font-size:16px}
+ button{min-height:40px}
+ .card{padding:14px;border-radius:14px}
+ .grid{grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+ .stat b{font-size:20px}
+ table{font-size:13px}td,th{padding:7px 6px}
+ .row>*{min-width:100%}.row>button{flex:1 1 auto}
+ .sd,.sd2{grid-template-columns:minmax(0,1fr)}.sdm{padding:12px}.sdtabs{gap:18px}
+ .sdp{padding:18px 14px}.sdp .ph{width:120px;height:120px}.sdp h2{font-size:19px}
+ .hero{gap:12px}.pic{width:90px;height:90px}
+ .lbox{padding:22px}.lbox img{width:140px;height:140px}
+}
+@media(max-width:420px){.top>div .g,.top>div button{padding:8px 10px;font-size:13px}.grid{grid-template-columns:1fr 1fr}}
+</style></head><body>
+<div id="loginBox"><div class="lbox"><img src="" id="lg" alt="Princess Jasmine International School logo" onerror="this.style.display='none'"><h2>PRINCESS JASMINE INTERNATIONAL SCHOOL</h2><small>Godly Foundation for Excellence</small><br><br>
+<input id="u" placeholder="Username / ID or email" autocomplete="username">
+<div class="pw"><input id="p" type="password" placeholder="Password" autocomplete="current-password" onkeydown="if(event.key==='Enter')login()"><span id="eye" onclick="togglePw()" title="Show / hide password">👁️</span></div>
+<button id="lb" onclick="login()" style="width:100%">Sign in</button>
+<button class="g" onclick="bio()" style="width:100%">Sign in with Fingerprint</button>
+<a class="flink" onclick="forgot()">Forgot password?</a>
+<p id="info" class="green"></p><p id="err" class="red"></p></div></div>
+<div id="appBox"><aside id="side"></aside><div id="ov" onclick="side.classList.remove('open')"></div><main><div class="top"><button id="menu" onclick="side.classList.toggle('open')">☰</button><h2 id="ttl"></h2><div><span id="bell" style="cursor:pointer" onclick="go('notes')">🔔</span> <button class="g" id="lockBtn" onclick="lock()" style="display:none">🔒 Lock</button> <button class="g" onclick="auth.signOut()">Logout</button></div></div><div id="main"></div></main></div>
+<script>
+const LOGO_URL="./logo.png"; // logo.png must sit in the same folder as this page (GitHub Pages)
+const CFG={// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyAfQSFk1fmF8LavQF_dJemFCwZ0CTUlyGI",
+  authDomain: "princess-jasmine-portal.firebaseapp.com",
+  projectId: "princess-jasmine-portal",
+  storageBucket: "princess-jasmine-portal.firebasestorage.app",
+  messagingSenderId: "147956460080",
+  appId: "1:147956460080:web:9817e911a93d39aabfdbf5"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const auth=firebase.auth(),db=firebase.firestore();
+const $=s=>document.querySelector(s),v=id=>{const e=document.getElementById(id);return e?e.value:''};
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ld=t=>{const d=new Date(t);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+const money=n=>'₦'+Number(n||0).toLocaleString(),today=()=>ld(Date.now());
+const FAKE='@princessjasmine.app';
+// TOP = may use the Reset page (Proprietor/Admin only). FULL = may also void payments/expenses. MG = all management roles.
+const TOP=['proprietor','admin'],FULL=['proprietor','admin','chairman','administrator'],MG=['proprietor','admin','chairman','administrator','principal'];
+const RL={proprietor:'Proprietor',admin:'Admin',chairman:'Chairman',administrator:'School Administrator',principal:'Principal',teacher:'Teacher',staff:'Staff',accountant:'Accountant',student:'Student'};
+// ---- School settings (EDIT THESE) ----
+const SCHOOL={email:'info@princessjasmine.edu.ng',phone:'+234 800 000 0000',loc:{'Ediam':'Ediam, Eket, Akwa Ibom','Ikot Oso':'Ikot Oso, Eket, Akwa Ibom'}};
+const CLASSES=['Creche','Nursery 1','Nursery 2','Nursery 3','Primary 1','Primary 2','Primary 3','Primary 4','Primary 5','Primary 6','JSS1','JSS2','JSS3','SS1','SS2','SS3'];
+const TRIS=['1st Trimester','2nd Trimester','3rd Trimester'];
+const EXP_CATS=['Salaries','Utilities','Maintenance','Stationery & supplies','Transport','Feeding','Events','Other'];
+const grade=n=>n>=90?'A':n>=80?'B':n>=70?'C':n>=60?'D':n>=50?'E':'F';
+const gradeInfo=(n,sh)=>{const k=KEY[n>=90?0:n>=80?1:n>=70?2:n>=60?3:n>=50?4:5];return sh?k[0]+' · '+k[2]:k[0]+'. '+k[1]+' · '+k[2]};
+const subId=(c,n)=>(c+'_'+n).replace(/[\/\s]+/g,'_').toLowerCase();
+let me,photo='',FEE={st:[],paid:{},fs:[],owing:[]},TEACH=[],SD={},STF={},FIN={fs:[],ex:[],ses:[]};
+const loginBox=$('#loginBox'),appBox=$('#appBox'),side=$('#side'),err=$('#err'),info=$('#info'),ttl=$('#ttl'),mainEl=$('#main');
+$('#lg').src=LOGO_URL;
+function togglePw(){const i=$('#p'),s=i.type=='password';i.type=s?'text':'password';$('#eye').textContent=s?'🙈':'👁️'}
+// Apps Script runs pages in a sandboxed iframe, so fall back if browser storage is blocked
+const P=firebase.auth.Auth.Persistence;const ready=(async()=>{for(const m of [P.LOCAL,P.SESSION,P.NONE]){try{await auth.setPersistence(m);return}catch(e){}}})();
+
+const MENU={student:['dash:Dashboard','news:Announcements','acct:My Account'],
+teacher:['dash:My Dashboard','comp:Compute Results','roll:Class Attendance','attend:Attendance','news:Announcements','acct:My Account'],
+staff:['dash:My Dashboard','attend:Attendance','news:Announcements','acct:My Account'],
+accountant:['fees:Fees & Payments','dash:My Dashboard','attend:Attendance','news:Announcements','acct:My Account'],
+principal:['mgmt:Overview','reg:Registration','fees:Fees & Payments','fin:Financial','setup:Classes & Teachers','subj:Subjects Template','comp:Compute Results','pub:Validate Results','events:Events Calendar','news:Post Announcement','roll:Take Attendance','attend:Attendance','notes:Notifications','dash:My Profile','acct:My Account']};
+MENU.proprietor=MENU.admin=[...MENU.principal,'staffreg:Staff & Roles','stat:Stationery','reset:Reset'];
+// Chairman and School Administrator: everything except Reset
+MENU.chairman=MENU.administrator=[...MENU.principal,'staffreg:Staff & Roles','stat:Stationery'];
+
+let unlocked=false;
+const bioKey=uid=>'dsbio_'+uid,
+ ckGet=k=>{const m=document.cookie.match(new RegExp('(?:^|; )'+k+'=([^;]*)'));return m?decodeURIComponent(m[1]):null},
+ ckSet=(k,x)=>{document.cookie=k+'='+(x?encodeURIComponent(x)+';max-age=31536000':';max-age=0')+';path=/;SameSite=Lax'},
+ bioGet=uid=>{let r=null;try{r=localStorage.getItem(bioKey(uid))}catch(e){}return r||ckGet(bioKey(uid))},
+ bioSet=(uid,val)=>{try{val?localStorage.setItem(bioKey(uid),val):localStorage.removeItem(bioKey(uid))}catch(e){}ckSet(bioKey(uid),val)},
+ bioOK=()=>!!(window.PublicKeyCredential&&navigator.credentials),
+ b64=b=>btoa(String.fromCharCode(...new Uint8Array(b))),unb64=x=>Uint8Array.from(atob(x),c=>c.charCodeAt(0));
+auth.onAuthStateChanged(async user=>{
+  if(!user){unlocked=false;loginBox.style.display='grid';appBox.style.display='none';return}
+  if(bioGet(user.uid)&&!unlocked){showLock();return}
+  unlocked=true;await enter(user);
+});
+async function enter(user){
+  try{
+    const d=await db.doc('users/'+user.uid).get();
+    if(!d.exists){err.textContent='Signed in, but no role profile was found. In Firestore, create users/'+user.uid+' with role and name fields.';await auth.signOut();return}
+    me={uid:user.uid,...d.data()};
+    if(!me.role){err.textContent='Your Firestore users profile is missing the role field.';await auth.signOut();return}
+    lbReset();loginBox.style.display='none';appBox.style.display='grid';
+    document.body.className=me.role==='student'?'student':'';
+    $('#bell').style.display=MG.includes(me.role)?'inline':'none';
+    $('#lockBtn').style.display=bioGet(user.uid)?'inline':'none';
+    const m=MENU[me.role]||MENU.staff;
+    side.innerHTML=`<img src="${esc(LOGO_URL)}" alt="Princess Jasmine logo" onerror="this.style.display='none'"><h4>PRINCESS JASMINE</h4>`+m.map(i=>{const[k,l]=i.split(':');return`<a data-k="${k}" onclick="go('${k}')">${l}</a>`}).join('');
+    go(m[0].split(':')[0]);
+  }catch(e){console.error('Profile load failed:',e.code,e.message);err.textContent='Signed in, but could not read your Firestore profile. Check Firestore rules and the users document.';await auth.signOut()}
+}
+
+// ---------- Login, recovery ----------
+async function resolveEmail(x){
+  x=x.trim().toLowerCase();
+  if(x.includes('@'))return x;
+  try{const c=localStorage.getItem('dsu_'+x);if(c)return c}catch(e){}
+  try{const d=await db.doc('usernames/'+x).get();if(d.exists&&d.data().email){try{localStorage.setItem('dsu_'+x,d.data().email)}catch(e){}return d.data().email}}catch(e){console.warn('username lookup failed',e.code)}
+  return x+FAKE; // older accounts
+}
+function lbReset(){const b=$('#lb');b.disabled=false;b.textContent='Sign in'}
+async function login(){
+  err.textContent='';info.textContent='';
+  const pw=v('p');
+  if(!v('u').trim()||!pw){err.textContent='Enter your username and password.';return}
+  const lb=$('#lb');lb.disabled=true;lb.textContent='Signing in...';
+  await ready;
+  const email=await resolveEmail(v('u'));
+  unlocked=true;
+  try{await auth.signInWithEmailAndPassword(email,pw)}catch(e){
+    unlocked=false;lbReset();
+    if(e.code=='auth/user-not-found'||e.code=='auth/invalid-email'){try{localStorage.removeItem('dsu_'+v('u').trim().toLowerCase())}catch(_){}}
+    console.error('Sign-in failed:',e.code,e.message);
+    const M={'auth/invalid-email':'The username/email format is invalid.','auth/invalid-credential':'The username or password is incorrect. If several people share one email, sign in with your USERNAME. Use "Forgot password?" to reset it.','auth/wrong-password':'The password is incorrect. Use "Forgot password?" to reset it.','auth/user-not-found':'No account matches this username.','auth/too-many-requests':'Too many attempts. Wait a while, or reset your password.','auth/operation-not-allowed':'Email/password sign-in is disabled in Firebase Authentication.','auth/network-request-failed':'Network error. Check your internet connection.','auth/unauthorized-domain':'This site domain is not authorized in Firebase Authentication → Settings → Authorized domains.'};
+    err.textContent=M[e.code]||('Login failed: '+(e.code||'unknown error'));
+  }
+}
+// Password reset. Works with a username (sends to that account's recovery address) or with a SHARED email
+// (sends one reset link per account that uses that email; each link shows the username inside the address).
+async function forgot(){
+  err.textContent='';info.textContent='';
+  const x=v('u').trim().toLowerCase();
+  if(!x){err.textContent='Type your username (or email) above first, then tap Forgot password.';return}
+  let targets=[];
+  if(x.includes('@')){
+    try{const q=await db.collection('usernames').where('real','==',x).get();targets=q.docs.map(d=>d.data().email)}catch(e){console.warn('shared-email lookup',e.code)}
+    targets.push(x);
+  }else{
+    const email=await resolveEmail(x);
+    if(email.endsWith(FAKE)){err.textContent='No recovery email is saved for this account. Please contact the school office.';return}
+    targets=[email];
+  }
+  targets=[...new Set(targets.filter(Boolean))];
+  for(const t of targets){
+    try{await auth.sendPasswordResetEmail(t)}catch(e){if(e.code!=='auth/user-not-found'&&e.code!=='auth/invalid-email'){err.textContent='Could not send reset email: '+e.code;return}}
+  }
+  info.textContent=targets.length>1?'Reset links have been sent for each account that uses this email. Check your inbox and spam folder; the address in each message contains the username it belongs to.':'If this account has a recovery email, a reset link has been sent. Check your inbox and spam folder.';
+}
+function showLock(){appBox.style.display='none';loginBox.style.display='grid';err.textContent='';info.textContent='Locked. Tap "Sign in with Fingerprint" to continue.'}
+function lock(){unlocked=false;showLock()}
+async function bio(){
+ err.textContent='';info.textContent='';
+ if(!bioOK()){err.textContent='This browser/device does not support fingerprint sign-in. Use your password.';return}
+ const u=auth.currentUser;
+ if(!u||!bioGet(u.uid)){err.textContent='Fingerprint is not ready on this device. Sign in with your password, enable fingerprint in My Account, then use the Lock button (not Logout) when you leave.';return}
+ try{await verifyBio(u.uid);unlocked=true;await enter(u)}catch(e){console.warn(e);err.textContent='Fingerprint not recognised or cancelled. Try again or use your password.'}}
+async function verifyBio(uid){
+ const id=bioGet(uid);if(!id)throw new Error('not enrolled');
+ await navigator.credentials.get({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),allowCredentials:[{type:'public-key',id:unb64(id),transports:['internal']}],userVerification:'required',timeout:60000}})}
+async function enableBio(){
+ const m=$('#bmsg');m.className='red';
+ if(!bioOK()){m.textContent='This browser/device does not support fingerprint sign-in.';return}
+ try{
+  if(!(await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable())){m.textContent='No fingerprint or screen-lock biometric is set up on this device.';return}
+  const c=await navigator.credentials.create({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),rp:{name:'Princess Jasmine Portal'},user:{id:new TextEncoder().encode(me.uid),name:me.username||me.name,displayName:me.name},pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],authenticatorSelection:{authenticatorAttachment:'platform',userVerification:'required'},timeout:60000}});
+  bioSet(me.uid,b64(c.rawId));$('#lockBtn').style.display='inline';V.acct();
+ }catch(e){m.textContent='Could not enable fingerprint ('+(e.name||e.message)+'). If the portal is opened inside Apps Script, the browser may block it; use the GitHub Pages link.'}}
+function disableBio(){bioSet(me.uid,null);$('#lockBtn').style.display='none';V.acct()}
+
+// ---------- Helpers ----------
+const add=(c,o)=>db.collection(c).add({...o,by:me.uid,byName:me.name,at:Date.now()});
+const list=async(c,...f)=>{let q=db.collection(c);f.forEach(x=>q=q.where(...x));const sc=CAMPUS_SCOPE();if(c==='students'&&sc)q=q.where('campus','==',sc);let r=(await q.get()).docs.map(d=>({id:d.id,...d.data()}));if(sc)r=await scFilter(c,r,sc);return r};
+const notify=m=>add('notifications',{msg:m,to:MG});
+const set=h=>mainEl.innerHTML=h;
+const opts=a=>a.map(x=>`<option>${esc(x)}</option>`).join('');
+function go(k){document.querySelectorAll('aside a').forEach(a=>a.classList.toggle('on',a.dataset.k==k));side.classList.remove('open');
+ const a=document.querySelector(`aside a[data-k="${k}"]`);ttl.textContent=a?a.textContent:'';mainEl.innerHTML='<div class="card">Loading...</div>';window.scrollTo(0,0);Promise.resolve(V[k]()).then(fillBio)}
+function F(a){return a.map(([k,l,o])=>o&&o!='date'&&o!='number'&&o!='email'?`<select id="f_${k}"><option value="">${l}</option>${o.split(',').map(x=>`<option>${x}</option>`).join('')}</select>`:`<input id="f_${k}" type="${o||'text'}" placeholder="${l}">`).join('')}
+const G=()=>Object.fromEntries([...document.querySelectorAll('[id^=f_]')].map(e=>[e.id.slice(2),e.value.trim()]));
+function snap(i){const f=i.files[0];if(!f)return;const im=new Image();im.onload=()=>{const c=document.createElement('canvas');c.width=c.height=240;const x=c.getContext('2d');x.filter='brightness(1.08) contrast(1.05) saturate(1.1)';const m=Math.min(im.width,im.height);x.drawImage(im,(im.width-m)/2,(im.height-m)/2,m,m,0,0,240,240);photo=c.toDataURL('image/jpeg',.8);$('#pv').src=photo};im.src=URL.createObjectURL(f)}
+// CSV download (Excel-friendly, guards against formula injection)
+const csvCell=x=>{let s=String(x??'');if(/^[=+\-@\t\r]/.test(s))s="'"+s;return'"'+s.replace(/"/g,'""')+'"'};
+function saveCSV(name,rows){const b=new Blob(['\ufeff'+rows.map(r=>r.map(csvCell).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),3000)}
+
+// ---------- Views ----------
+const V={
+async dash(){
+ if(me.role=='student')return studentDash(me.uid);
+ const[sd,at]=await Promise.all([db.doc('staff/'+me.uid).get(),list('attendance',['uid','==',me.uid])]);
+ const s=sd.exists?sd.data():{};
+ STF={s,at:at.sort((a,b)=>a.date<b.date?1:-1)};
+ const nm=s.name||me.name||'',ab=at.filter(a=>a.status=='Absent').length;
+ set(`<div class="sd2">
+ <div class="card sdp">${s.photo?`<img class="ph" src="${esc(s.photo)}" alt="">`:`<div class="ph" style="display:grid;place-items:center;font-size:56px;margin:0 auto">${esc((nm||'?')[0])}</div>`}
+ <h2>${esc(nm)}</h2><p class="mut">${esc(s.position||RL[me.role]||me.role)}</p><p class="mut">Staff ID: ${esc(s.staffId||me.username||'-')}</p><p class="mut">${esc(s.campus||'-')}${s.department?' · '+esc(s.department):''}</p>
+ <div class="trio"><div><span>Present</span><b class="green">${at.length-ab}</b></div><div><span>Absent</span><b class="red">${ab}</b></div><div><span>Fines</span><b>${money(ab*1000)}</b></div></div></div>
+ <div class="card sdm"><div class="sdtabs">${[['ov','Overview'],['ab','About'],['at','Attendance']].map(([k,l])=>`<a data-t="${k}" onclick="stTab('${k}')">${l}</a>`).join('')}</div><div id="sdt"></div></div></div>`);
+ stTab('ov')},
+async news(){
+ const mg=MG.includes(me.role),a=(await list('announcements',...(mg?[]:[['audience','==',me.role=='student'?'students':'staff']]))).sort((x,y)=>y.at-x.at);
+ set((mg?`<div class="card"><h3>Post Announcement</h3><select id="aud"><option value="students">Students</option><option value="staff">Teachers & Staff</option></select><input id="ann_t" placeholder="Title"><textarea id="ann_b" placeholder="Message"></textarea><button onclick="postNews()">Publish</button></div>`:'')+
+ (a.map(x=>`<div class="card"><b>${esc(x.title)}</b> <span class="tag" style="background:var(--acc)">${esc(x.audience)}</span><p>${esc(x.body)}</p><small>${esc(x.byName)} · ${new Date(x.at).toLocaleString()}</small></div>`).join('')||'<div class="card">No announcements yet.</div>'))},
+async attend(){
+ const ex=await db.doc('attendance/'+today()+'_'+me.uid).get();
+ set(`<div class="card"><h3>Working-hours Attendance (Staff)</h3><p>Clock in before <b>08:00</b> to be Present. Later or no clock-in = Absent and a ₦1,000 fine.</p>
+ ${ex.exists?`<p class="green">Recorded: ${esc(ex.data().status)} at ${esc(ex.data().time)}</p>`:`<button onclick="clock()">👆 Fingerprint Clock-In</button>${bioGet(me.uid)?'':'<p><small>Tip: enable fingerprint in My Account to require a fingerprint check here.</small></p>'}`}</div>`)},
+async pub(){
+ const r=await list('results',['published','==',false]);
+ set(`<div class="card"><h3>Results awaiting validation</h3><table><tr><th>Student</th><th>Class</th><th>Subject</th><th>Trimester</th><th>Total</th><th></th></tr>${r.map(x=>`<tr><td>${esc(x.studentName)}</td><td>${esc(x.class||'')}</td><td>${esc(x.subject)}</td><td>${esc(x.trimester)}</td><td>${x.test+x.exam}</td><td><button onclick="publish('${x.id}')">Validate</button></td></tr>`).join('')||'<tr><td>Nothing waiting.</td></tr>'}</table>${r.length?'<button class="s" onclick="publishAll()">Validate all</button>':''}</div>`)},
+async mgmt(){
+ const[s,t,n]=await Promise.all([list('students'),list('staff'),list('attendance',['date','==',today()])]);
+ set(`<div class="grid"><div class="card stat"><span>Students</span><b>${s.length}</b></div><div class="card stat"><span>Staff</span><b>${t.length}</b></div><div class="card stat"><span>Staff present today</span><b class="green">${n.filter(x=>x.status=='Present').length}</b></div></div>
+ <div class="card"><h3>Students</h3><table><tr><th>ID</th><th>Name</th><th>Class</th><th>Campus</th><th></th></tr>${s.map(x=>`<tr><td>${esc(x.regNo)}</td><td>${esc(x.surname)} ${esc(x.firstName)}</td><td>${esc(x.class)}</td><td>${esc(x.campus)}</td><td><button class="g" onclick="studentDash('${x.id}')">Open</button></td></tr>`).join('')}</table></div>`)},
+reg(){photo='';FP={t:[]};set(`<div class="card"><h3>Student Registration</h3><div class="grid">${F([['surname','Surname'],['firstName','First name'],['middleName','Middle name'],['gender','Gender','Male,Female'],['dob','Date of birth','date'],['pob','Place of birth'],['nationality','Nationality'],['state','State of origin'],['lga','LGA'],['address','Residential address'],['phone','Phone'],['email','Student email (optional)','email'],['indigene','Status','Indigene,Non-Indigene'],['level','Section','Creche,Nursery,Primary,Junior High School,Senior High School'],['class','Class',CLASSES.join(',')],['session','Session (2026/2027)'],['campus','Campus','Ediam,Ikot Oso'],['boarding','Boarding?','Day,Boarding'],['father','Father name'],['fatherPhone','Father phone'],['mother','Mother name'],['motherPhone','Mother phone'],['guardianEmail','Parent email (REQUIRED - the same email can be used for many children)','email'],['emName','Emergency contact'],['emPhone','Emergency phone'],['blood','Blood group'],['genotype','Genotype'],['allergies','Allergies'],['about','About the student (short story and ambitions)'],['feeDue','Total fees due (₦)','number']])}</div>
+ <p><b>Biometric ID</b> <small>(auto-numbered. Enrol this number on the fingerprint scanner so attendance can be taken)</small></p><input id="f_bioId" type="number">${FPUI}
+ <p>Passport photo:</p><input type="file" accept="image/*" capture="user" onchange="snap(this)"><img id="pv" class="pic"><br><button onclick="regStudent()">Register & Create Account</button><p id="rmsg"></p></div>`)},
+async notes(){
+ const n=(await list('notifications')).sort((a,b)=>b.at-a.at).slice(0,50);
+ set(n.map(x=>`<div class="card">${esc(x.msg)}<br><small>${new Date(x.at).toLocaleString()}</small></div>`).join('')||'<div class="card">Nothing yet.</div>')},
+staffreg(){photo='';FP={t:[]};set(`<div class="card"><h3>Add Staff / Teacher / Role</h3><p><small>Several staff may share the same email address; each still gets their own username and password. Roles: Chairman and Administrator have full access except Reset.</small></p>${F([['name','Full name'],['username','Username / Staff ID'],['email','Staff email (for password recovery; may be shared)','email'],['phone','Phone (shown to students as class teacher contact)'],['password','Temporary password (min 6 characters)'],['role','Role','teacher,staff,principal,accountant,admin,chairman,administrator'],['position','Position'],['department','Department'],['campus','Campus','Ediam,Ikot Oso'],['salary','Basic salary','number'],['about','About the staff member (short bio)']])}
+ <p><b>Biometric ID</b> <small>(auto-numbered. Enrol this number on the fingerprint scanner so attendance can be taken)</small></p><input id="f_bioId" type="number">${FPUI}
+ <p>Staff photo:</p><input type="file" accept="image/*" capture="user" onchange="snap(this)"><img id="pv" class="pic"><br><button onclick="addStaff()">Create Staff</button><p id="rmsg"></p></div>`)},
+async stat(){
+ const s=await list('stationery');
+ set(`<div class="card"><h3>Stationery</h3><table>${s.map(x=>`<tr><td>${esc(x.item)}</td><td>${money(x.price)}</td></tr>`).join('')}</table><input id="si" placeholder="Item"><input id="sp" type="number" placeholder="Price"><button onclick="addStat()">Add</button></div>`)},
+reset(){
+ if(!TOP.includes(me.role))return;
+ set(`<div class="card"><h3 class="red">Reset (Proprietor/Admin only)</h3><p><small>Deleted records cannot be recovered. Student, staff and login accounts are never deleted here.</small></p><select id="rc"><option value="all">ALL (everything below)</option>${RESETS.map(x=>`<option>${x}</option>`).join('')}</select><button class="s" onclick="doReset()">Reset selected section</button><p id="rst_msg"></p></div>`)},
+async roll(){
+ const tc=me.role==='teacher';
+ set(`<div class="card"><h3>Take Attendance</h3>${tc?'':'<select id="r_k" onchange="loadRoll()"><option value="student">Students</option><option value="staff">Staff</option></select>'}
+ <input id="r_d" type="date" value="${today()}" onchange="loadRoll()"><input id="r_f" placeholder="Filter by name or class" oninput="drawRoll()">
+ <input id="r_id" placeholder="Scan or type Biometric ID, then press Enter" onkeydown="if(event.key==='Enter'){scanId(this.value);this.value=''}"><label style="display:block;margin:6px 0"><input type="checkbox" id="r_fp" style="width:auto;margin-right:6px">Require fingerprint scan (Futronic scanner)</label>
+ <p id="r_msg"></p><details><summary>Import fingerprint device log (CSV)</summary><textarea id="r_csv" rows="4" placeholder="One per line: ID,2026-10-16 07:45"></textarea><button class="g" onclick="importLog()">Import</button></details></div><div class="card" id="r_list">Loading...</div>`);
+ loadRoll()},
+async fees(){
+ const[st,fs]=await Promise.all([list('students'),list('fees')]);
+ st.sort((a,b)=>(a.surname||'').localeCompare(b.surname||''));fs.sort((a,b)=>b.at-a.at);
+ const paid={};fs.forEach(x=>paid[x.studentId]=(paid[x.studentId]||0)+(+x.amount||0));
+ const day=x=>ld(x.at),sum=f=>fs.filter(f).reduce((a,x)=>a+(+x.amount||0),0),
+  owing=st.map(s=>({...s,bal:(+s.feeDue||0)-(paid[s.id]||0)})).filter(s=>s.bal>0).sort((a,b)=>b.bal-a.bal);
+ FEE={st,paid,fs,owing};
+ set(`<div class="grid"><div class="card stat"><span>Collected today</span><b class="green">${money(sum(x=>day(x)==today()))}</b></div><div class="card stat"><span>This month</span><b>${money(sum(x=>day(x).slice(0,7)==today().slice(0,7)))}</b></div><div class="card stat"><span>All recorded</span><b>${money(sum(()=>true))}</b></div><div class="card stat"><span>Students owing</span><b class="red">${owing.length}</b></div></div>
+ <div class="card"><h3>Record Payment</h3><select id="fee_s" onchange="feeInfo()"><option value="">Select student</option>${st.map(s=>`<option value="${s.id}">${esc(s.surname)} ${esc(s.firstName)} (${esc(s.regNo)}) - ${esc(s.class)}</option>`).join('')}</select><p id="fee_info"></p>
+ <select id="fee_t">${opts(['Tuition','Uniform','Books','Boarding','Transport','Exam','Other'])}</select><select id="fee_tri">${opts([...TRIS,'Full session'])}</select>
+ <input id="fee_a" type="number" min="0" placeholder="Amount (₦)"><select id="fee_m">${opts(['Cash','Bank transfer','POS'])}</select><input id="fee_r" placeholder="Reference / teller no (optional)"><button onclick="saveFee()">Save payment</button></div>
+ <div class="card"><h3>Search & Filter</h3><input id="fq" placeholder="🔍 Search student name or ID" oninput="drawFees()"><div class="row"><div><small>From date</small><input id="fd1" type="date" onchange="drawFees()"></div><div><small>To date</small><input id="fd2" type="date" onchange="drawFees()"></div><button class="g" style="align-self:end" onclick="['fq','fd1','fd2'].forEach(i=>document.getElementById(i).value='');drawFees()">Clear</button></div>
+ ${MG.includes(me.role)?`<button style="margin-top:8px" onclick="dlFin(v('fd1'),v('fd2'),'all')">⬇ Download transactions for this period (CSV)</button>`:''}</div>
+ <div class="card"><h3>Students owing</h3><table><tr><th>ID</th><th>Name</th><th>Class</th><th>Due</th><th>Balance</th></tr><tbody id="owTb"></tbody></table></div>
+ <div class="card"><h3>Payments <small id="payCnt"></small></h3><table><tr><th>Receipt</th><th>Date</th><th>Student</th><th>Type</th><th>Trimester</th><th>Amount</th><th>Method</th><th>By</th><th></th></tr><tbody id="payTb"></tbody></table></div>`);
+ drawFees()},
+// ----- NEW: Financial tab (management): income, expenses, balance per trimester + CSV download -----
+async fin(){
+ if(!MG.includes(me.role))return;
+ const[fs,ex]=await Promise.all([list('fees'),list('expenses')]);
+ const ses=[...new Set([...fs,...ex].map(x=>x.session).filter(Boolean))].sort().reverse();
+ FIN={fs,ex:ex.sort((a,b)=>(b.date||'')>(a.date||'')?1:-1),ses};
+ set(`<div class="card"><h3>Income, Expenses & Balance per Trimester</h3><select id="fn_s" onchange="drawFin()"><option value="">All sessions</option>${opts(ses)}</select><div id="fn_sum"></div></div>
+ <div class="card"><h3>Download transactions (CSV)</h3><p class="mut">Pick a period from the calendar. Leave both dates empty to download everything.</p>
+ <div class="row"><div><small>From date</small><input id="dl1" type="date"></div><div><small>To date</small><input id="dl2" type="date"></div><div><small>Include</small><select id="dl_k"><option value="all">Income and expenses</option><option value="in">Income only</option><option value="out">Expenses only</option></select></div></div>
+ <button onclick="dlFin(v('dl1'),v('dl2'),v('dl_k'))">⬇ Download CSV</button></div>
+ <div class="card"><h3>Record expense</h3><div class="row"><input id="ex_d" type="date" value="${today()}"><select id="ex_t">${opts([...TRIS,'Full session'])}</select><select id="ex_c">${opts(EXP_CATS)}</select></div>
+ <input id="ex_n" placeholder="Description e.g. October electricity bill"><div class="row"><input id="ex_a" type="number" min="0" placeholder="Amount (₦)"><input id="ex_s" placeholder="Session e.g. 2026/2027" value="${esc(ses[0]||'')}"></div><button onclick="saveExpense()">Save expense</button></div>
+ <div class="card"><h3>Expenses</h3><table><tr><th>Date</th><th>Trimester</th><th>Category</th><th>Description</th><th>Amount</th><th>By</th><th></th></tr><tbody id="exTb"></tbody></table></div>`);
+ drawFin()},
+acct(){
+ const shown=me.contactEmail||auth.currentUser.email||'',fake=shown.endsWith(FAKE);
+ set(`<div class="card"><h3>My Account</h3><p>Login: <b>${esc(me.username||auth.currentUser.email)}</b><br>Recovery email: <b>${fake?'<span class="red">none saved - ask the school office to add one</span>':esc(shown)}</b></p>
+ <h4>Change password</h4><input id="cp_old" type="password" placeholder="Current password"><input id="cp_new" type="password" placeholder="New password (min 6 characters)"><button onclick="changePw()">Change password</button>
+ <h4>Forgot current password?</h4><button class="g" onclick="sendMyReset()">Email me a reset link</button><p id="amsg"></p></div>
+ <div class="card"><h3>Fingerprint</h3><p>${bioGet(me.uid)?'<span class="green">Enabled on this device.</span> Tap Lock when you leave, then sign back in with your fingerprint. (Logout clears it; sign in with your password after that.)':'Not enabled on this device.'}</p>${bioGet(me.uid)?'<button class="g" onclick="disableBio()">Disable on this device</button>':'<button onclick="enableBio()">Enable fingerprint on this device</button>'}<p id="bmsg"></p></div>`)},
+
+// ----- Classes & class teachers -----
+async setup(){
+ const[c,t]=await Promise.all([list('classes'),list('staff',['role','==','teacher'])]);TEACH=t;
+ c.sort((a,b)=>CLASSES.indexOf(a.name)-CLASSES.indexOf(b.name));
+ set(`<div class="card"><h3>Classes & Class Teachers</h3><p><small>Add teachers under Staff & Roles (role: teacher), then assign each one to a class here.</small></p>${c.length?'':'<button onclick="seedClasses()">Create standard classes (Creche to SS3)</button>'}
+ <table><tr><th>Class</th><th>Class teacher</th><th></th></tr>${c.map(x=>`<tr><td>${esc(x.name)}</td><td><select id="ct_${x.id}" style="min-width:200px"><option value="">-- none --</option>${t.map(s=>`<option value="${s.id}" ${s.id==x.teacherId?'selected':''}>${esc(s.name)}</option>`).join('')}</select></td><td><button onclick="assignTeacher('${x.id}')">Save</button></td></tr>`).join('')}</table></div>
+ <div class="card"><h3>Teachers (${t.length})</h3><table><tr><th>Name</th><th>Staff ID</th><th>Phone</th><th>Campus</th></tr>${t.map(s=>`<tr><td>${esc(s.name)}</td><td>${esc(s.staffId||'')}</td><td>${esc(s.phone||'-')}</td><td>${esc(s.campus||'')}</td></tr>`).join('')||'<tr><td>No teachers yet.</td></tr>'}</table></div>`)},
+// ----- Subjects template -----
+async subj(){
+ const s=await list('subjects');
+ set(`<div class="card"><h3>Subject Template (per class)</h3><select id="sj_c">${opts(CLASSES)}</select><input id="sj_n" placeholder="Subject e.g. Mathematics"><button onclick="addSubj()">Add subject</button>
+ <p><small>Scoring: Test 40 + Exam 60 = 100. Grades: A 70+, B 60+, C 50+, D 40+, F below 40.</small></p></div>`+
+ CLASSES.map(c=>{const l=s.filter(x=>x.class==c);return l.length?`<div class="card"><b>${c}</b><br>${l.map(x=>`<span class="tag" style="background:var(--acc);display:inline-block;margin:3px">${esc(x.name)} <a onclick="delSubj('${x.id}')" style="cursor:pointer">✕</a></span>`).join('')}</div>`:''}).join(''))},
+// ----- Compute results -----
+async comp(){
+ const own=me.role=='teacher'?(await list('classes',['teacherId','==',me.uid])).map(x=>x.name):[],cl=own.length?own:CLASSES;
+ set(`<div class="card"><h3>Compute Results</h3><div class="row"><select id="cp_c" onchange="compClass()">${opts(cl)}</select><select id="cp_t" onchange="loadComp()">${opts(TRIS)}</select><select id="cp_s" onchange="loadComp()"></select></div></div><div id="cp_out"></div>`);compClass()},
+// ----- Events -----
+async events(){
+ const e=(await list('events')).sort((a,b)=>a.date>b.date?1:-1);
+ set(`<div class="card"><h3>Add Event</h3><select id="ev_t"><option>Test/Exam</option><option>Holiday</option></select><input id="ev_n" placeholder="Title e.g. 1st Trimester Exams"><input id="ev_d" type="date"><button onclick="addEvent()">Add</button></div><div class="card"><table>${e.map(x=>`<tr><td>${esc(x.date)}</td><td>${esc(x.type)}</td><td>${esc(x.title)}</td><td><button class="s" onclick="delEvent('${x.id}')">✕</button></td></tr>`).join('')||'<tr><td>No events yet.</td></tr>'}</table></div>`)}
+};
+
+// ---------- Staff dashboard ----------
+function stTab(k){
+ const{s,at}=STF,nm=s.name||me.name||'',ab=at.filter(a=>a.status=='Absent').length,sal=+s.salary||0,
+ pf=(l,x)=>`<div><span>${l}</span><b>${esc(x||'-')}</b></div>`;
+ document.querySelectorAll('[data-t]').forEach(b=>b.classList.toggle('on',b.dataset.t==k));
+ const H={
+ ov:`<div class="card"><h4>Profile</h4><div class="pf">${pf('Full name',nm)}${pf('Staff ID / Username',s.staffId||me.username)}${pf('Role',RL[me.role]||me.role)}${pf('Position',s.position)}${pf('Department',s.department)}${pf('Campus',s.campus)}${pf('Phone',s.phone)}${pf('Email',s.email||me.contactEmail)}${pf('Biometric ID',s.bioId)}${pf('Fingerprint',s.fpEnrolled?'Enrolled':'Not enrolled')}</div></div>
+ <div class="card"><h4>Pay summary</h4><div class="grid"><div class="card stat"><span>Basic salary</span><b>${money(sal)}</b></div><div class="card stat"><span>Fines (₦1,000/absence)</span><b class="red">${money(ab*1000)}</b></div><div class="card stat"><span>Net pay</span><b class="green">${money(sal-ab*1000)}</b></div><div class="card stat"><span>Days present</span><b>${at.length-ab}</b></div></div></div>
+ <div class="card"><h4>About</h4><p>${esc(s.about||'No bio added yet. Open the About tab to write one.')}</p></div>`,
+ ab:`<div class="card"><h4>About me</h4><p>${esc(s.about||'No bio added yet.')}</p><textarea id="sab" rows="4" placeholder="Write a short bio: your role, experience and interests">${esc(s.about||'')}</textarea><button onclick="saveStaffAbout()">Save</button><p id="sab_m"></p></div>`,
+ at:`<div class="card"><h4>Attendance record</h4><table><tr><th>Date</th><th>Time</th><th>Status</th></tr>${at.map(a=>`<tr><td>${esc(a.date)}</td><td>${esc(a.time||'-')}</td><td class="${a.status=='Absent'?'red':'green'}">${esc(a.status)}</td></tr>`).join('')||'<tr><td>No records yet.</td></tr>'}</table></div>`};
+ $('#sdt').innerHTML=H[k]}
+async function saveStaffAbout(){
+ const t=v('sab').trim(),m=$('#sab_m');
+ try{await db.doc('staff/'+me.uid).set({about:t},{merge:true});STF.s.about=t;stTab('ab');const x=$('#sab_m');x.className='green';x.textContent='Saved.'}
+ catch(e){m.className='red';m.textContent='Could not save: '+(e.code||e.message)+'. Check that Firestore rules let staff update their own about field.'}}
+
+// ---------- Actions ----------
+async function changePw(){
+ const m=$('#amsg'),nw=v('cp_new');m.className='red';
+ if(nw.length<6){m.textContent='New password must be at least 6 characters.';return}
+ try{const u=auth.currentUser;await u.reauthenticateWithCredential(firebase.auth.EmailAuthProvider.credential(u.email,v('cp_old')));await u.updatePassword(nw);m.className='green';m.textContent='Password changed.'}
+ catch(e){m.textContent=e.code=='auth/invalid-credential'||e.code=='auth/wrong-password'?'Current password is incorrect.':'Could not change password: '+e.code}}
+async function sendMyReset(){
+ const m=$('#amsg'),e=auth.currentUser.email;
+ if(e.endsWith(FAKE)){m.className='red';m.textContent='No recovery email is saved. Contact the school office.';return}
+ try{await auth.sendPasswordResetEmail(e);m.className='green';m.textContent='Reset link sent to '+e+'.'}catch(x){m.className='red';m.textContent='Could not send: '+x.code}}
+// One real email can serve many accounts. Firebase allows one login per address, so when the address is already taken
+// the account is created under a "+username" alias (name+username@domain). Mail to the alias lands in the same inbox
+// (works with Gmail, Outlook, iCloud). The real email is kept in contactEmail / usernames.real for display and recovery.
+async function mkUser(username,pw,data,realEmail){
+ username=username.toLowerCase();
+ const real=(realEmail||'').trim().toLowerCase();
+ const sec=firebase.apps.find(a=>a.name=='sec')||firebase.initializeApp(CFG,'sec');
+ let email=real||(username+FAKE),c;
+ try{c=await sec.auth().createUserWithEmailAndPassword(email,pw)}
+ catch(e){
+  if(e.code=='auth/email-already-in-use'&&real.includes('@')){
+   const i=real.lastIndexOf('@');email=real.slice(0,i).split('+')[0]+'+'+username+real.slice(i);
+   c=await sec.auth().createUserWithEmailAndPassword(email,pw);
+  }else throw e}
+ if(real){try{await sec.auth().sendPasswordResetEmail(email)}catch(e){console.warn(e.code)}}
+ await sec.auth().signOut();
+ await db.doc('users/'+c.user.uid).set({...data,email,username,contactEmail:real});
+ await db.doc('usernames/'+username).set({email,real});
+ mkUser.last=email;
+ return c.user.uid}
+const aliasNote=(real,used)=>used!=real.trim().toLowerCase()?` <br><small>This email already has other accounts, so this login uses the alias <b>${esc(used)}</b>. It delivers to the same inbox.</small>`:'';
+async function regStudent(){
+ const g=G(),m=$('#rmsg');
+ if(!g.surname||!g.firstName){m.textContent='Enter surname and first name.';return}
+ if(!g.class){m.textContent='Choose the student\'s class.';return}
+ if(!g.guardianEmail){m.textContent='Parent email is required so the parent can set and recover the password.';return}
+ const n=(await list('students')).length+1,reg='PJIS/'+new Date().getFullYear()+'/'+String(n).padStart(4,'0'),un=reg.replace(/\//g,'').toLowerCase();
+ try{
+  const uid=await mkUser(un,'Jasmine'+Math.floor(100000+Math.random()*900000),{role:'student',name:g.firstName+' '+g.surname},g.guardianEmail);
+  await db.doc('students/'+uid).set({...g,feeDue:+g.feeDue||0,regNo:reg,username:un,photo,fpEnrolled:FP.t.filter(Boolean).length>0,status:'Active',registered:Date.now()});await fpSave(uid,'student');
+  await notify('New student registered: '+g.firstName+' '+g.surname);
+  m.innerHTML=`Done. Username: <b>${un}</b>. A link to set the password was emailed to ${esc(g.guardianEmail)}.`+aliasNote(g.guardianEmail,mkUser.last);
+ }catch(e){console.error(e);m.textContent='Could not register: '+(e.code||e.message)}}
+async function addStaff(){
+ const g=G(),m=$('#rmsg');
+ if(!g.name||!g.username||!g.password||!g.role){m.textContent='Enter name, username, password, and role.';return}
+ if(g.password.length<6){m.textContent='Password must be at least 6 characters.';return}
+ try{
+  const uid=await mkUser(g.username,g.password,{role:g.role,name:g.name},g.email);
+  delete g.password;
+  await db.doc('staff/'+uid).set({...g,staffId:g.username,salary:+g.salary||0,photo,fpEnrolled:FP.t.filter(Boolean).length>0});await fpSave(uid,'staff');
+  m.innerHTML='Staff account created successfully.'+(g.email?' A password link was emailed to '+esc(g.email)+'.':'')+(g.email?aliasNote(g.email,mkUser.last):'');
+ }catch(e){console.error(e);m.textContent='Could not create staff: '+(e.code||e.message)}}
+async function clock(){
+ if(bioGet(me.uid)){try{await verifyBio(me.uid)}catch(e){return alert('Fingerprint check failed or was cancelled. Attendance not recorded.')}}
+ const n=new Date(),hm=n.toTimeString().slice(0,5),st=hm<='08:00'?'Present':'Absent';
+ try{
+  await db.doc('attendance/'+today()+'_'+me.uid).set({uid:me.uid,name:me.name,kind:'staff',date:today(),time:hm,status:st,fine:st=='Absent'?1000:0});
+  await notify(`${me.name} marked ${st} at ${hm}`);
+ }catch(e){alert('Could not record attendance: '+(e.code||e.message))}
+ go('attend')}
+async function postNews(){
+ if(!v('ann_t')||!v('ann_b'))return alert('Enter a title and message.');
+ await add('announcements',{audience:v('aud'),title:v('ann_t'),body:v('ann_b')});
+ await notify('New announcement for '+v('aud')+': '+v('ann_t'));go('news')}
+async function publish(id){await db.doc('results/'+id).update({published:true});await notify('Results validated');go('pub')}
+async function publishAll(){
+ if(!confirm('Validate ALL pending results?'))return;
+ const docs=(await db.collection('results').where('published','==',false).get()).docs;
+ for(let i=0;i<docs.length;i+=400){const b=db.batch();docs.slice(i,i+400).forEach(d=>b.update(d.ref,{published:true}));await b.commit()}
+ await notify('All pending results validated');go('pub')}
+async function addStat(){await add('stationery',{item:v('si'),price:+v('sp')||0});go('stat')}
+const RESETS=['announcements','results','attendance','fees','expenses','notifications','events','comments','stationery','classes','subjects','biometrics'];
+async function doReset(){
+ if(!TOP.includes(me.role))return alert('Only the Proprietor or Admin can reset data.');
+ const c=v('rc'),cols=c=='all'?RESETS:[c],m=$('#rst_msg');
+ if(c=='all'){if(prompt('This deletes ALL of these records:\n'+RESETS.join(', ')+'\n\nStudent, staff and login accounts are kept.\nType RESET to confirm.')!=='RESET')return}
+ else if(!confirm('Delete ALL records in '+c+'?'))return;
+ m.className='';m.textContent='Resetting...';
+ try{
+  for(const col of cols){
+   const docs=(await db.collection(col).get()).docs;
+   for(let i=0;i<docs.length;i+=400){const b=db.batch();docs.slice(i,i+400).forEach(d=>b.delete(d.ref));await b.commit()}
+  }
+  if(cols.includes('biometrics')){
+   for(const col of ['students','staff']){
+    const docs=(await db.collection(col).where('fpEnrolled','==',true).get()).docs;
+    for(let i=0;i<docs.length;i+=400){const b=db.batch();docs.slice(i,i+400).forEach(d=>b.update(d.ref,{fpEnrolled:false}));await b.commit()}
+   }
+  }
+  m.className='green';m.textContent='Reset done: '+cols.join(', ')+'.';
+ }catch(e){m.className='red';m.textContent='Could not finish: '+(e.code||e.message)+'. Check that your Firestore rules allow admins to delete these collections.'}}
+// ---- Futronic scanner via the local "Biometric Web API" service (webapi.exe on http://localhost:8080) ----
+const FPURL='http://localhost:8080';let FP={t:[]};
+const FPUI=`<p><b>Fingerprint</b> <small>(optional now; can be enrolled later in Take Attendance. Get written consent from the parent or staff member first.)</small></p><button type="button" onclick="fpCapture(0)">👆 Scan finger 1</button> <button type="button" onclick="fpCapture(1)">👆 Scan finger 2</button><br><img id="fp_img0" style="display:none;width:90px;margin:6px"><img id="fp_img1" style="display:none;width:90px;margin:6px"><p id="fp_msg"></p>`;
+const fpErr=e=>e instanceof TypeError?'Cannot reach the fingerprint service. Plug in the scanner, start webapi.exe on this computer, and use Chrome or Edge.':(e.message||'Scan failed');
+async function fpScan(){const j=await(await fetch(FPURL+'/api/scan/single')).json();if(!j.success)throw new Error(j.message||'Scan failed. Place the finger firmly and try again.');return j}
+async function fpCapture(n){
+ const m=$('#fp_msg');m.className='';m.textContent='Place finger '+(n+1)+' on the scanner...';
+ try{const j=await fpScan();FP.t[n]=j.templateBase64;const im=$('#fp_img'+n);im.src=j.imageBase64;im.style.display='inline-block';m.className='green';m.textContent='Finger '+(n+1)+' captured.'}
+ catch(e){m.className='red';m.textContent=fpErr(e)}}
+async function fpSave(uid,kind){const t=FP.t.filter(Boolean);if(!t.length)return;await db.doc('biometrics/'+uid).set({kind,templates:t,at:Date.now(),by:me.uid})}
+async function fpVerify(uid){
+ const b=await db.doc('biometrics/'+uid).get();if(!b.exists)throw new Error('No fingerprint enrolled for this person.');
+ const body=new URLSearchParams();b.data().templates.forEach((t,i)=>body.append('template'+(i+1),t));
+ const j=await(await fetch(FPURL+'/verify_with_template',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body})).json();
+ if(!j.success)throw new Error(j.message||'Verification failed');return !!j.verified}
+async function enrolFP(uid){
+ const p=ROLL.ppl.find(x=>x.id===uid),m=$('#r_msg');FP={t:[]};
+ try{
+  m.className='';m.textContent=p.name+': place finger 1 on the scanner...';FP.t[0]=(await fpScan()).templateBase64;
+  m.textContent='Lift the finger. Now place finger 2 (or the same finger again)...';await new Promise(r=>setTimeout(r,1500));FP.t[1]=(await fpScan()).templateBase64;
+  await fpSave(uid,ROLL.kind);await db.doc((ROLL.kind=='staff'?'staff/':'students/')+uid).update({fpEnrolled:true});
+  p.fp=true;m.className='green';m.textContent='Fingerprint enrolled for '+p.name+'.';drawRoll();
+ }catch(e){m.className='red';m.textContent=fpErr(e)}}
+async function fpCheckMark(uid){
+ const p=ROLL.ppl.find(x=>x.id===uid),m=$('#r_msg'),r0=ROLL.rec[uid];
+ if(r0&&r0.status!='Absent'){m.className='red';m.textContent=p.name+' is already marked '+r0.status+' at '+r0.time+'.';return}
+ m.className='';m.textContent=p.name+': place finger on the scanner...';
+ try{
+  if(!(await fpVerify(uid))){m.className='red';m.textContent='Fingerprint did not match '+p.name+'.';return}
+  const t=new Date().toTimeString().slice(0,5),st=autoStatus(t);await markAtt(uid,st,t);
+  m.className=st=='Absent'?'red':'green';m.textContent=p.name+' verified and marked '+st+' at '+t;drawRoll();
+ }catch(e){m.className='red';m.textContent=fpErr(e)}}
+let ROLL={kind:'student',d:'',ppl:[],rec:{}};
+const nextBio=async()=>{const[a,b]=await Promise.all([list('students'),list('staff')]);return Math.max(0,...[...a,...b].map(x=>parseInt(x.bioId)||0))+1};
+function fillBio(){const e=$('#f_bioId');if(e&&!e.value)nextBio().then(n=>e.value=n).catch(()=>{})}
+async function loadRoll(){
+ const kind=v('r_k')||'student',d=v('r_d')||today(),tc=me.role==='teacher',f=[['date','==',d]];
+ if(tc)f.push(['kind','==','student']);
+ try{
+  const[pp,rc]=await Promise.all([list(kind=='staff'?'staff':'students'),list('attendance',...f)]);
+  ROLL={kind,d,ppl:pp.map(x=>kind=='staff'?{id:x.id,name:x.name,cls:x.position||'',bio:x.bioId,fp:x.fpEnrolled}:{id:x.id,name:(x.surname||'')+' '+(x.firstName||''),cls:x.class||'',bio:x.bioId,fp:x.fpEnrolled}).sort((a,b)=>a.name.localeCompare(b.name)),rec:{}};
+  rc.forEach(r=>ROLL.rec[r.uid]=r);drawRoll();
+ }catch(e){$('#r_list').textContent='Could not load: '+(e.code||e.message)}}
+function drawRoll(){
+ const q=(v('r_f')||'').toLowerCase(),st=ROLL.kind=='student',mg=me.role!=='teacher',n=x=>ROLL.ppl.filter(p=>(ROLL.rec[p.id]||{}).status===x).length;
+ const rows=ROLL.ppl.filter(p=>(p.name+' '+p.cls).toLowerCase().includes(q));
+ $('#r_list').innerHTML=`<p><b>${ROLL.ppl.length}</b> listed · <span class="green">${n('Present')} present</span> · ${n('Late')} late · <span class="red">${n('Absent')} absent</span> · ${ROLL.ppl.length-n('Present')-n('Late')-n('Absent')} not marked</p><button class="g" onclick="markRest()">Mark unmarked as Absent</button>
+ <table><tr><th>Name</th><th>${st?'Class':'Position'}</th><th>Bio ID</th><th>Status</th><th>Time</th><th></th></tr>${rows.map(p=>{const r=ROLL.rec[p.id];return`<tr><td>${esc(p.name)}</td><td>${esc(p.cls)}</td><td>${p.bio?esc(p.bio):(mg?`<input id="bi_${p.id}" style="width:70px;margin:0" placeholder="ID"><button class="g" onclick="setBio('${p.id}')">Set</button>`:'-')}</td><td class="${r?(r.status=='Absent'?'red':'green'):''}">${r?esc(r.status):'-'}</td><td>${r?esc(r.time||''):''}</td><td>${p.fp?`<button onclick="fpCheckMark('${p.id}')">👆 Scan</button> `:(mg?`<button class="g" onclick="enrolFP('${p.id}')">Enrol finger</button> `:'')}<button class="g" onclick="markAtt('${p.id}','Present').then(drawRoll)">Present</button> ${st?`<button class="g" onclick="markAtt('${p.id}','Late').then(drawRoll)">Late</button> `:''}<button class="g" onclick="markAtt('${p.id}','Absent').then(drawRoll)">Absent</button></td></tr>`}).join('')}</table>`}
+async function markAtt(uid,status,time){
+ const p=ROLL.ppl.find(x=>x.id===uid);if(!p)return;
+ const rec={uid,name:p.name,kind:ROLL.kind,date:ROLL.d,time:time||(status=='Absent'?'-':new Date().toTimeString().slice(0,5)),status,fine:ROLL.kind=='staff'&&status=='Absent'?1000:0,markedBy:me.name,by:me.uid,at:Date.now()};
+ try{await db.doc('attendance/'+ROLL.d+'_'+uid).set(rec);ROLL.rec[uid]=rec}catch(e){alert('Could not save: '+(e.code||e.message))}}
+function autoStatus(t){return ROLL.kind=='staff'?(t<='08:00'?'Present':'Absent'):(t<='08:00'?'Present':'Late')}
+async function scanId(id){
+ const m=$('#r_msg');id=String(id).trim();if(!id)return;
+ const p=ROLL.ppl.find(x=>String(x.bio)===id);
+ if(!p){m.className='red';m.textContent='ID '+id+' not found in this list.';return}
+ if(ROLL.rec[p.id]&&ROLL.rec[p.id].status!='Absent'){m.className='red';m.textContent=p.name+' is already marked '+ROLL.rec[p.id].status+' at '+ROLL.rec[p.id].time+'.';return}
+ if($('#r_fp').checked)return fpCheckMark(p.id);
+ const t=new Date().toTimeString().slice(0,5),st=autoStatus(t);
+ await markAtt(p.id,st,t);m.className=st=='Absent'?'red':'green';m.textContent=p.name+' marked '+st+' at '+t;drawRoll()}
+async function importLog(){
+ const first={};let bad=0;
+ v('r_csv').split('\n').forEach(l=>{const m=l.match(/^\s*(\d+)\s*[,;\t ]\s*(?:(\d{4}-\d{2}-\d{2})[ T])?(\d{1,2}):(\d{2})/);if(!m||(m[2]&&m[2]!=ROLL.d)){if(l.trim())bad++;return}
+  const t=m[3].padStart(2,'0')+':'+m[4];if(!first[m[1]]||t<first[m[1]])first[m[1]]=t});
+ let ok=0,miss=0;
+ await Promise.all(Object.entries(first).map(async([id,t])=>{const p=ROLL.ppl.find(x=>String(x.bio)===id);if(!p){miss++;return}
+  if(ROLL.rec[p.id]&&ROLL.rec[p.id].status!='Absent')return;await markAtt(p.id,autoStatus(t),t);ok++}));
+ const m=$('#r_msg');m.className='green';m.textContent=`Imported ${ok}. Unknown IDs: ${miss}. Lines skipped (bad format or other date): ${bad}.`;drawRoll()}
+async function markRest(){
+ const todo=ROLL.ppl.filter(p=>!ROLL.rec[p.id]);
+ if(!todo.length)return alert('Everyone is already marked.');
+ if(!confirm('Mark '+todo.length+' unmarked people as Absent for '+ROLL.d+'?'))return;
+ await Promise.all(todo.map(p=>markAtt(p.id,'Absent','-')));drawRoll()}
+async function setBio(uid){
+ const val=v('bi_'+uid).trim();if(!val)return;
+ if(ROLL.ppl.some(x=>String(x.bio)===val))return alert('That Biometric ID is already used.');
+ try{await db.doc((ROLL.kind=='staff'?'staff/':'students/')+uid).update({bioId:val});ROLL.ppl.find(x=>x.id===uid).bio=val;drawRoll()}catch(e){alert('Could not save: '+(e.code||e.message))}}
+function feeInfo(){const s=FEE.st.find(x=>x.id===v('fee_s')),i=$('#fee_info');if(!s){i.innerHTML='';return}const pd=FEE.paid[s.id]||0,b=(+s.feeDue||0)-pd;i.innerHTML=`Fee due <b>${money(s.feeDue)}</b> · Paid <b>${money(pd)}</b> · Balance <b class="${b>0?'red':'green'}">${money(Math.max(b,0))}</b>`}
+function drawFees(){
+ const q=v('fq').trim().toLowerCase(),a=v('fd1'),b=v('fd2'),day=x=>ld(x.at),hit=n=>(n||'').toLowerCase().includes(q);
+ $('#owTb').innerHTML=FEE.owing.filter(s=>hit(s.surname+' '+s.firstName+' '+s.regNo)).map(s=>`<tr><td>${esc(s.regNo)}</td><td>${esc(s.surname)} ${esc(s.firstName)}</td><td>${esc(s.class)}</td><td>${money(s.feeDue)}</td><td class="red">${money(s.bal)}</td></tr>`).join('')||'<tr><td>No match.</td></tr>';
+ const p=FEE.fs.filter(x=>hit(x.studentName+' '+(x.regNo||''))&&(!a||day(x)>=a)&&(!b||day(x)<=b)),tot=p.reduce((s,x)=>s+(+x.amount||0),0);
+ $('#payCnt').textContent=`(${p.length} found · ${money(tot)})`;
+ $('#payTb').innerHTML=p.slice(0,100).map(x=>`<tr><td>${esc(x.receiptNo||'-')}</td><td>${new Date(x.at).toLocaleDateString()}</td><td>${esc(x.studentName)}</td><td>${esc(x.type)}</td><td>${esc(x.trimester||'')}</td><td>${money(x.amount)}</td><td>${esc(x.method||'')}</td><td>${esc(x.byName)}</td><td><button class="g" onclick="receipt('${x.id}')">Receipt</button>${FULL.includes(me.role)?` <button class="s" onclick="voidFee('${x.id}')">Void</button>`:''}</td></tr>`).join('')||'<tr><td>No payments found.</td></tr>'}
+async function saveFee(){
+ const sid=v('fee_s'),a=+v('fee_a');
+ if(!sid)return alert('Select a student.');
+ if(!(a>0))return alert('Enter a valid amount.');
+ const s=FEE.st.find(x=>x.id===sid),bal=(+s.feeDue||0)-(FEE.paid[sid]||0);
+ if(a>bal&&!confirm('This is more than the balance ('+money(Math.max(bal,0))+'). Record anyway?'))return;
+ const no='RCP-'+today().replace(/-/g,'')+'-'+Math.floor(1000+Math.random()*9000);
+ try{
+  await add('fees',{studentId:sid,studentName:s.surname+' '+s.firstName,regNo:s.regNo||'',session:s.session||'',type:v('fee_t'),trimester:v('fee_tri'),amount:a,method:v('fee_m'),ref:v('fee_r').trim(),receiptNo:no});
+  await notify('Fee recorded: '+money(a)+' from '+s.surname+' '+s.firstName+' ('+v('fee_t')+')');
+  go('fees');
+ }catch(e){alert('Could not save payment: '+(e.code||e.message))}}
+async function voidFee(id){if(!confirm('Void (delete) this payment record?'))return;await db.doc('fees/'+id).delete();await notify('A payment record was voided by '+me.name);go('fees')}
+async function postComment(id){if(!v('cm').trim())return;await add('comments',{studentId:id,text:v('cm').trim()});studentDash(id,'ac')}
+
+// ----- Financial tab actions -----
+function drawFin(){
+ const ss=v('fn_s'),f=FIN.fs.filter(x=>!ss||(x.session||'')==ss),e=FIN.ex.filter(x=>!ss||(x.session||'')==ss),
+ sm=(a,t)=>a.filter(x=>(x.trimester||'')==t).reduce((s,x)=>s+(+x.amount||0),0),
+ known=[...TRIS,'Full session'],rows=known.map(t=>({t,i:sm(f,t),o:sm(e,t)}));
+ const oi=f.filter(x=>!known.includes(x.trimester)).reduce((s,x)=>s+(+x.amount||0),0),oo=e.filter(x=>!known.includes(x.trimester)).reduce((s,x)=>s+(+x.amount||0),0);
+ if(oi||oo)rows.push({t:'Unassigned',i:oi,o:oo});
+ const TI=rows.reduce((s,r)=>s+r.i,0),TO=rows.reduce((s,r)=>s+r.o,0),bc=n=>n<0?'red':'green';
+ $('#fn_sum').innerHTML=`<div class="grid" style="margin:10px 0"><div class="card stat"><span>Total income</span><b class="green">${money(TI)}</b></div><div class="card stat"><span>Total expenses</span><b class="red">${money(TO)}</b></div><div class="card stat"><span>Balance</span><b class="${bc(TI-TO)}">${money(TI-TO)}</b></div></div>
+ <table><tr><th>Trimester</th><th>Income</th><th>Expenses</th><th>Balance</th></tr>${rows.map(r=>`<tr><td>${esc(r.t)}</td><td class="green">${money(r.i)}</td><td class="red">${money(r.o)}</td><td class="${bc(r.i-r.o)}">${money(r.i-r.o)}</td></tr>`).join('')}<tr><td><b>Total</b></td><td><b>${money(TI)}</b></td><td><b>${money(TO)}</b></td><td class="${bc(TI-TO)}"><b>${money(TI-TO)}</b></td></tr></table>
+ <p class="mut">Income comes from recorded fee payments (each payment's trimester). "Full session" payments are shown on their own line.</p>`;
+ $('#exTb').innerHTML=e.map(x=>`<tr><td>${esc(x.date||ld(x.at))}</td><td>${esc(x.trimester||'')}</td><td>${esc(x.category||'')}</td><td>${esc(x.description||'')}</td><td>${money(x.amount)}</td><td>${esc(x.byName||'')}</td><td>${FULL.includes(me.role)?`<button class="s" onclick="voidExp('${x.id}')">Void</button>`:''}</td></tr>`).join('')||'<tr><td>No expenses recorded.</td></tr>'}
+async function saveExpense(){
+ const a=+v('ex_a'),n=v('ex_n').trim();
+ if(!v('ex_d'))return alert('Choose the date.');
+ if(!n)return alert('Enter a description.');
+ if(!(a>0))return alert('Enter a valid amount.');
+ try{
+  await add('expenses',{date:v('ex_d'),trimester:v('ex_t'),category:v('ex_c'),description:n,amount:a,session:v('ex_s').trim()});
+  await notify('Expense recorded: '+money(a)+' ('+v('ex_c')+' - '+n+')');
+  go('fin');
+ }catch(e){alert('Could not save expense: '+(e.code||e.message)+'. Check that your Firestore rules cover the "expenses" collection.')}}
+async function voidExp(id){if(!confirm('Void (delete) this expense record?'))return;await db.doc('expenses/'+id).delete();await notify('An expense record was voided by '+me.name);go('fin')}
+// Download all financial transactions (income + expenses) between two dates as CSV
+async function dlFin(a,b,k){
+ if(!MG.includes(me.role))return alert('Only management can download financial records.');
+ try{
+  const[fs,ex]=await Promise.all([list('fees'),list('expenses')]),inR=d=>(!a||d>=a)&&(!b||d<=b),R=[];
+  if(k!=='out')fs.forEach(x=>{const d=ld(x.at);if(inR(d))R.push({d,t:'Income',ref:x.receiptNo||'',n:(x.studentName||'')+(x.regNo?' ('+x.regNo+')':''),c:x.type||'',tri:x.trimester||'',m:x.method||'',i:+x.amount||0,o:0,by:x.byName||''})});
+  if(k!=='in')ex.forEach(x=>{const d=x.date||ld(x.at);if(inR(d))R.push({d,t:'Expense',ref:'',n:x.description||'',c:x.category||'',tri:x.trimester||'',m:'',i:0,o:+x.amount||0,by:x.byName||''})});
+  if(!R.length)return alert('No transactions found for that period.');
+  R.sort((x,y)=>x.d<y.d?-1:x.d>y.d?1:0);
+  const TI=R.reduce((s,r)=>s+r.i,0),TO=R.reduce((s,r)=>s+r.o,0);
+  saveCSV(`DSIS_financial_${a||'start'}_to_${b||'latest'}.csv`,[
+   ['Princess Jasmine International School - Financial transactions'],['Period',(a||'beginning')+' to '+(b||'latest')],['Downloaded by',me.name],[],
+   ['Date','Type','Receipt / Ref','Student / Description','Category','Trimester','Method','Income (NGN)','Expense (NGN)','Recorded by'],
+   ...R.map(r=>[r.d,r.t,r.ref,r.n,r.c,r.tri,r.m,r.i||'',r.o||'',r.by]),[],
+   ['','','','','','','TOTAL',TI,TO],['','','','','','','BALANCE',TI-TO]]);
+ }catch(e){alert('Could not download: '+(e.code||e.message))}}
+
+// ----- Classes, subjects, events, compute -----
+async function seedClasses(){const b=db.batch();CLASSES.forEach(n=>b.set(db.doc('classes/'+n.replace(/ /g,'_')),{name:n}));await b.commit();go('setup')}
+async function assignTeacher(id){const t=TEACH.find(x=>x.id==v('ct_'+id))||{};await db.doc('classes/'+id).update({teacherId:t.id||'',teacherName:t.name||'',teacherPhone:t.phone||''});alert('Saved')}
+async function addSubj(){const c=v('sj_c'),n=v('sj_n').trim();if(!n)return alert('Enter a subject name.');await db.doc('subjects/'+subId(c,n)).set({class:c,name:n});go('subj')}
+async function delSubj(id){await db.doc('subjects/'+id).delete();go('subj')}
+async function addEvent(){if(!v('ev_n')||!v('ev_d'))return alert('Enter title and date.');await add('events',{type:v('ev_t'),title:v('ev_n'),date:v('ev_d')});go('events')}
+async function delEvent(id){await db.doc('events/'+id).delete();go('events')}
+async function compClass(){const s=await list('subjects',['class','==',v('cp_c')]);s.sort((a,b)=>a.name.localeCompare(b.name));$('#cp_s').innerHTML=s.map(x=>`<option>${esc(x.name)}</option>`).join('')||'<option value="">No subjects (add in template)</option>';loadComp()}
+async function loadComp(){
+ const c=v('cp_c'),t=v('cp_t'),sj=v('cp_s'),o=$('#cp_out');if(!sj){o.innerHTML='<div class="card">No subjects for this class yet. Add them under Subjects Template.</div>';return}
+ const[st,r]=await Promise.all([list('students',['class','==',c]),list('results',['class','==',c],['trimester','==',t],['subject','==',sj])]),m={};
+ st.sort((a,b)=>(a.surname||'').localeCompare(b.surname||''));r.forEach(x=>m[x.studentId]=x);
+ o.innerHTML=`<div class="card"><table><tr><th>Student</th><th>Test /40</th><th>Exam /60</th><th>Total</th><th>Grade</th><th>Status</th></tr>${st.map(s=>{const x=m[s.id]||{};return`<tr><td>${esc(s.surname+' '+s.firstName)}</td><td><input class="cs" data-i="${s.id}" data-k="test" data-n="${esc(s.surname+' '+s.firstName)}" type="number" min="0" max="40" value="${x.test??''}" oninput="rowTot(this)" style="width:80px"></td><td><input class="cs" data-i="${s.id}" data-k="exam" type="number" min="0" max="60" value="${x.exam??''}" oninput="rowTot(this)" style="width:80px"></td><td id="t_${s.id}"></td><td id="g_${s.id}"></td><td>${x.published?'<span class="green">Validated</span>':x.studentId?'Pending':''}</td></tr>`}).join('')||'<tr><td>No students in this class.</td></tr>'}</table><button onclick="saveComp()">Save scores</button> <button class="g" onclick="rank()">Class ranking</button></div><div id="rk"></div>`;
+ st.forEach(s=>rowTot(document.querySelector(`.cs[data-i="${s.id}"]`)))}
+function rowTot(e){if(!e)return;const i=e.dataset.i,q=k=>document.querySelector(`.cs[data-i="${i}"][data-k="${k}"]`).value,a=q('test'),b=q('exam'),T=$('#t_'+i),Gd=$('#g_'+i);if(a===''&&b===''){T.textContent=Gd.textContent='';return}const n=(+a||0)+(+b||0);T.textContent=n;Gd.textContent=grade(n)}
+async function saveComp(){
+ const c=v('cp_c'),t=v('cp_t'),sj=v('cp_s'),b=db.batch(),ids=new Set();
+ document.querySelectorAll('.cs').forEach(e=>ids.add(e.dataset.i));
+ let n=0;
+ for(const i of ids){const q=k=>document.querySelector(`.cs[data-i="${i}"][data-k="${k}"]`),a=q('test').value,x=q('exam').value;if(a===''&&x==='')continue;
+  if(+a<0||+a>40||+x<0||+x>60)return alert('Test must be 0-40 and exam 0-60.');
+  b.set(db.doc('results/'+subId(i,sj+'_'+t)),{studentId:i,studentName:q('test').dataset.n,class:c,subject:sj,trimester:t,test:+a||0,exam:+x||0,published:false,by:me.uid,byName:me.name,at:Date.now()});n++}
+ if(!n)return alert('Nothing to save.');
+ await b.commit();alert(n+' score(s) saved. Management can validate them under "Validate Results".');loadComp()}
+async function rank(){
+ const r=await list('results',['class','==',v('cp_c')],['trimester','==',v('cp_t')]),m={};
+ r.forEach(x=>{const o=m[x.studentId]||(m[x.studentId]={n:x.studentName,t:0,c:0});o.t+=x.test+x.exam;o.c++});
+ const a=Object.values(m).sort((x,y)=>y.t-x.t);
+ $('#rk').innerHTML=`<div class="card"><h3>Class ranking</h3><table><tr><th>Pos</th><th>Student</th><th>Subjects</th><th>Total</th><th>Average</th><th>Grade</th></tr>${a.map((o,i)=>`<tr><td>${i+1}</td><td>${esc(o.n)}</td><td>${o.c}</td><td>${o.t}</td><td>${(o.t/o.c).toFixed(1)}</td><td>${grade(o.t/o.c)}</td></tr>`).join('')||'<tr><td>No scores yet.</td></tr>'}</table></div>`}
+
+// ---------- Student dashboard ----------
+async function studentDash(id,tab){
+ const s=(await db.doc('students/'+id).get()).data()||{},cn=s.class||'';
+ const[r,f,c,cl,sj,ev,an,at]=await Promise.all([list('results',['studentId','==',id],['published','==',true]),list('fees',['studentId','==',id]),list('comments',['studentId','==',id]),list('classes',['name','==',cn]),list('subjects',['class','==',cn]),list('events'),list('announcements',['audience','==','students']),list('attendance',['uid','==',id])]);
+ sj.sort((a,b)=>a.name.localeCompare(b.name));
+ SD={id,s,r,f,c,at,cl:cl[0]||{},sj,ev:ev.sort((a,b)=>a.date>b.date?1:-1).filter(x=>x.date>=today()),an:an.sort((a,b)=>b.at-a.at).slice(0,3)};
+ const T=[['ov','Overview'],['sb','Subjects'],['rs','Results'],['ac','Academic'],['dc','Documents']],
+ paid=f.reduce((a,x)=>a+(+x.amount||0),0),due=+s.feeDue||0,fit=paid>=due,pc=due>0?Math.min(100,Math.round(paid/due*100)):100,
+ avg=r.length?(r.reduce((a,x)=>a+x.test+x.exam,0)/r.length).toFixed(1):'-',
+ att=at.length?Math.round(at.filter(a=>a.status!='Absent').length/at.length*100)+'%':'-',
+ li=(a,k)=>a.length?a.join(''):'<p class="mut">None yet.</p>',
+ item=(k,t,sub,d)=>`<div class="ev" style="--k:${k}"><div>${esc(t)}${sub?`<small>${esc(sub)}</small>`:''}</div><span class="dt">${esc(d)}</span></div>`,
+ nm=((s.firstName||'')+' '+(s.surname||'')).trim();
+ set(`<div class="sd">
+ <div class="card sdp">${s.photo?`<img class="ph" src="${esc(s.photo)}" alt="">`:`<div class="ph" style="display:grid;place-items:center;font-size:56px;margin:0 auto">${esc((s.firstName||'?')[0])}</div>`}
+ <h2>${esc(nm)}</h2><p class="mut">Student ID: ${esc(s.regNo||'-')}</p><p class="mut">${esc(cn||'-')} · ${esc(s.campus||'-')}</p>
+ <div class="trio"><div><span>Average</span><b>${avg}</b><span>${avg=='-'?'':gradeInfo(+avg,1)}</span></div><div><span>Attendance</span><b>${att}</b></div><div><span>Fees</span><b class="${fit?'green':'red'}">${fit?'Fit':'Owing'}</b></div></div>
+ <div class="fb"><small>Fees paid ${pc}%</small><div class="bar"><i style="width:${pc}%"></i></div></div></div>
+ <div class="card sdm"><div class="sdtabs">${T.map(([k,l])=>`<a data-t="${k}" onclick="sdTab('${k}')">${l}</a>`).join('')}</div><div id="sdt"></div></div>
+ <div class="rc"><div class="card"><h4>Upcoming Events</h4>
+ <h5>General announcements</h5>${li(SD.an.map(x=>item('var(--pri)',x.title,'',new Date(x.at).toLocaleDateString())))}
+ <h5>Tests & exams</h5>${li(SD.ev.filter(x=>x.type=='Test/Exam').map(x=>item('var(--acc)',x.title,'',x.date)))}
+ <h5>Holidays</h5>${li(SD.ev.filter(x=>x.type=='Holiday').map(x=>item('var(--gold)',x.title,'',x.date)))}</div>
+ <div class="card"><h4>My Subjects (${sj.length})</h4>${sj.slice(0,6).map(x=>`<div class="sj"><span>${esc(x.name)}</span></div>`).join('')||'<p class="mut">No subjects set for this class yet.</p>'}${sj.length>6?`<p class="mut"><a style="cursor:pointer;color:var(--pri)" onclick="sdTab('sb')">See all ${sj.length}</a></p>`:''}</div></div></div>`);
+ sdTab(tab||'ov')}
+const ring=(p,t,sub)=>`<svg width="96" height="96" viewBox="0 0 96 96"><circle cx="48" cy="48" r="40" fill="none" stroke="var(--bd)" stroke-width="8"/><circle cx="48" cy="48" r="40" fill="none" stroke="var(--gold)" stroke-width="8" stroke-linecap="round" stroke-dasharray="${(p*2.513).toFixed(1)} 251.3" transform="rotate(-90 48 48)"/><text x="48" y="51" text-anchor="middle" font-size="18" font-weight="700" fill="var(--tx)">${t}</text><text x="48" y="66" text-anchor="middle" font-size="9" fill="var(--mut)">${sub}</text></svg>`;
+function sdTab(k){
+ const{id,s,r,f,c,at,cl,sj}=SD,paid=f.reduce((a,x)=>a+(+x.amount||0),0),due=+s.feeDue||0,fit=paid>=due,
+ here=at.filter(a=>a.status!='Absent').length,ap=at.length?Math.round(here/at.length*100):0;
+ document.querySelectorAll('[data-t]').forEach(b=>b.classList.toggle('on',b.dataset.t==k));
+ const acSum=`<div class="card"><h4>Academic Summary</h4><div class="sum"><p>Current Class: <b>${esc(s.class||'-')}</b><br>Academic Year: <b>${esc(s.session||'-')}</b><br>Class Teacher: <b>${esc(cl.teacherName||'Not assigned')}</b><br>Class Teacher's Contact: <b>${esc(cl.teacherPhone||'-')}</b></p>${ring(ap,at.length?ap+'%':'-','Attendance')}</div></div>`;
+ const H={
+ ov:`<div class="card"><h4>About</h4><p>${esc(s.about||'No story added yet.')}</p>${MG.includes(me.role)||me.uid==id?`<textarea id="ab" rows="3" placeholder="Write a short story about the student and their ambitions">${esc(s.about||'')}</textarea><button onclick="saveAbout()">Save</button>`:''}</div>
+ ${acSum}
+ <div class="card"><h4>Contact Info</h4><p style="line-height:1.9;margin:0">School E-mail: <b>${esc(SCHOOL.email)}</b><br>Phone: <b>${esc(SCHOOL.phone)}</b><br>Location: <b>${esc(SCHOOL.loc[s.campus]||s.campus||'-')}</b></p></div>`,
+ sb:`<div class="card"><h4>Subjects - ${esc(s.class||'')}</h4><table><tr><th>Subject</th><th>Latest total</th><th>Grade</th></tr>${sj.map(x=>{const l=r.filter(y=>y.subject==x.name).sort((a,b)=>TRIS.indexOf(b.trimester)-TRIS.indexOf(a.trimester))[0],n=l?l.test+l.exam:null;return`<tr><td>${esc(x.name)}</td><td>${n==null?'-':n}</td><td>${n==null?'-':grade(n)}</td></tr>`}).join('')||'<tr><td>No subjects set for this class yet.</td></tr>'}</table></div>`,
+ rs:TRIS.map(t=>{const l=r.filter(x=>x.trimester==t);if(!l.length)return'';const tot=l.reduce((a,x)=>a+x.test+x.exam,0);return`<div class="card"><h4>${t} <small>(Total ${tot} · Avg ${(tot/l.length).toFixed(1)} · ${gradeInfo(tot/l.length)})</small></h4><table><tr><th>Subject</th><th>Test</th><th>Exam</th><th>Total</th><th>Grade</th></tr>${l.map(x=>{const n=x.test+x.exam;return`<tr><td>${esc(x.subject)}</td><td>${x.test}</td><td>${x.exam}</td><td class="${n<50?'red':'green'}">${n}</td><td>${grade(n)}</td></tr>`}).join('')}</table></div>`}).join('')||'<div class="card">Results not yet released.</div>',
+ ac:acSum+`<div class="card"><h4>Attendance</h4><p>Days attended <b>${here}/${at.length}</b></p></div><div class="card"><h4>Fees</h4><p>Paid <b>${money(paid)}</b> · Balance <b>${money(Math.max(due-paid,0))}</b> · Status <b class="${fit?'green':'red'}">${fit?'Fit':'Owing'}</b></p></div><div class="card"><h4>Comments</h4>${c.map(x=>`<p><b>${esc(x.byName)}</b>: ${esc(x.text)}</p>`).join('')}<input id="cm" placeholder="Write a comment"><button onclick="postComment('${id}')">Post</button></div>`,
+ dc:`<div class="card"><h4>Payment Receipts</h4><table>${f.map(x=>`<tr><td>${new Date(x.at).toLocaleDateString()}</td><td>${esc(x.type)}</td><td>${money(x.amount)}</td><td><button class="g" onclick="receipt('${x.id}')">Print</button></td></tr>`).join('')||'<tr><td>No receipts.</td></tr>'}</table></div><div class="card"><h4>Result Slips</h4>${TRIS.filter(t=>r.some(x=>x.trimester==t)).map(t=>`<button class="g" onclick="slip('${t}')">${t}</button> `).join('')||'No released results yet.'}</div>`};
+ $('#sdt').innerHTML=H[k]}
+async function saveAbout(){const t=v('ab').trim();await db.doc('students/'+SD.id).update({about:t});SD.s.about=t;sdTab('ov')}
+function slip(t){const l=SD.r.filter(x=>x.trimester==t),s=SD.s,w=window.open('');if(!w)return alert('Allow pop-ups.');
+ w.document.write(`<body style="font-family:Arial;padding:30px;max-width:700px"><img src="${esc(new URL(LOGO_URL,location.href).href)}" width=80><h2>Result Slip - ${esc(t)}</h2><p>${esc(s.surname)} ${esc(s.firstName)} · ${esc(s.regNo)} · ${esc(s.class)} · ${esc(s.session||'')}</p><table border=1 cellpadding=6 style="border-collapse:collapse;width:100%"><tr><th>Subject</th><th>Test</th><th>Exam</th><th>Total</th><th>Grade</th></tr>${l.map(x=>`<tr><td>${esc(x.subject)}</td><td>${x.test}</td><td>${x.exam}</td><td>${x.test+x.exam}</td><td>${grade(x.test+x.exam)}</td></tr>`).join('')}</table><script>print()<\/script>`)}
+async function receipt(id){
+ const f=(await db.doc('fees/'+id).get()).data(),s=(await db.doc('students/'+f.studentId).get()).data()||{};
+ const w=window.open('');if(!w)return alert('Allow pop-ups to print the receipt.');
+ w.document.write(`<body style="font-family:Arial;padding:30px;max-width:600px"><img src="${esc(new URL(LOGO_URL,location.href).href)}" width=80>${s.photo?`<img src="${esc(s.photo)}" width=90 style="float:right">`:''}<h2>Payment Receipt</h2><p><b>No:</b> ${esc(f.receiptNo||'-')}<br><b>Date:</b> ${new Date(f.at).toLocaleString()}</p><p>${esc(s.surname)} ${esc(s.firstName)} (${esc(s.regNo)})</p><p>${esc(f.type)}${f.trimester?' - '+esc(f.trimester):''}<br><b>Amount: ${money(f.amount)}</b><br>Method: ${esc(f.method||'-')}${f.ref?' · Ref: '+esc(f.ref):''}</p><p>Received by: ${esc(f.byName||'')}</p><script>print()<\/script>`)}
+
+// ===================== FIXES =====================
+// 1. Show errors instead of an endless "Loading..."
+function go(k){document.querySelectorAll('aside a').forEach(a=>a.classList.toggle('on',a.dataset.k==k));side.classList.remove('open');
+ const a=document.querySelector(`aside a[data-k="${k}"]`);ttl.textContent=a?a.textContent:'';mainEl.innerHTML='<div class="card">Loading...</div>';window.scrollTo(0,0);
+ Promise.resolve().then(()=>V[k]()).then(fillBio).catch(e=>{console.error('View failed:',k,e);mainEl.innerHTML='<div class="card"><b class="red">Could not load this page.</b><p>'+esc(e.code||e.message||e)+'</p><p class="mut">If this says permission-denied, publish the latest Firestore rules and check the role in users/UID.</p></div>'})}
+
+// 2. CSV: keep negative balances as numbers
+function saveCSV(name,rows){const c=x=>{let s=String(x??'');if(typeof x!=='number'&&/^[=+\-@\t\r]/.test(s))s="'"+s;return'"'+s.replace(/"/g,'""')+'"'};
+ const b=new Blob(['\ufeff'+rows.map(r=>r.map(c).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),3000)}
+
+// 3. Validate button and subject delete (✕) safe with apostrophes
+V.pub=async function(){
+ const r=await list('results',['published','==',false]);
+ set(`<div class="card"><h3>Results awaiting validation</h3><table><tr><th>Student</th><th>Class</th><th>Subject</th><th>Trimester</th><th>Total</th><th></th></tr>${r.map(x=>`<tr><td>${esc(x.studentName)}</td><td>${esc(x.class||'')}</td><td>${esc(x.subject)}</td><td>${esc(x.trimester)}</td><td>${x.test+x.exam}</td><td><button data-id="${esc(x.id)}" onclick="publish(this.dataset.id)">Validate</button></td></tr>`).join('')||'<tr><td>Nothing waiting.</td></tr>'}</table>${r.length?'<button class="s" onclick="publishAll()">Validate all</button>':''}</div>`)};
+V.subj=async function(){
+ const s=await list('subjects');
+ set(`<div class="card"><h3>Subject Template (per class)</h3><select id="sj_c">${opts(CLASSES)}</select><input id="sj_n" placeholder="Subject e.g. Mathematics"><button onclick="addSubj()">Add subject</button>
+ <p><small>Scoring: Test 40 + Exam 60 = 100. Grades: A 70+, B 60+, C 50+, D 40+, F below 40.</small></p></div>`+
+ CLASSES.map(c=>{const l=s.filter(x=>x.class==c);return l.length?`<div class="card"><b>${c}</b><br>${l.map(x=>`<span class="tag" style="background:var(--acc);display:inline-block;margin:3px">${esc(x.name)} <a data-id="${esc(x.id)}" onclick="delSubj(this.dataset.id)" style="cursor:pointer">✕</a></span>`).join('')}</div>`:''}).join(''))};
+
+// 4. Hide the "admin" role unless the user is Proprietor/Admin
+{const o=V.staffreg;V.staffreg=function(){o();if(!TOP.includes(me.role)){const s=document.getElementById('f_role');if(s)[...s.options].forEach(x=>{if(x.value==='admin'||x.text==='admin')x.remove()})}}}
+
+// 5. Staff username validation
+async function addStaff(){
+ const g=G(),m=$('#rmsg');
+ if(!g.name||!g.username||!g.password||!g.role){m.textContent='Enter name, username, password, and role.';return}
+ if(g.password.length<6){m.textContent='Password must be at least 6 characters.';return}
+ if(!/^[a-z0-9._-]{3,30}$/i.test(g.username)){m.textContent='Username must be 3-30 letters, numbers, dot, dash or underscore (no spaces or @).';return}
+ try{
+  const uid=await mkUser(g.username,g.password,{role:g.role,name:g.name},g.email);
+  delete g.password;
+  await db.doc('staff/'+uid).set({...g,staffId:g.username,salary:+g.salary||0,photo,fpEnrolled:FP.t.filter(Boolean).length>0});await fpSave(uid,'staff');
+  m.innerHTML='Staff account created successfully.'+(g.email?' A password link was emailed to '+esc(g.email)+'.':'')+(g.email?aliasNote(g.email,mkUser.last):'');
+ }catch(e){console.error(e);m.textContent='Could not create staff: '+(e.code||e.message)}}
+
+// 6. Teacher attendance limited to the teacher's own class
+async function loadRoll(){
+ const kind=v('r_k')||'student',d=v('r_d')||today(),tc=me.role==='teacher',f=[['date','==',d]];
+ if(tc)f.push(['kind','==','student']);
+ try{
+  const own=tc?(await list('classes',['teacherId','==',me.uid])).map(x=>x.name):[];
+  const[pp0,rc]=await Promise.all([list(kind=='staff'?'staff':'students'),list('attendance',...f)]);
+  const pp=own.length&&kind=='student'?pp0.filter(x=>own.includes(x.class)):pp0;
+  ROLL={kind,d,ppl:pp.map(x=>kind=='staff'?{id:x.id,name:x.name,cls:x.position||'',bio:x.bioId,fp:x.fpEnrolled}:{id:x.id,name:(x.surname||'')+' '+(x.firstName||''),cls:x.class||'',bio:x.bioId,fp:x.fpEnrolled}).sort((a,b)=>a.name.localeCompare(b.name)),rec:{}};
+  rc.forEach(r=>ROLL.rec[r.uid]=r);drawRoll();
+ }catch(e){$('#r_list').textContent='Could not load: '+(e.code||e.message)}}
+// ===================== END FIXES =====================
+
+// ===================== UPDATE 2 =====================
+const NOPAY=['chairman','administrator'],ATT=['proprietor','admin','principal'],DEL=FULL;
+RESETS.push('requisitions');
+
+// Menus: Chairman/Administrator lose both attendance items; everyone in management gets Requisitions
+MENU.chairman=MENU.administrator=MENU.principal.filter(i=>!/^(roll|attend):/.test(i)).concat(['staffreg:Staff & Roles','stat:Stationery']);
+[MENU.principal,MENU.proprietor,MENU.chairman].forEach(m=>{const i=m.findIndex(x=>x.startsWith('fin:'));m.splice(i+1,0,'req:Requisitions')});
+
+// Guards: only Proprietor/Admin/Principal take attendance; teachers take their students only
+{const o=V.roll;V.roll=async function(){if(me.role!=='teacher'&&!ATT.includes(me.role))return set('<div class="card">Only the Proprietor, Admin or Principal can take attendance.</div>');return o()}}
+async function saveAbout(){if(!MG.includes(me.role))return;const t=v('ab').trim();await db.doc('students/'+SD.id).update({about:t});SD.s.about=t;sdTab('ov')}
+async function saveStaffAbout(){
+ if(!ATT.includes(me.role))return;
+ const t=v('sab').trim(),m=$('#sab_m');
+ try{await db.doc('staff/'+me.uid).set({about:t},{merge:true});STF.s.about=t;stTab('ab');const x=$('#sab_m');x.className='green';x.textContent='Saved.'}
+ catch(e){m.className='red';m.textContent='Could not save: '+(e.code||e.message)}}
+
+// Staff dashboard: hide Present/Absent/Fines, Attendance tab, Pay summary (Chairman/Administrator) and Save button (everyone except Proprietor/Admin/Principal)
+{const o=V.dash;V.dash=async function(){await o();if(me.role=='student')return;
+ if(NOPAY.includes(me.role)){const t=document.querySelector('.sdp .trio');if(t)t.remove();const a=document.querySelector('.sdtabs [data-t=at]');if(a)a.remove()}}}
+{const o=stTab;stTab=function(k){
+ if(NOPAY.includes(me.role)&&k=='at')k='ov';
+ o(k);
+ if(NOPAY.includes(me.role))document.querySelectorAll('#sdt .card h4').forEach(h=>{if(h.textContent=='Pay summary')h.closest('.card').remove()});
+ if(!ATT.includes(me.role)){const ta=$('#sab');if(ta){ta.nextElementSibling.remove();const m=$('#sab_m');if(m)m.remove();ta.remove()}}
+}}
+
+// ---------- Delete students / staff ----------
+async function delPerson(kind,id){
+ if(!DEL.includes(me.role))return alert('You are not allowed to delete accounts.');
+ if(id===me.uid)return alert('You cannot delete your own account.');
+ const col=kind=='staff'?'staff':'students',[d,u]=await Promise.all([db.doc(col+'/'+id).get(),db.doc('users/'+id).get()]),x=d.data()||{},ux=u.data()||{},
+ nm=x.name||((x.surname||'')+' '+(x.firstName||'')).trim()||'this person';
+ if(['proprietor','admin'].includes(ux.role)&&!TOP.includes(me.role))return alert('Only the Proprietor or Admin can delete this account.');
+ if(prompt('Delete '+nm+'?\nThis removes the profile, fingerprint and login access. Payment and attendance records are kept.\nType DELETE to confirm.')!=='DELETE')return;
+ try{
+  const b=db.batch(),un=ux.username||x.username||x.staffId;
+  [col+'/'+id,'users/'+id,'biometrics/'+id].forEach(p=>b.delete(db.doc(p)));
+  if(un)b.delete(db.doc('usernames/'+String(un).toLowerCase()));
+  await b.commit();await notify(nm+' ('+kind+') was deleted by '+me.name);go(kind=='staff'?'staffreg':'mgmt');
+ }catch(e){alert('Could not delete: '+(e.code||e.message))}}
+V.mgmt=async function(){
+ const[s,t,n]=await Promise.all([list('students'),list('staff'),list('attendance',['date','==',today()])]),can=DEL.includes(me.role),att=ATT.includes(me.role);
+ set(`<div class="grid"><div class="card stat"><span>Students</span><b>${s.length}</b></div><div class="card stat"><span>Staff</span><b>${t.length}</b></div>${att?`<div class="card stat"><span>Staff present today</span><b class="green">${n.filter(x=>x.status=='Present'&&x.kind=='staff').length}</b></div>`:''}</div>
+ <div class="card"><h3>Students</h3><table><tr><th>ID</th><th>Name</th><th>Class</th><th>Campus</th><th></th></tr>${s.map(x=>`<tr><td>${esc(x.regNo)}</td><td>${esc(x.surname)} ${esc(x.firstName)}</td><td>${esc(x.class)}</td><td>${esc(x.campus)}</td><td><button class="g" data-id="${esc(x.id)}" onclick="studentDash(this.dataset.id)">Open</button>${can?` <button class="s" data-id="${esc(x.id)}" onclick="delPerson('student',this.dataset.id)">Delete</button>`:''}</td></tr>`).join('')}</table></div>`)};
+{const o=V.staffreg;V.staffreg=async function(){o();
+ const s=(await list('staff')).sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+ mainEl.insertAdjacentHTML('beforeend',`<div class="card"><h3>All staff (${s.length})</h3><table><tr><th>Name</th><th>ID</th><th>Role</th><th>Position</th><th>Campus</th><th></th></tr>${s.map(x=>`<tr><td>${esc(x.name)}</td><td>${esc(x.staffId||'')}</td><td>${esc(RL[x.role]||x.role||'')}</td><td>${esc(x.position||'')}</td><td>${esc(x.campus||'')}</td><td>${DEL.includes(me.role)&&x.id!==me.uid?`<button class="s" data-id="${esc(x.id)}" onclick="delPerson('staff',this.dataset.id)">Delete</button>`:''}</td></tr>`).join('')}</table></div>`)}}
+
+// ---------- Requisitions ----------
+let REQ=[];const RQC={Pending:'#f5b700',Approved:'#1c3f94',Paid:'#12a150',Rejected:'#e5313d'};
+function reqRow(){const d=document.createElement('div');d.className='row rq';d.innerHTML='<input class="rd" placeholder="Item / description"><input class="rq_q" type="number" min="1" value="1" placeholder="Qty"><input class="rq_p" type="number" min="0" placeholder="Unit cost (₦)">';d.oninput=reqTot;$('#rq_items').appendChild(d)}
+function reqTot(){let t=0;document.querySelectorAll('.rq').forEach(r=>t+=(+r.querySelector('.rq_q').value||0)*(+r.querySelector('.rq_p').value||0));$('#rq_tot').textContent=money(t);return t}
+V.req=async function(){
+ if(!MG.includes(me.role))return;
+ REQ=(await list('requisitions')).sort((a,b)=>b.at-a.at);
+ const fin=FULL.includes(me.role),pend=REQ.filter(x=>x.status=='Pending').length;
+ set(`<div class="grid"><div class="card stat"><span>Pending approval</span><b>${pend}</b></div><div class="card stat"><span>Approved, unpaid</span><b>${money(REQ.filter(x=>x.status=='Approved').reduce((s,x)=>s+x.total,0))}</b></div><div class="card stat"><span>Paid out</span><b class="green">${money(REQ.filter(x=>x.status=='Paid').reduce((s,x)=>s+x.total,0))}</b></div></div>
+ <div class="card"><h3>New Requisition</h3><div class="row"><input id="rq_d" type="date" value="${today()}"><input id="rq_dep" placeholder="Department / unit"><select id="rq_cam"><option>Ediam</option><option>Ikot Oso</option></select></div>
+ <div class="row"><select id="rq_cat">${opts(EXP_CATS)}</select><select id="rq_tri">${opts([...TRIS,'Full session'])}</select><input id="rq_ses" placeholder="Session e.g. 2026/2027"><select id="rq_urg"><option>Normal</option><option>Urgent</option></select></div>
+ <textarea id="rq_pur" rows="2" placeholder="Purpose / justification"></textarea>
+ <p><b>Items</b></p><div id="rq_items"></div><button type="button" class="g" onclick="reqRow()">+ Add item</button>
+ <p>Total: <b id="rq_tot">₦0</b></p><button onclick="saveReq()">Submit requisition</button></div>
+ <div class="card"><h3>Requisitions</h3><table><tr><th>No</th><th>Date</th><th>Category</th><th>Purpose</th><th>Total</th><th>By</th><th>Status</th><th></th></tr>${REQ.map(x=>{const i=`data-id="${esc(x.id)}"`;return`<tr><td>${esc(x.no)}</td><td>${esc(x.date)}</td><td>${esc(x.category)}</td><td>${esc((x.purpose||'').slice(0,40))}</td><td>${money(x.total)}</td><td>${esc(x.byName)}</td><td><span class="tag" style="background:${RQC[x.status]||'#888'}">${esc(x.status)}</span></td><td><button class="g" ${i} onclick="reqPrint(this.dataset.id)">Print</button>${fin&&x.status=='Pending'?` <button ${i} onclick="reqAct(this.dataset.id,'Approved')">Approve</button> <button class="s" ${i} onclick="reqAct(this.dataset.id,'Rejected')">Reject</button>`:''}${fin&&x.status=='Approved'?` <button ${i} onclick="reqAct(this.dataset.id,'Paid')">Mark paid</button>`:''}${fin&&x.status!='Paid'?` <button class="s" ${i} onclick="reqAct(this.dataset.id,'Void')">Void</button>`:''}</td></tr>`}).join('')||'<tr><td>No requisitions yet.</td></tr>'}</table>
+ <p class="mut">Marking a requisition as Paid automatically records it as an expense in the Financial tab.</p></div>`);
+ reqRow()};
+async function saveReq(){
+ const items=[...document.querySelectorAll('.rq')].map(r=>({d:r.querySelector('.rd').value.trim(),q:+r.querySelector('.rq_q').value||0,p:+r.querySelector('.rq_p').value||0})).filter(i=>i.d&&i.q>0&&i.p>0);
+ if(!items.length)return alert('Add at least one item with quantity and unit cost.');
+ if(!v('rq_pur').trim())return alert('State the purpose of the requisition.');
+ const total=items.reduce((s,i)=>s+i.q*i.p,0),no='REQ-'+today().replace(/-/g,'')+'-'+Math.floor(1000+Math.random()*9000);
+ try{await add('requisitions',{no,date:v('rq_d'),dept:v('rq_dep').trim(),campus:v('rq_cam'),category:v('rq_cat'),trimester:v('rq_tri'),session:v('rq_ses').trim(),urgency:v('rq_urg'),purpose:v('rq_pur').trim(),items,total,status:'Pending'});
+  await notify('New requisition '+no+' ('+money(total)+') by '+me.name);go('req')}
+ catch(e){alert('Could not submit: '+(e.code||e.message))}}
+async function reqAct(id,a){
+ if(!FULL.includes(me.role))return;
+ const r=REQ.find(x=>x.id===id);if(!r)return;
+ try{
+  if(a=='Void'){if(!confirm('Void (delete) '+r.no+'?'))return;await db.doc('requisitions/'+id).delete();await notify(r.no+' voided by '+me.name);return go('req')}
+  if(a=='Paid'){if(!confirm('Release '+money(r.total)+' and record it as an expense?'))return;
+   await add('expenses',{date:today(),trimester:r.trimester,category:r.category,description:r.no+': '+r.purpose,amount:r.total,session:r.session||'',reqId:id})}
+  await db.doc('requisitions/'+id).update({status:a,actBy:me.name,actAt:Date.now()});
+  await notify(r.no+' '+a.toLowerCase()+' by '+me.name);go('req');
+ }catch(e){alert('Action failed: '+(e.code||e.message))}}
+function reqPrint(id){
+ const r=REQ.find(x=>x.id===id),w=window.open('');if(!w)return alert('Allow pop-ups.');
+ w.document.write(`<body style="font-family:Arial;padding:30px;max-width:700px"><img src="${esc(new URL(LOGO_URL,location.href).href)}" width=70><h2>Expense Requisition</h2><p><b>No:</b> ${esc(r.no)} · <b>Date:</b> ${esc(r.date)} · <b>Status:</b> ${esc(r.status)}<br><b>Department:</b> ${esc(r.dept||'-')} · <b>Campus:</b> ${esc(r.campus||'-')}<br><b>Category:</b> ${esc(r.category)} · ${esc(r.trimester)} ${esc(r.session||'')} · <b>Priority:</b> ${esc(r.urgency)}</p><p><b>Purpose:</b> ${esc(r.purpose)}</p><table border=1 cellpadding=6 style="border-collapse:collapse;width:100%"><tr><th>Item</th><th>Qty</th><th>Unit cost</th><th>Amount</th></tr>${r.items.map(i=>`<tr><td>${esc(i.d)}</td><td>${i.q}</td><td>${money(i.p)}</td><td>${money(i.q*i.p)}</td></tr>`).join('')}<tr><td colspan=3><b>Total</b></td><td><b>${money(r.total)}</b></td></tr></table><p>Requested by: ${esc(r.byName)}</p><br><p>Approved by: ______________ Date: ________<br><br>Received by: ______________ Date: ________</p><script>print()<\/script>`)}
+
+// ---- CSS + student About (read-only for students), added here so the original needs no other edits ----
+{const st=document.createElement('style');st.textContent='.top button,button.g{background:var(--gold);color:#10213f;border:0}.top button:hover,button.g:hover{filter:brightness(1.1)}.just{text-align:justify;line-height:1.75}';document.head.appendChild(st)}
+{const o=sdTab;sdTab=function(k){o(k);if(k=='ov'){const t=document.querySelector('#sdt .card p');if(t)t.classList.add('just');if(!MG.includes(me.role)){const a=document.getElementById('ab');if(a){a.nextElementSibling.remove();a.remove()}}}}}
+// ===================== END UPDATE 2 =====================
+
+// ===================== UPDATE 3 =====================
+// Paste this whole block right AFTER the line: END UPDATE 2 marker (inside the main script)
+const BUILT=Object.keys(RL);
+let CUSTOM=[],MYSUBJ=null,MSG={th:'',name:'',all:[],pp:[]};
+const LV={std:'Standard staff',mgt:'Management (like Principal)',top:'Senior management (like Chairman)'};
+const PAGES=[['dash','Dashboard'],['news','Announcements'],['msg','Messages'],['acct','My Account'],['attend','Attendance (clock-in)'],['roll','Take Attendance'],['fees','Fees & Payments'],['fin','Financial'],['req','Requisitions'],['stat','Stationery'],['comp','Compute Results'],['mgmt','Overview'],['events','Events Calendar'],['notes','Notifications']];
+const SAFE=['dash','news','msg','acct','attend','fees'];
+
+{const st=document.createElement('style');st.textContent='.just{text-align:justify;line-height:1.75;white-space:pre-line}';document.head.appendChild(st)}
+
+// ---------- Menus: Roles tab (Proprietor/Admin/Chairman/Administrator) + Messages tab (everyone) ----------
+[MENU.proprietor,MENU.chairman].forEach(m=>{const i=m.findIndex(x=>x.startsWith('staffreg:'));if(i>=0)m.splice(i+1,0,'roles:Roles')});
+[...new Set(Object.values(MENU))].forEach(m=>{const i=m.findIndex(x=>x.startsWith('news:'));m.splice(i+1,0,'msg:Messages')});
+
+// ---------- Settings + custom roles are loaded before the menu is built ----------
+async function loadSettings(){try{const d=await db.doc('settings/school').get();if(d.exists){const x=d.data();if(x.email)SCHOOL.email=x.email;if(x.phone)SCHOOL.phone=x.phone;if(x.loc)SCHOOL.loc={...SCHOOL.loc,...x.loc}}}catch(e){console.warn('settings',e.code)}}
+function applyRole(r){
+ const id=r.id;[MG,FULL,ATT].forEach(a=>{const i=a.indexOf(id);if(i>=0)a.splice(i,1)});
+ RL[id]=r.label;
+ let pg=r.pages||[];if(r.level!='mgt'&&r.level!='top')pg=pg.filter(k=>SAFE.includes(k));
+ MENU[id]=pg.map(k=>k+':'+(PAGES.find(p=>p[0]==k)||[0,k])[1]);
+ if(!MENU[id].length)MENU[id]=['dash:My Dashboard','acct:My Account'];
+ if(r.level=='mgt'){MG.push(id);ATT.push(id)}
+ if(r.level=='top'){MG.push(id);FULL.push(id)}}
+async function loadRoles(){try{CUSTOM=await list('roles');CUSTOM.forEach(applyRole)}catch(e){console.warn('roles',e.code)}}
+{const o=enter;enter=async function(u){await Promise.all([loadRoles(),loadSettings()]);return o(u)}}
+
+// ---------- 1. Comments show date and time ----------
+async function postComment(id){if(!v('cm').trim())return;await add('comments',{studentId:id,text:v('cm').trim(),role:me.role});studentDash(id,'ac')}
+function drawComments(){
+ const h=[...document.querySelectorAll('#sdt .card h4')].find(x=>x.textContent=='Comments');if(!h)return;
+ h.closest('.card').innerHTML='<h4>Comments</h4>'+(SD.c.slice().sort((a,b)=>a.at-b.at).map(x=>`<p><b>${esc(x.byName)}</b> <small class="mut">${esc(x.role=='student'?'Parent/Student':(RL[x.role]||''))} · ${new Date(x.at).toLocaleString()}</small><br>${esc(x.text)}</p>`).join('')||'<p class="mut">No comments yet.</p>')+`<input id="cm" placeholder="Write a comment"><button data-id="${esc(SD.id)}" onclick="postComment(this.dataset.id)">Post</button>`}
+
+// ---------- 5. Contact info editable by management only ----------
+function contactCard(){
+ const h=[...document.querySelectorAll('#sdt .card h4')].find(x=>x.textContent=='Contact Info');if(!h)return;
+ const s=SD.s,can=MG.includes(me.role);
+ h.closest('.card').innerHTML=`<h4>Contact Info</h4><p style="line-height:1.9;margin:0">School E-mail: <b>${esc(SCHOOL.email)}</b><br>Phone: <b>${esc(SCHOOL.phone)}</b><br>Location: <b>${esc(SCHOOL.loc[s.campus]||s.campus||'-')}</b></p>`+
+ (can?`<details style="margin-top:10px"><summary>Edit contact info (management only)</summary><input id="ci_e" value="${esc(SCHOOL.email)}" placeholder="School email"><input id="ci_p" value="${esc(SCHOOL.phone)}" placeholder="Phone"><input id="ci_1" value="${esc(SCHOOL.loc['Ediam']||'')}" placeholder="Ediam campus location"><input id="ci_2" value="${esc(SCHOOL.loc['Ikot Oso']||'')}" placeholder="Ikot Oso campus location"><button onclick="saveContact()">Save contact info</button></details>`:'')}
+async function saveContact(){
+ if(!MG.includes(me.role))return;
+ const d={email:v('ci_e').trim(),phone:v('ci_p').trim(),loc:{'Ediam':v('ci_1').trim(),'Ikot Oso':v('ci_2').trim()}};
+ try{await db.doc('settings/school').set(d);SCHOOL.email=d.email;SCHOOL.phone=d.phone;SCHOOL.loc=d.loc;contactCard()}
+ catch(e){alert('Could not save: '+(e.code||e.message))}}
+{const o=sdTab;sdTab=function(k){o(k);if(k=='ov')contactCard();if(k=='ac')drawComments()}}
+
+// ---------- 2. Fingerprint: stays enabled; Logout now locks instead of wiping the session ----------
+async function enableBio(){
+ const m=$('#bmsg');m.className='red';
+ if(!bioOK()){m.textContent='This browser/device does not support fingerprint sign-in.';return}
+ try{
+  if(!(await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable())){m.textContent='No fingerprint or screen-lock biometric is set up on this device.';return}
+  const c=await navigator.credentials.create({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),rp:{name:'Princess Jasmine Portal'},user:{id:new TextEncoder().encode(me.uid),name:me.username||me.name,displayName:me.name},pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],authenticatorSelection:{authenticatorAttachment:'platform',userVerification:'required'},timeout:60000}});
+  bioSet(me.uid,b64(c.rawId));
+  if(!bioGet(me.uid)){m.textContent='Your browser blocked saving the fingerprint setting (private mode or blocked storage). Open the portal in a normal Chrome/Safari tab using the GitHub Pages link and try again.';return}
+  $('#lockBtn').style.display='inline';V.acct();
+  const x=$('#bmsg');if(x){x.className='green';x.textContent='Fingerprint enabled. Tap Lock (or Logout) when you leave, then use "Sign in with Fingerprint".'}
+ }catch(e){m.textContent='Could not enable fingerprint ('+(e.name||e.message)+'). If the portal is opened inside Apps Script, the browser may block it; use the GitHub Pages link.'}}
+function logoutBtn(){if(me&&bioGet(me.uid))lock();else auth.signOut()}
+{const b=document.querySelector('.top button[onclick="auth.signOut()"]');if(b)b.setAttribute('onclick','logoutBtn()')}
+{const o=V.acct;V.acct=function(){o();if(me&&bioGet(me.uid))mainEl.insertAdjacentHTML('beforeend','<div class="card"><p class="mut">Logout keeps you signed in but locked, so your fingerprint still works. To fully sign out of this device:</p><button class="g" onclick="auth.signOut()">Sign out completely</button></div>')}}
+
+// ---------- 3. Teachers only compute results for subjects assigned to them ----------
+{const o=V.subj;V.subj=async function(){await o();
+ const[s,t]=await Promise.all([list('subjects'),list('staff',['role','==','teacher'])]);TEACH=t;
+ s.sort((a,b)=>CLASSES.indexOf(a.class)-CLASSES.indexOf(b.class)||a.name.localeCompare(b.name));
+ mainEl.insertAdjacentHTML('beforeend',`<div class="card"><h3>Subject Teachers</h3><p class="mut">Assign a teacher to each subject. A teacher with assigned subjects can only enter results for those subjects.</p><table><tr><th>Class</th><th>Subject</th><th>Teacher</th><th></th></tr>${s.map(x=>`<tr><td>${esc(x.class)}</td><td>${esc(x.name)}</td><td><select id="st_${esc(x.id)}" style="min-width:180px"><option value="">-- none --</option>${t.map(u=>`<option value="${esc(u.id)}" ${u.id==x.teacherId?'selected':''}>${esc(u.name)}</option>`).join('')}</select></td><td><button data-id="${esc(x.id)}" onclick="assignSubj(this.dataset.id)">Save</button></td></tr>`).join('')||'<tr><td>No subjects yet.</td></tr>'}</table></div>`)}}
+async function assignSubj(id){const t=TEACH.find(x=>x.id==v('st_'+id))||{};try{await db.doc('subjects/'+id).update({teacherId:t.id||'',teacherName:t.name||''});alert('Saved')}catch(e){alert('Could not save: '+(e.code||e.message))}}
+V.comp=async function(){
+ let cl=CLASSES;MYSUBJ=null;
+ if(me.role=='teacher'){
+  const[sj,own]=await Promise.all([list('subjects',['teacherId','==',me.uid]),list('classes',['teacherId','==',me.uid])]);
+  if(sj.length){MYSUBJ=sj.map(x=>x.id);cl=CLASSES.filter(c=>sj.some(x=>x.class==c))}
+  else if(own.length)cl=own.map(x=>x.name);
+ }
+ set(`<div class="card"><h3>Compute Results</h3>${MYSUBJ?'<p class="mut">You can only enter results for the subjects assigned to you.</p>':''}<div class="row"><select id="cp_c" onchange="compClass()">${opts(cl)}</select><select id="cp_t" onchange="loadComp()">${opts(TRIS)}</select><select id="cp_s" onchange="loadComp()"></select></div></div><div id="cp_out"></div>`);compClass()};
+async function compClass(){
+ let s=await list('subjects',['class','==',v('cp_c')]);
+ if(MYSUBJ)s=s.filter(x=>MYSUBJ.includes(x.id));
+ s.sort((a,b)=>a.name.localeCompare(b.name));
+ $('#cp_s').innerHTML=s.map(x=>`<option>${esc(x.name)}</option>`).join('')||'<option value="">No subjects available</option>';loadComp()}
+{const o=saveComp;saveComp=async function(){
+ if(MYSUBJ&&!MYSUBJ.includes(subId(v('cp_c'),v('cp_s'))))return alert('You are not assigned to this subject.');
+ return o()}}
+
+// ---------- 4. Direct messages: management <-> individual student/staff ----------
+const mbub=x=>`<div style="margin:8px 0;padding:10px 12px;border-radius:12px;background:${x.mgmt?'var(--bg)':'transparent'};border:1px solid var(--bd);border-left:3px solid ${x.mgmt?'var(--gold)':'var(--acc)'}"><b>${esc(x.byName)}</b> <small class="mut">${esc(x.mgmt?'School management':'Reply')} · ${new Date(x.at).toLocaleString()}</small><p class="just" style="margin:6px 0 0">${esc(x.text)}</p></div>`;
+function drawThread(){
+ const el=$('#mg_th');if(!el)return;
+ const l=MSG.all.filter(x=>x.thread==MSG.th);
+ el.innerHTML=MSG.th?(l.map(mbub).join('')||'<p class="mut">No messages yet. Write the first one below.</p>'):'<p class="mut">Choose a person or open a conversation.</p>'}
+function msgFilter(){const q=v('mg_q').toLowerCase();$('#mg_to').innerHTML='<option value="">-- choose person --</option>'+MSG.pp.filter(p=>(p.n+' '+p.k).toLowerCase().includes(q)||p.id==MSG.th).map(p=>`<option value="${esc(p.id)}" ${p.id==MSG.th?'selected':''}>${esc(p.n)} (${p.k})</option>`).join('')}
+function msgPick(id){MSG.th=id;const p=MSG.pp.find(x=>x.id==id);MSG.name=p?p.n:'';msgFilter();drawThread();window.scrollTo(0,0)}
+V.msg=async function(){
+ const mg=MG.includes(me.role);
+ MSG.all=(await list('messages',...(mg?[]:[['thread','==',me.uid]]))).sort((a,b)=>a.at-b.at);
+ if(!mg){MSG.th=me.uid;MSG.name=me.name;
+  set(`<div class="card"><h3>Messages with the school management</h3><div id="mg_th"></div><textarea id="mg_t" rows="3" placeholder="Write a reply to the management"></textarea><button onclick="sendMsg()">Send reply</button></div>`);return drawThread()}
+ const[s,t]=await Promise.all([list('students'),list('staff')]);
+ MSG.pp=[...t.filter(x=>x.id!==me.uid).map(x=>({id:x.id,n:x.name||'',k:'Staff'})),...s.map(x=>({id:x.id,n:((x.surname||'')+' '+(x.firstName||'')).trim(),k:'Student'}))].sort((a,b)=>a.n.localeCompare(b.n));
+ if(!MSG.pp.some(p=>p.id==MSG.th))MSG.th='';
+ const th={};MSG.all.forEach(x=>th[x.thread]=x);
+ const inbox=Object.values(th).sort((a,b)=>b.at-a.at);
+ set(`<div class="card"><h3>Send / reply to a message</h3><input id="mg_q" placeholder="🔍 Filter people by name" oninput="msgFilter()"><select id="mg_to" onchange="msgPick(this.value)"></select><div id="mg_th"></div><textarea id="mg_t" rows="3" placeholder="Write a message"></textarea><button onclick="sendMsg()">Send</button></div>
+ <div class="card"><h3>Conversations</h3>${inbox.map(x=>`<div class="ev" style="--k:${x.mgmt?'var(--gold)':'var(--acc)'}"><div><b>${esc(x.threadName||'')}</b><small>${esc(x.byName)}: ${esc((x.text||'').slice(0,60))}</small></div><span class="dt">${new Date(x.at).toLocaleString()}</span><button class="g" data-id="${esc(x.thread)}" onclick="msgPick(this.dataset.id)">Open</button></div>`).join('')||'<p class="mut">No conversations yet.</p>'}</div>`);
+ msgFilter();drawThread()};
+async function sendMsg(){
+ const t=v('mg_t').trim(),mg=MG.includes(me.role);
+ if(!MSG.th)return alert('Choose who to message.');
+ if(!t)return alert('Write a message first.');
+ try{
+  await add('messages',{thread:MSG.th,threadName:MSG.name,text:t,fromRole:me.role,mgmt:mg});
+  if(!mg)await notify('New message reply from '+me.name);
+  go('msg');
+ }catch(e){alert('Could not send: '+(e.code||e.message))}}
+
+// ---------- 6. Roles tab: add / edit custom roles, change a staff member's role ----------
+V.roles=async function(){
+ if(!FULL.includes(me.role))return set('<div class="card">You are not allowed to manage roles.</div>');
+ const[st]=await Promise.all([list('staff'),loadRoles()]);
+ st.sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+ const ks=cur=>{const k=Object.keys(RL).filter(x=>x!='student'&&(TOP.includes(me.role)||!TOP.includes(x)));if(cur&&!k.includes(cur))k.push(cur);return k.map(x=>`<option value="${esc(x)}" ${x==cur?'selected':''}>${esc(RL[x]||x)}</option>`).join('')};
+ set(`<div class="card"><h3>Add / Edit Role</h3><input id="rl_k" placeholder="Role ID: lowercase letters only e.g. viceprincipal"><input id="rl_n" placeholder="Role name e.g. Vice Principal"><select id="rl_l"><option value="std">${LV.std} (limited pages)</option><option value="mgt">${LV.mgt}</option><option value="top">${LV.top} (can void and delete)</option></select>
+ <p><b>Pages this role can open</b> <small class="mut">(Standard staff can only get: Dashboard, Announcements, Messages, My Account, Attendance clock-in, Fees)</small></p>
+ <div class="row">${PAGES.map(([k,l])=>`<label style="min-width:190px"><input type="checkbox" class="rl_p" value="${k}" style="width:auto;margin-right:6px">${l}</label>`).join('')}</div><button onclick="saveRole()">Save role</button><p id="rl_m" class="red"></p></div>
+ <div class="card"><h3>Custom roles</h3><table><tr><th>Name</th><th>ID</th><th>Level</th><th>Pages</th><th></th></tr>${CUSTOM.map(r=>`<tr><td>${esc(r.label)}</td><td>${esc(r.id)}</td><td>${esc(LV[r.level]||'')}</td><td>${(r.pages||[]).length}</td><td><button class="g" data-id="${esc(r.id)}" onclick="editRole(this.dataset.id)">Edit</button> <button class="s" data-id="${esc(r.id)}" onclick="delRole(this.dataset.id)">Delete</button></td></tr>`).join('')||'<tr><td>No custom roles yet.</td></tr>'}</table></div>
+ <div class="card"><h3>Built-in roles</h3><p class="mut">${Object.keys(RL).filter(k=>!CUSTOM.some(c=>c.id==k)).map(k=>esc(RL[k])).join(' · ')}</p></div>
+ <div class="card"><h3>Change a staff member's role</h3><table><tr><th>Name</th><th>ID</th><th>Role</th><th></th></tr>${st.map(x=>`<tr><td>${esc(x.name)}</td><td>${esc(x.staffId||'')}</td><td><select id="sr_${esc(x.id)}">${ks(x.role)}</select></td><td><button data-id="${esc(x.id)}" onclick="setStaffRole(this.dataset.id)">Save</button></td></tr>`).join('')||'<tr><td>No staff yet.</td></tr>'}</table><p class="mut">A changed role applies the next time that person signs in.</p></div>`)};
+async function saveRole(){
+ const id=v('rl_k').trim().toLowerCase(),label=v('rl_n').trim(),m=$('#rl_m');m.className='red';
+ if(!/^[a-z]{3,20}$/.test(id)){m.textContent='Role ID must be 3-20 lowercase letters.';return}
+ if(BUILT.includes(id)){m.textContent='That ID belongs to a built-in role. Choose another.';return}
+ if(!label){m.textContent='Enter a role name.';return}
+ const r={label,level:v('rl_l'),pages:[...document.querySelectorAll('.rl_p:checked')].map(x=>x.value),by:me.name,at:Date.now()};
+ try{await db.doc('roles/'+id).set(r);applyRole({id,...r});go('roles')}catch(e){m.textContent='Could not save: '+(e.code||e.message)}}
+function editRole(id){const r=CUSTOM.find(x=>x.id==id);if(!r)return;$('#rl_k').value=id;$('#rl_k').readOnly=true;$('#rl_n').value=r.label;$('#rl_l').value=r.level||'std';document.querySelectorAll('.rl_p').forEach(c=>c.checked=(r.pages||[]).includes(c.value));window.scrollTo(0,0)}
+async function delRole(id){
+ if(!confirm('Delete this role? Staff who have it will fall back to a basic staff menu until you give them another role.'))return;
+ try{await db.doc('roles/'+id).delete();delete MENU[id];delete RL[id];[MG,FULL,ATT].forEach(a=>{const i=a.indexOf(id);if(i>=0)a.splice(i,1)});go('roles')}catch(e){alert('Could not delete: '+(e.code||e.message))}}
+async function setStaffRole(id){
+ const r=v('sr_'+id);
+ if(id===me.uid)return alert('You cannot change your own role.');
+ if(TOP.includes(r)&&!TOP.includes(me.role))return alert('Only the Proprietor or Admin can give this role.');
+ try{
+  const cur=(await db.doc('users/'+id).get()).data()||{};
+  if(TOP.includes(cur.role)&&!TOP.includes(me.role))return alert('Only the Proprietor or Admin can change this account.');
+  await db.doc('users/'+id).update({role:r});await db.doc('staff/'+id).set({role:r},{merge:true});
+  await notify('Role changed to '+(RL[r]||r)+' by '+me.name);alert('Role updated. It applies the next time they sign in.');
+ }catch(e){alert('Could not update: '+(e.code||e.message))}}
+
+// ---------- 7. Announcements always justified ----------
+{const o=V.news;V.news=async function(){await o();document.querySelectorAll('#main .card p').forEach(p=>p.classList.add('just'))}}
+
+// ---------- 8. Chairman / Administrator: read-only overview of attendance, income, expenses, balance ----------
+{const o=V.mgmt;V.mgmt=async function(){await o();
+ if(!['chairman','administrator'].includes(me.role))return;
+ const[s,t,a,fs,ex]=await Promise.all([list('students'),list('staff'),list('attendance',['date','==',today()]),list('fees'),list('expenses')]);
+ const cnt=(k,st)=>a.filter(x=>x.kind==k&&x.status==st).length,mk=k=>a.filter(x=>x.kind==k).length,
+ sum=l=>l.reduce((z,x)=>z+(+x.amount||0),0),I=sum(fs),E=sum(ex),mon=today().slice(0,7),
+ Im=sum(fs.filter(x=>ld(x.at).slice(0,7)==mon)),Em=sum(ex.filter(x=>(x.date||ld(x.at)).slice(0,7)==mon)),
+ bc=n=>n<0?'red':'green',kn=[...TRIS,'Full session'],
+ rows=kn.map(k=>({t:k,i:sum(fs.filter(x=>x.trimester==k)),o:sum(ex.filter(x=>x.trimester==k))}));
+ const ui=I-rows.reduce((z,r)=>z+r.i,0),uo=E-rows.reduce((z,r)=>z+r.o,0);if(ui||uo)rows.push({t:'Unassigned',i:ui,o:uo});
+ const st=(l,x,c)=>`<div class="card stat"><span>${l}</span><b class="${c||''}">${x}</b></div>`;
+ mainEl.insertAdjacentHTML('afterbegin',`<div class="card"><h3>Attendance today (${today()})</h3><h5 class="mut">Staff (${t.length})</h5><div class="grid">${st('Present',cnt('staff','Present'),'green')}${st('Absent',cnt('staff','Absent'),'red')}${st('Not marked',t.length-mk('staff'))}</div>
+ <h5 class="mut">Students (${s.length})</h5><div class="grid">${st('Present',cnt('student','Present'),'green')}${st('Late',cnt('student','Late'))}${st('Absent',cnt('student','Absent'),'red')}${st('Not marked',s.length-mk('student'))}</div></div>
+ <div class="card"><h3>Income, Expenses & Balance</h3><div class="grid">${st('Total income',money(I),'green')}${st('Total expenses',money(E),'red')}${st('Balance',money(I-E),bc(I-E))}${st('This month balance',money(Im-Em),bc(Im-Em))}</div>
+ <table><tr><th>Trimester</th><th>Income</th><th>Expenses</th><th>Balance</th></tr>${rows.map(r=>`<tr><td>${esc(r.t)}</td><td class="green">${money(r.i)}</td><td class="red">${money(r.o)}</td><td class="${bc(r.i-r.o)}">${money(r.i-r.o)}</td></tr>`).join('')}</table><p class="mut">Read-only summary.</p></div>`)}}
+// ===================== END UPDATE 3 =====================
+
+// ===================== UPDATE 4 =====================
+
+// ---------- Styling (classic, elegant) ----------
+{const st=document.createElement('style');st.textContent=`
+h2,h3,h4,.sdp h2{font-family:Georgia,'Times New Roman',serif}
+.card{box-shadow:0 2px 10px rgba(16,33,63,.06);transition:box-shadow .2s}.card:hover{box-shadow:0 6px 18px rgba(16,33,63,.12)}
+main h3{padding-bottom:6px;margin-top:0;border-bottom:2px solid var(--gold);display:inline-block}
+tr:nth-child(even) td{background:rgba(127,140,170,.07)}
+.nw{border-left:4px solid var(--gold)}.nw>b{font-family:Georgia,serif;font-size:17px}
+.bdg{background:var(--bad);color:#fff;border-radius:10px;font-size:11px;padding:1px 6px;margin-left:2px}
+.rd{font-size:11px;color:var(--mut)}.rd.ok{color:var(--ok);font-weight:600}
+.pban{display:flex;gap:18px;align-items:center;flex-wrap:wrap;padding:22px;border-radius:16px;margin-bottom:12px;background:transparent;border:1px solid var(--bd);color:var(--tx)}
+.pban .ph{width:110px;height:110px;border-radius:50%;object-fit:cover;border:4px solid var(--gold)}
+.pban h2{margin:0 0 6px;color:var(--tx)}.pban .ch{display:inline-block;background:var(--bg);border-radius:20px;padding:3px 12px;font-size:12px;margin:2px 4px 2px 0}
+.pbtn{display:inline-block;margin-top:12px;padding:8px 14px;border-radius:10px;background:var(--gold);color:#10213f;font-weight:600;cursor:pointer;font-size:13px}
+#sdt table{max-height:380px;overflow:auto}#sdt th,.tt th{position:sticky;top:0;background:var(--card);z-index:1}
+.key{margin-top:12px;font-size:13px;line-height:1.9}
+.tt td,.tt th{border:1px solid var(--bd);text-align:center;font-size:12px}.tt input{width:92px;padding:5px;margin:0;font-size:12px}.tt .brk{background:var(--gold);color:#10213f;font-weight:700}`;
+document.head.appendChild(st)}
+
+// ---------- Menus: Class Lists, School Time Table; Chairman profile first ----------
+PAGES.push(['cls','Class Lists'],['tt','School Time Table']);SAFE.push('tt');
+[...new Set([MENU.principal,MENU.proprietor,MENU.chairman,MENU.teacher])].forEach(m=>m.splice(Math.max(0,m.findIndex(x=>x.startsWith('news:'))),0,'cls:Class Lists'));
+[...new Set(Object.values(MENU))].forEach(m=>m.splice(m.findIndex(x=>x.startsWith('msg:'))+1,0,'tt:School Time Table'));
+{const m=MENU.chairman,i=m.findIndex(x=>x.startsWith('dash:'));if(i>0)m.unshift(...m.splice(i,1))}
+
+// ---------- Grading key (new scale) ----------
+const KEY=[['A','90.00 - 100.00','Excellent'],['B','80.00 - 89.99','Very Good'],['C','70.00 - 79.99','Good'],['D','60.00 - 69.99','Fairly Good'],['E','50.00 - 59.99','Pass'],['F','0.00 - 49.99','Fail']];
+{const o=V.subj;V.subj=async function(){await o();document.querySelectorAll('#main small').forEach(x=>{if(x.textContent.startsWith('Scoring'))x.textContent='Scoring: Test 40 + Exam 60 = 100. Grades: A 90+, B 80+, C 70+, D 60+, E 50+, F below 50.'})}}
+
+// ---------- Profile photo (after registration) ----------
+function setPhoto(kind,id,inp){const f=inp.files[0];if(!f)return;const im=new Image();
+ im.onload=async()=>{const c=document.createElement('canvas');c.width=c.height=240;const m=Math.min(im.width,im.height);c.getContext('2d').drawImage(im,(im.width-m)/2,(im.height-m)/2,m,m,0,0,240,240);
+  try{const ref=db.doc((kind=='staff'?'staff/':'students/')+id),d={photo:c.toDataURL('image/jpeg',.8)};await(kind=='staff'?ref.set(d,{merge:true}):ref.update(d));kind=='staff'?go('dash'):studentDash(id,'pf')}catch(e){alert('Could not save photo: '+(e.code||e.message))}};
+ im.src=URL.createObjectURL(f)}
+const photoBtn=(k,id)=>!TOP.includes(me.role)?'':`<label class="pbtn">📷 Change photo<input type="file" accept="image/*" hidden onchange="setPhoto('${k}','${esc(id)}',this)"></label>`;
+{const o=stTab;stTab=function(k){o(k);if(k!='ov')return;const s=STF.s||{},nm=s.name||me.name||'';
+ $('#sdt').insertAdjacentHTML('afterbegin',`<div class="pban">${s.photo?`<img class="ph" src="${esc(s.photo)}" alt="">`:`<div class="ph" style="display:grid;place-items:center;font-size:44px;background:var(--bd)">${esc((nm||'?')[0])}</div>`}<div><h2>${esc(nm)}</h2><span class="ch">${esc(s.position||RL[me.role]||me.role)}</span><span class="ch">${esc(s.staffId||me.username||'')}</span><span class="ch">${esc(s.campus||'')}</span><br>${photoBtn('staff',me.uid)}</div></div>`)}}
+
+// ---------- Student Profile tab + record editing ----------
+const EF=[['surname','Surname'],['firstName','First name'],['middleName','Middle name'],['gender','Gender','Male,Female'],['dob','Date of birth','date'],['pob','Place of birth'],['nationality','Nationality'],['state','State of origin'],['lga','LGA'],['address','Residential address'],['phone','Phone'],['email','Student email'],['indigene','Status','Indigene,Non-Indigene'],['level','Section','Creche,Nursery,Primary,Junior High School,Senior High School'],['class','Class',CLASSES.join(',')],['session','Session'],['campus','Campus','Ediam,Ikot Oso'],['boarding','Boarding?','Day,Boarding'],['father','Father name'],['fatherPhone','Father phone'],['mother','Mother name'],['motherPhone','Mother phone'],['guardianEmail','Parent email'],['emName','Emergency contact'],['emPhone','Emergency phone'],['blood','Blood group'],['genotype','Genotype'],['allergies','Allergies'],['feeDue','Total fees due (₦)','number']];
+function profHTML(){
+ const s=SD.s,nm=((s.firstName||'')+' '+(s.middleName||'')+' '+(s.surname||'')).replace(/\s+/g,' ').trim(),
+ g=(t,i,a)=>`<div class="card"><h4>${i} ${t}</h4><div class="pf">${a.map(([k,l])=>`<div><span>${l}</span><b>${esc((k=='feeDue'?money(s[k]):s[k])||'-')}</b></div>`).join('')}</div></div>`;
+ return `<div class="pban">${s.photo?`<img class="ph" src="${esc(s.photo)}" alt="">`:`<div class="ph" style="display:grid;place-items:center;font-size:44px;background:var(--bd)">${esc((s.firstName||'?')[0])}</div>`}<div><h2>${esc(nm)}</h2><span class="ch">${esc(s.regNo||'')}</span><span class="ch">${esc(s.class||'')}</span><span class="ch">${esc(s.campus||'')}</span><span class="ch">${esc(s.session||'')}</span>${MG.includes(me.role)?'<br><button class="g" style="margin-top:8px" onclick="editRec()">✏ Edit student record</button>':''}</div></div>`+
+ g('Personal Information','👤',EF.slice(0,13))+g('School Details','🎓',[['regNo','Student ID'],...EF.slice(13,18),EF[28]])+g('Parent / Guardian','👪',EF.slice(18,23))+g('Emergency Contact','☎',EF.slice(23,25))+g('Health Information','🩺',EF.slice(25,28))+`<div class="card"><h4>📖 About</h4><p class="just">${esc(s.about||'No story added yet.')}</p></div>`}
+function editRec(){
+ if(!MG.includes(me.role))return;const s=SD.s;
+ $('#sdt').innerHTML=`<div class="card"><h4>Edit student record</h4><p class="mut">Corrections update the profile. Existing results stay under the class they were computed for.</p><div class="pf">${EF.map(([k,l,o])=>`<div><span>${l}</span>${o&&o!='date'&&o!='number'?`<select id="e_${k}"><option value=""></option>${o.split(',').map(x=>`<option ${x==s[k]?'selected':''}>${x}</option>`).join('')}</select>`:`<input id="e_${k}" type="${o||'text'}" value="${esc(s[k]??'')}">`}</div>`).join('')}</div><br><button onclick="saveRec()">Save changes</button> <button class="g" onclick="sdTab('pf')">Cancel</button><p id="e_m" class="red"></p></div>`}
+async function saveRec(){
+ const d={};EF.forEach(([k,,o])=>{const x=v('e_'+k).trim();d[k]=o=='number'?(+x||0):x});
+ if(!d.surname||!d.firstName){$('#e_m').textContent='Surname and first name are required.';return}
+ try{await db.doc('students/'+SD.id).update(d);Object.assign(SD.s,d);await notify('Student record updated: '+d.firstName+' '+d.surname+' by '+me.name);studentDash(SD.id,'pf')}
+ catch(e){$('#e_m').textContent='Could not save: '+(e.code||e.message)}}
+{const o=sdTab;sdTab=function(k){
+ if(k=='pf'){document.querySelectorAll('[data-t]').forEach(b=>b.classList.toggle('on',b.dataset.t=='pf'));$('#sdt').innerHTML=profHTML();return}
+ o(k)}}
+{const o=studentDash;studentDash=async function(id,tab){await o(id,tab);
+ const t=document.querySelector('.sdtabs a[data-t=ov]');if(t)t.insertAdjacentHTML('afterend','<a data-t="pf" onclick="sdTab(\'pf\')">Profile</a>');
+ const p=document.querySelector('.sdp');if(p&&(MG.includes(me.role)||me.uid==id))p.insertAdjacentHTML('beforeend',photoBtn('student',id));
+ if(tab=='pf')sdTab('pf')}}
+
+// ---------- Class lists ----------
+V.cls=async function(){
+ let cl=CLASSES;
+ if(me.role=='teacher'){const o=(await list('classes',['teacherId','==',me.uid])).map(x=>x.name);if(o.length)cl=o}
+ set(`<div class="card"><h3>Class Lists</h3><select id="cl_c" onchange="drawCls()">${opts(cl)}</select></div><div id="cl_out"></div>`);drawCls()};
+async function drawCls(){
+ const c=v('cl_c'),[s0,k]=await Promise.all([list('students',['class','==',c]),list('classes',['name','==',c])]),s=s0.sort((a,b)=>(a.surname||'').localeCompare(b.surname||'')),
+ M=s.filter(x=>x.gender=='Male').length,W=s.filter(x=>x.gender=='Female').length,t=(k[0]||{}).teacherName;
+ $('#cl_out').innerHTML=`<div class="grid"><div class="card stat"><span>Population</span><b>${s.length}</b></div><div class="card stat"><span>Male</span><b>${M}</b></div><div class="card stat"><span>Female</span><b>${W}</b></div><div class="card stat"><span>Class teacher</span><b style="font-size:16px">${esc(t||'Not assigned')}</b></div></div>
+ <div class="card"><h3>${esc(c)} - Students</h3><table><tr><th>#</th><th></th><th>Name</th><th>Student ID</th><th>Gender</th><th>Campus</th><th></th></tr>${s.map((x,i)=>`<tr><td>${i+1}</td><td>${x.photo?`<img src="${esc(x.photo)}" style="width:34px;height:34px;border-radius:50%;object-fit:cover;vertical-align:middle">`:'👤'}</td><td><b>${esc(x.surname)}</b> ${esc(x.firstName)} ${esc(x.middleName||'')}</td><td>${esc(x.regNo)}</td><td>${esc(x.gender||'-')}</td><td>${esc(x.campus||'')}</td><td>${MG.includes(me.role)?`<button class="g" data-id="${esc(x.id)}" onclick="studentDash(this.dataset.id)">Open</button>`:''}</td></tr>`).join('')||'<tr><td>No students in this class.</td></tr>'}</table></div>`}
+
+// ---------- Notifications + read status (messages and announcements) ----------
+let BN=0;
+async function badge(){
+ if(!me)return;const mg=MG.includes(me.role);let n=0;
+ try{
+  n=(await list('messages',...(mg?[['mgmt','==',false]]:[['thread','==',me.uid]]))).filter(x=>!x.read&&!!x.mgmt!=mg).length;
+  if(!mg){const[a,r]=await Promise.all([list('announcements',['audience','==',me.role=='student'?'students':'staff']),list('annReads',['uid','==',me.uid])]),seen=new Set(r.map(x=>x.annId));n+=a.filter(x=>!seen.has(x.id)).length}
+ }catch(e){console.warn('badge',e.code)}
+ BN=n;const b=$('#bell');if(b){b.innerHTML='🔔'+(n?`<sup class="bdg">${n}</sup>`:'');b.title=n?n+' new':'Nothing new'}}
+function bellGo(){go(!MG.includes(me.role)||BN?'msg':'notes')}
+{const o=enter;enter=async function(u){await o(u);if(!auth.currentUser||!me)return;const b=$('#bell');b.style.display='inline';b.setAttribute('onclick','bellGo()');badge();clearInterval(window.__bt);window.__bt=setInterval(badge,60000)}}
+{const o=go;go=function(k){o(k);badge()}}
+const markRead=async ids=>{if(!ids.length)return;const b=db.batch();ids.forEach(i=>b.update(db.doc('messages/'+i),{read:true,readAt:Date.now()}));try{await b.commit()}catch(e){console.warn(e.code)}};
+function readThread(){const mg=MG.includes(me.role),u=MSG.all.filter(x=>x.thread==MSG.th&&!x.read&&!!x.mgmt!=mg);if(!u.length)return;u.forEach(x=>{x.read=true;x.readAt=Date.now()});markRead(u.map(x=>x.id)).then(badge)}
+function drawThread(){
+ const el=$('#mg_th');if(!el)return;const mg=MG.includes(me.role),l=MSG.all.filter(x=>x.thread==MSG.th);
+ el.innerHTML=MSG.th?(l.map(x=>`<div style="margin:8px 0;padding:10px 14px;border-radius:12px;background:${x.mgmt?'var(--bg)':'transparent'};border:1px solid var(--bd);border-left:3px solid ${x.mgmt?'var(--gold)':'var(--acc)'}"><b>${esc(x.byName)}</b> <small class="mut">${x.mgmt?'School management':'Reply'} · ${new Date(x.at).toLocaleString()}</small><p class="just" style="margin:6px 0">${esc(x.text)}</p>${!!x.mgmt==mg?`<span class="rd ${x.read?'ok':''}">${x.read?'✓✓ Read '+new Date(x.readAt).toLocaleString():'✓ Sent · not yet read'}</span>`:''}</div>`).join('')||'<p class="mut">No messages yet. Write the first one below.</p>'):'<p class="mut">Choose a person or open a conversation.</p>'}
+{const o=V.msg;V.msg=async function(){await o();readThread()}}
+{const o=msgPick;msgPick=function(id){o(id);readThread()}}
+async function sendMsg(){
+ const t=v('mg_t').trim(),mg=MG.includes(me.role);
+ if(!MSG.th)return alert('Choose who to message.');if(!t)return alert('Write a message first.');
+ try{await add('messages',{thread:MSG.th,threadName:MSG.name,text:t,fromRole:me.role,mgmt:mg,read:false});if(!mg)await notify('New message reply from '+me.name);go('msg')}
+ catch(e){alert('Could not send: '+(e.code||e.message))}}
+V.news=async function(){
+ const mg=MG.includes(me.role),aud=me.role=='student'?'students':'staff',a=(await list('announcements',...(mg?[]:[['audience','==',aud]]))).sort((x,y)=>y.at-x.at);
+ let rd=[],tot={},fresh=new Set();
+ if(mg){const[r,s,t]=await Promise.all([list('annReads'),list('students'),list('staff')]);rd=r;tot={students:s.length,staff:t.length}}
+ else{const r=await list('annReads',['uid','==',me.uid]),seen=new Set(r.map(x=>x.annId)),nw=a.filter(x=>!seen.has(x.id));nw.forEach(x=>fresh.add(x.id));
+  if(nw.length){const b=db.batch();nw.forEach(x=>b.set(db.doc('annReads/'+x.id+'_'+me.uid),{annId:x.id,uid:me.uid,name:me.name,role:me.role,at:Date.now()}));try{await b.commit();badge()}catch(e){console.warn(e.code)}}}
+ set((mg?`<div class="card"><h3>Post Announcement</h3><select id="aud"><option value="students">Students</option><option value="staff">Teachers & Staff</option></select><input id="ann_t" placeholder="Title"><textarea id="ann_b" rows="4" placeholder="Message"></textarea><button onclick="postNews()">Publish</button></div>`:'')+
+ (a.map(x=>{const rs=rd.filter(r=>r.annId==x.id);return`<div class="card nw"><b>${esc(x.title)}</b> <span class="tag" style="background:var(--acc)">${esc(x.audience)}</span> ${fresh.has(x.id)?'<span class="tag" style="background:var(--ok)">NEW</span>':''}<p class="just">${esc(x.body)}</p><small class="mut">${esc(x.byName)} · ${new Date(x.at).toLocaleString()}</small>${mg?`<details style="margin-top:8px"><summary class="rd ok">👁 Seen by ${rs.length} of ${tot[x.audience]||0}</summary>${rs.map(r=>`<div class="rd">✓ ${esc(r.name)} · ${new Date(r.at).toLocaleString()}</div>`).join('')||'<div class="rd">Nobody yet.</div>'}</details>`:''}</div>`}).join('')||'<div class="card">No announcements yet.</div>'))};
+
+// ---------- Validate results: owing students blocked; correct results after computing ----------
+async function owingMap(){
+ const[st,fs]=await Promise.all([list('students'),list('fees')]),p={},o={};
+ fs.forEach(x=>p[x.studentId]=(p[x.studentId]||0)+(+x.amount||0));
+ st.forEach(s=>{const b=(+s.feeDue||0)-(p[s.id]||0);if(b>0)o[s.id]=b});return o}
+let VR=[];
+V.pub=async function(){
+ const[r,ow,vr]=await Promise.all([list('results',['published','==',false]),owingMap(),list('results',['published','==',true])]);VR=vr;
+ const ok=r.filter(x=>!ow[x.studentId]).length;
+ set(`<div class="card"><h3>Results awaiting validation</h3><p class="mut">Results of students who owe fees cannot be validated until the balance is cleared.</p><table><tr><th>Student</th><th>Class</th><th>Subject</th><th>Trimester</th><th>Total</th><th>Fees</th><th></th></tr>${r.map(x=>`<tr><td>${esc(x.studentName)}</td><td>${esc(x.class||'')}</td><td>${esc(x.subject)}</td><td>${esc(x.trimester)}</td><td>${x.test+x.exam}</td><td>${ow[x.studentId]?`<span class="tag" style="background:var(--bad)">Owing ${money(ow[x.studentId])}</span>`:'<span class="green">Cleared</span>'}</td><td>${ow[x.studentId]?'':`<button data-id="${esc(x.id)}" onclick="publish(this.dataset.id)">Validate</button>`}</td></tr>`).join('')||'<tr><td>Nothing waiting.</td></tr>'}</table>${ok?`<button class="s" onclick="publishAll()">Validate all cleared (${ok})</button>`:''}</div>
+ <div class="card"><h3>Validated results - correct or recall</h3><input id="pv_q" placeholder="🔍 Search student, class or subject" oninput="drawVR()"><table><tr><th>Student</th><th>Class</th><th>Subject</th><th>Trimester</th><th>Test</th><th>Exam</th><th>Total</th><th></th></tr><tbody id="vrTb"></tbody></table></div>`);drawVR()};
+function drawVR(){const q=v('pv_q').toLowerCase();$('#vrTb').innerHTML=VR.filter(x=>((x.studentName||'')+' '+(x.subject||'')+' '+(x.class||'')).toLowerCase().includes(q)).slice(0,100).map(x=>`<tr><td>${esc(x.studentName)}</td><td>${esc(x.class||'')}</td><td>${esc(x.subject)}</td><td>${esc(x.trimester)}</td><td>${x.test}</td><td>${x.exam}</td><td>${x.test+x.exam}</td><td><button class="g" data-id="${esc(x.id)}" onclick="fixRes(this.dataset.id)">Correct</button> <button class="s" data-id="${esc(x.id)}" onclick="unval(this.dataset.id)">Recall</button></td></tr>`).join('')||'<tr><td>None found.</td></tr>'}
+async function fixRes(id){
+ const x=VR.find(r=>r.id==id),t=prompt('Test score (0-40): '+x.studentName+' - '+x.subject,x.test);if(t===null)return;
+ const e=prompt('Exam score (0-60)',x.exam);if(e===null)return;
+ if(t===''||e===''||+t<0||+t>40||+e<0||+e>60)return alert('Test must be 0-40 and exam 0-60.');
+ try{await db.doc('results/'+id).update({test:+t,exam:+e,correctedBy:me.name,correctedAt:Date.now()});await notify('Result corrected: '+x.studentName+' ('+x.subject+') by '+me.name);go('pub')}catch(err){alert('Could not save: '+(err.code||err.message))}}
+async function unval(id){if(!confirm('Recall this result for re-computation? The student will not see it until you validate again.'))return;try{await db.doc('results/'+id).update({published:false});go('pub')}catch(e){alert(e.code||e.message)}}
+async function publish(id){
+ const d=await db.doc('results/'+id).get(),b=(await owingMap())[(d.data()||{}).studentId];
+ if(b)return alert('Blocked: this student owes '+money(b)+'. Clear the fees first.');
+ await db.doc('results/'+id).update({published:true});await notify('Results validated');go('pub')}
+async function publishAll(){
+ const ow=await owingMap(),docs=(await db.collection('results').where('published','==',false).get()).docs.filter(d=>!ow[d.data().studentId]);
+ if(!docs.length)return alert('Nothing to validate (owing students are blocked).');
+ if(!confirm('Validate '+docs.length+' result(s)? Results of owing students are skipped.'))return;
+ for(let i=0;i<docs.length;i+=400){const b=db.batch();docs.slice(i,i+400).forEach(d=>b.update(d.ref,{published:true}));await b.commit()}
+ await notify('Pending results validated (owing students skipped)');go('pub')}
+
+// ---------- School Time Table (editable by management, visible to everyone) ----------
+const TTC=['JSS 1 (DIA)','JSS 1 (GOLD)','JSS 2 (DIA)','JSS 2 (GOLD)','JSS 3 (DIA)','JSS 3 (GOLD)','SS 1 (DIA)','SS 1 (GOLD)','SS 2','SS 3'],
+TTD=['Monday','Tuesday','Wednesday','Thursday','Friday'],
+TTP=[['8:00 - 8:40'],['8:40 - 9:20'],['9:20 - 10:00'],['BREAK','10:00 - 10:10'],['10:10 - 10:45'],['10:45 - 11:20'],['11:20 - 11:55'],['LUNCH','11:55 - 12:10'],['12:10 - 12:45'],['12:45 - 1:20'],['1:20 - 1:55'],['1:55 - 2:30'],['CLOSING','2:30 - 3:00']],
+TTS=['MATHS','ENG','CRS','PHE','H/ECONS','L/STOCK','INTER SCI','SCS I','SCS II','D.T','BUS','FRENCH','MUSIC','LIT','GEO','GOVT','ECONS','COMM','CHEM','PHY','BIO','AGRIC','F/MATHS','F/ACCT','CHS','CCA','DICTION','IBIBIO','DIGITAL TECH','SKILL ACQUISITION','CLUB','SPORTS','DEBATES','QUIZ','REV. MATHS','PRACT'];
+let TT={d:'Monday',edit:false,data:{}};
+V.tt=async function(){const d=await db.doc('settings/timetable').get();TT.data=d.exists?(d.data().data||{}):{};TT.edit=false;drawTT()};
+function drawTT(){
+ const can=MG.includes(me.role),e=TT.edit&&can,cell=(c,i)=>((TT.data[TT.d+'|'+c]||[])[i])||'';
+ set(`<div class="card"><h3>School Time Table</h3><div class="tabs">${TTD.map(x=>`<button class="${x==TT.d?'':'g'}" onclick="ttDay('${x}')">${x}</button>`).join('')}</div>
+ <div class="row" style="margin-bottom:8px"><button class="g" onclick="ttPrint()">🖨 Print</button>${can?(e?'<button onclick="ttSave()">💾 Save time table</button><button class="g" onclick="TT.edit=false;V.tt()">Cancel</button>':'<button onclick="TT.edit=true;drawTT()">✏ Edit time table</button>'):''}</div>
+ <p class="mut">${TT.d} · Morning devotion / roll call 7:30 - 8:00</p><datalist id="tts">${TTS.map(x=>`<option value="${x}">`).join('')}</datalist>
+ <table class="tt" id="ttb"><tr><th>Class</th>${TTP.map(p=>`<th>${p.length>1?p[0]+'<br>':''}${p[p.length-1]}</th>`).join('')}</tr>${TTC.map((c,r)=>`<tr><td><b>${c}</b></td>${TTP.map((p,i)=>p.length>1?(r?'':`<td class="brk" rowspan="${TTC.length}" style="writing-mode:vertical-rl">${p[0]}</td>`):`<td>${e?`<input list="tts" data-c="${esc(c)}" data-i="${i}" value="${esc(cell(c,i))}">`:esc(cell(c,i)||'-')}</td>`).join('')}</tr>`).join('')}</table></div>`)}
+function ttCollect(){document.querySelectorAll('#ttb input').forEach(i=>{const k=TT.d+'|'+i.dataset.c,a=TT.data[k]||(TT.data[k]=Array(13).fill(''));a[+i.dataset.i]=i.value.trim()})}
+function ttDay(x){if(TT.edit)ttCollect();TT.d=x;drawTT()}
+async function ttSave(){ttCollect();try{await db.doc('settings/timetable').set({data:TT.data,by:me.name,at:Date.now()});TT.edit=false;alert('Time table saved.');drawTT()}catch(e){alert('Could not save: '+(e.code||e.message))}}
+function ttPrint(){const w=window.open('');if(!w)return alert('Allow pop-ups.');w.document.write('<body style="font-family:Arial;padding:20px"><h2>Princess Jasmine International School - Time Table ('+TT.d+')</h2>'+document.getElementById('ttb').outerHTML.replace(/<input[^>]*value="([^"]*)"[^>]*>/g,'$1')+'<style>table{border-collapse:collapse;font-size:11px}td,th{border:1px solid #333;padding:4px;text-align:center}</style><script>print()<\/script>')}
+// ===================== END UPDATE 4 =====================
+
+// ===================== UPDATE 6 : OWNER RESET + LIVE MESSAGE NOTIFICATIONS =====================
+// ---------- Live "new message" notifications (banner + sound + browser notification + tab counter) ----------
+{const st=document.createElement('style');st.textContent=`
+#ntb{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));left:50%;transform:translate(-50%,-160%);transition:transform .35s;z-index:300;width:min(440px,94vw);background:var(--card);color:var(--tx);border:1px solid var(--bd);border-left:5px solid var(--gold);border-radius:14px;box-shadow:0 10px 36px #0006;padding:12px 14px;cursor:pointer;display:flex;gap:10px;align-items:flex-start}
+#ntb.on{transform:translate(-50%,0)}#ntb i{font-style:normal;font-size:26px}#ntb b{display:block;font-size:14px}#ntb span{display:block;font-size:13px;color:var(--mut);margin-top:2px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+#ntp{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:250;width:min(440px,94vw);background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:14px;box-shadow:0 10px 36px #0006;padding:12px 14px}`;document.head.appendChild(st)}
+const NT={base:document.title,unsubs:[],timer:null,reg:null};
+function ntBeep(){try{const a=new(window.AudioContext||window.webkitAudioContext)(),o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.type='sine';o.frequency.value=880;g.gain.setValueAtTime(.15,a.currentTime);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+.45);o.start();o.stop(a.currentTime+.45)}catch(e){}}
+function ntOpen(){try{window.focus()}catch(e){}if(me)go('msg')}
+function ntBanner(t,x){let b=$('#ntb');if(!b){b=document.createElement('div');b.id='ntb';document.body.appendChild(b)}
+ b.innerHTML=`<i>💬</i><div><b>${esc(t)}</b><span>${esc(x)}</span></div>`;b.onclick=()=>{b.classList.remove('on');ntOpen()};
+ requestAnimationFrame(()=>requestAnimationFrame(()=>b.classList.add('on')));clearTimeout(NT.timer);NT.timer=setTimeout(()=>b.classList.remove('on'),8000)}
+async function ntSys(t,x){try{if(!('Notification' in window)||Notification.permission!=='granted')return;
+ const o={body:x,icon:LOGO_URL,tag:'ds-msg',renotify:true};
+ if(NT.reg)await NT.reg.showNotification(t,o);else{const n=new Notification(t,o);n.onclick=()=>{ntOpen();n.close()}}}catch(e){console.warn('notification',e)}}
+function ntAlert(t,x){ntBeep();ntBanner(t,x);if(document.hidden)ntSys(t,x);try{navigator.vibrate&&navigator.vibrate([150,80,150])}catch(e){}badge()}
+function ntStop(){NT.unsubs.forEach(u=>{try{u()}catch(e){}});NT.unsubs=[];const b=$('#ntb');if(b)b.classList.remove('on')}
+function ntAsk(){try{if(!('Notification' in window)||Notification.permission!=='default'||localStorage.getItem('ntNo')==me.uid||$('#ntp'))return}catch(e){return}
+ const d=document.createElement('div');d.id='ntp';d.innerHTML='<b>🔔 Turn on notifications</b><p class="mut" style="margin:4px 0 8px">Get an alert whenever you receive a new message.</p><div class="row"><button id="ntyes">Turn on</button><button class="g" id="ntno">Not now</button></div>';document.body.appendChild(d);
+ $('#ntyes').onclick=async()=>{d.remove();try{await Notification.requestPermission()}catch(e){}};$('#ntno').onclick=()=>{d.remove();try{localStorage.setItem('ntNo',me.uid)}catch(e){}}}
+function ntStart(){ntStop();if(!me)return;const mg=MG.includes(me.role),err=e=>console.warn('notify',e.code);
+ try{if('serviceWorker' in navigator&&location.protocol=='https:'&&!/google/.test(location.host)){navigator.serviceWorker.register('sw.js').then(()=>navigator.serviceWorker.ready).then(r=>{NT.reg=r}).catch(()=>{});navigator.serviceWorker.addEventListener('message',e=>{if(e.data&&e.data.open)ntOpen()})}}catch(e){}
+ let f1=true;
+ NT.unsubs.push((mg?db.collection('messages').where('mgmt','==',false):db.collection('messages').where('thread','==',me.uid)).onSnapshot(s=>{
+  if(f1){f1=false;return}
+  s.docChanges().forEach(c=>{if(c.type!='added')return;const m=c.doc.data();if(m.by==me.uid||!!m.mgmt==mg)return;
+   ntAlert(m.mgmt?'New message from School Management':'New message from '+(m.threadName||m.byName||'a user'),m.text||'')})},err));
+ if(!mg){let f2=true;NT.unsubs.push(db.collection('announcements').where('audience','==',me.role=='student'?'students':'staff').onSnapshot(s=>{
+  if(f2){f2=false;return}
+  s.docChanges().forEach(c=>{if(c.type!='added')return;const m=c.doc.data();if(m.by==me.uid)return;ntAlert('New announcement: '+(m.title||''),m.body||'')})},err))}
+ setTimeout(ntAsk,2500)}
+{const o=badge;badge=async function(){await o();document.title=(BN?'('+BN+') ':'')+NT.base}}
+{const o=enter;enter=async function(u){await o(u);if(auth.currentUser&&me)ntStart()}}
+auth.onAuthStateChanged(u=>{if(!u)ntStop()});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&me)badge()});
+// ===================== END UPDATE 6 =====================
+
+// ===================== UPDATE 7 =====================
+let MYC='',UNN=0,ACT=0,NOPUSH=false,SCC={t:0,p:null};
+const PAYTYPES=['Tuition','School Uniform','Stationery','Books','Boarding','Transport','School Bus','Exam','Other'];
+
+// ---------- A. Campus scope ----------
+function CAMPUS_SCOPE(){
+ if(!me||!MYC)return'';
+ const c=CUSTOM.find(r=>r.id===me.role);
+ return(me.role==='teacher'||me.role==='principal'||(c&&c.level==='mgt'))?MYC:''}
+function scIds(sc){
+ if(!SCC.p||Date.now()-SCC.t>20000){SCC.t=Date.now();SCC.p=db.collection('students').where('campus','==',sc).get().then(s=>new Set(s.docs.map(d=>d.id)))}
+ return SCC.p}
+async function scFilter(c,r,sc){
+ if(c==='results'||c==='fees'||c==='comments'){const ids=await scIds(sc);return r.filter(x=>ids.has(x.studentId))}
+ if(c==='attendance'){const ids=await scIds(sc);return r.filter(x=>x.kind!=='student'||ids.has(x.uid))}
+ return r}
+{const o=enter;enter=async function(u){
+ try{const d=await db.doc('staff/'+u.uid).get();MYC=d.exists?(d.data().campus||''):''}catch(e){MYC=''}
+ SCC={t:0,p:null};
+ await o(u);
+ if(auth.currentUser&&me&&!side.querySelector('[data-k="myn"]'))side.insertAdjacentHTML('beforeend','<a data-k="myn" onclick="go(\'myn\')">🔔 My Notifications</a>')}}
+
+// ---------- B. Scroll tables ----------
+{const st=document.createElement('style');st.textContent=`
+.tsc{max-height:min(65vh,520px);overflow:auto;border:1px solid var(--bd);border-radius:10px;-webkit-overflow-scrolling:touch;margin:6px 0}
+.tsc>table{display:table;min-width:100%;overflow:visible;margin:0}
+.tsc th{position:sticky;top:0;background:var(--card);z-index:2}
+.pl{align-items:center}`;document.head.appendChild(st)}
+function tscWrap(root){root.querySelectorAll('table').forEach(t=>{if(t.closest('.tsc,.tt'))return;const w=document.createElement('div');w.className='tsc';t.parentNode.insertBefore(w,t);w.appendChild(t)})}
+new MutationObserver(()=>tscWrap(mainEl)).observe(mainEl,{childList:true,subtree:true});
+
+// ---------- C. Student registration: School Bus (optional) ----------
+EF.push(['schoolBus','School Bus (Optional)','Yes,No'],['busStop','Bus stop / route']);
+{const o=profHTML;profHTML=function(){const s=SD.s;return o()+`<div class="card"><h4>🚌 School Bus (Optional)</h4><div class="pf"><div><span>Uses school bus</span><b>${esc(s.schoolBus||'-')}</b></div><div><span>Bus stop / route</span><b>${esc(s.busStop||'-')}</b></div></div></div>`}}
+{const o=V.reg;V.reg=function(){o();
+ const b=document.getElementById('f_boarding');
+ if(b)b.insertAdjacentHTML('afterend',F([['schoolBus','School Bus (Optional)','Yes,No'],['busStop','Bus stop / route (if using school bus)']]));
+ const c=document.getElementById('f_campus'),sc=CAMPUS_SCOPE();
+ if(c&&sc){c.value=sc;c.disabled=true}}}
+async function nextReg(){
+ const ref=db.doc('settings/counters');let seed=null;
+ const cur=await ref.get();
+ if(!cur.exists||!(+cur.data().reg>0)){
+  try{const s=await db.collection('students').get();let mx=s.size;s.docs.forEach(d=>{const m=String(d.data().regNo||'').match(/(\d+)$/);if(m)mx=Math.max(mx,+m[1])});seed=mx}
+  catch(e){throw new Error('Registration numbers are not set up yet. Ask the Proprietor, Admin, Chairman or School Administrator to open Registration and register one student first.')}}
+ return db.runTransaction(async t=>{const d=await t.get(ref);let n=d.exists?(+d.data().reg||0):0;if(!n&&seed!=null)n=seed;n++;t.set(ref,{reg:n},{merge:true});return n})}
+async function regStudent(){
+ const g=G(),m=$('#rmsg'),sc=CAMPUS_SCOPE();
+ if(!g.surname||!g.firstName){m.textContent='Enter surname and first name.';return}
+ if(!g.class){m.textContent='Choose the student\'s class.';return}
+ if(!g.campus){m.textContent='Choose the campus.';return}
+ if(!g.guardianEmail){m.textContent='Parent email is required so the parent can set and recover the password.';return}
+ if(sc&&g.campus!==sc){m.textContent='You can only register students for your own campus ('+sc+').';return}
+ let n;try{n=await nextReg()}catch(e){m.textContent=e.message||('Could not get a registration number: '+e.code);return}
+ const reg='PJIS/'+new Date().getFullYear()+'/'+String(n).padStart(4,'0'),un=reg.replace(/\//g,'').toLowerCase();
+ try{
+  const uid=await mkUser(un,'Jasmine'+Math.floor(100000+Math.random()*900000),{role:'student',name:g.firstName+' '+g.surname},g.guardianEmail);
+  await db.doc('students/'+uid).set({...g,feeDue:+g.feeDue||0,regNo:reg,username:un,photo,fpEnrolled:FP.t.filter(Boolean).length>0,status:'Active',registered:Date.now()});await fpSave(uid,'student');
+  await notify('New student registered: '+g.firstName+' '+g.surname+' ('+g.campus+')');
+  m.innerHTML=`Done. Username: <b>${un}</b>. A link to set the password was emailed to ${esc(g.guardianEmail)}.`+aliasNote(g.guardianEmail,mkUser.last);
+ }catch(e){console.error(e);m.textContent='Could not register: '+(e.code||e.message)}}
+
+// ---------- D. Staff & Roles: campus per staff member ----------
+{const o=V.staffreg;V.staffreg=async function(){await o();
+ const h=[...mainEl.querySelectorAll('h3')].find(x=>x.textContent.startsWith('All staff'));if(!h)return;
+ const s=(await list('staff')).sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+ h.closest('.card').innerHTML=`<h3>All staff (${s.length})</h3><table><tr><th>Name</th><th>ID</th><th>Role</th><th>Position</th><th>Campus</th><th></th></tr>${s.map(x=>`<tr><td>${esc(x.name)}</td><td>${esc(x.staffId||'')}</td><td>${esc(RL[x.role]||x.role||'')}</td><td>${esc(x.position||'')}</td><td><select id="sc_${esc(x.id)}" style="min-width:120px"><option value="">-- not set --</option>${['Ediam','Ikot Oso'].map(c=>`<option ${c==x.campus?'selected':''}>${c}</option>`).join('')}</select></td><td><button class="g" data-id="${esc(x.id)}" onclick="saveStaffCampus(this.dataset.id)">Save campus</button>${DEL.includes(me.role)&&x.id!==me.uid?` <button class="s" data-id="${esc(x.id)}" onclick="delPerson('staff',this.dataset.id)">Delete</button>`:''}</td></tr>`).join('')}</table><p class="mut">Teachers, Principals and Vice Principals only see students of the campus set here. It applies the next time they sign in.</p>`}}
+async function saveStaffCampus(id){
+ try{await db.doc('staff/'+id).set({campus:v('sc_'+id)},{merge:true});alert('Campus saved. It applies the next time this person signs in.')}
+ catch(e){alert('Could not save: '+(e.code||e.message))}}
+
+// ---------- E. Fees & Payments: several items in one payment ----------
+{const o=V.fees;V.fees=async function(){await o();
+ const h=[...mainEl.querySelectorAll('h3')].find(x=>x.textContent==='Record Payment');if(!h)return;
+ h.closest('.card').innerHTML=`<h3>Record Payment</h3><select id="fee_s" onchange="feeInfo()"><option value="">Select student</option>${FEE.st.map(s=>`<option value="${s.id}">${esc(s.surname)} ${esc(s.firstName)} (${esc(s.regNo)}) - ${esc(s.class)}</option>`).join('')}</select><p id="fee_info"></p>
+ <p class="mut">Add one line for each item the parent is paying for (for example Tuition + School Uniform + Stationery). All lines are saved together under one receipt.</p>
+ <div id="pl_rows"></div><button type="button" class="g" onclick="plAdd()">+ Add another item</button>
+ <p>Total being paid: <b id="pl_tot">₦0</b></p>
+ <div class="row"><select id="fee_m">${opts(['Cash','Bank transfer','POS'])}</select><input id="fee_r" placeholder="Reference / teller no (optional)"></div>
+ <button id="pl_save" onclick="saveFeeMulti()">Save payment</button>`;
+ plAdd()}}
+function plAdd(){const d=document.createElement('div');d.className='row pl';
+ d.innerHTML=`<select class="pl_t">${opts(PAYTYPES)}</select><select class="pl_i">${opts([...TRIS,'Full session'])}</select><input class="pl_a" type="number" min="0" placeholder="Amount (₦)" oninput="plTot()"><button type="button" class="s" onclick="if(document.querySelectorAll('.pl').length>1){this.parentNode.remove();plTot()}">✕</button>`;
+ $('#pl_rows').appendChild(d)}
+function plTot(){let t=0;document.querySelectorAll('.pl_a').forEach(i=>t+=+i.value||0);const e=$('#pl_tot');if(e)e.textContent=money(t)}
+async function saveFeeMulti(){
+ const sid=v('fee_s');if(!sid)return alert('Select a student.');
+ const L=[...document.querySelectorAll('.pl')].map(r=>({type:r.querySelector('.pl_t').value,tri:r.querySelector('.pl_i').value,a:+r.querySelector('.pl_a').value})).filter(x=>x.a>0);
+ if(!L.length)return alert('Enter an amount for at least one item.');
+ const s=FEE.st.find(x=>x.id===sid),tot=L.reduce((z,x)=>z+x.a,0),bal=(+s.feeDue||0)-(FEE.paid[sid]||0);
+ if(tot>bal&&!confirm('Total '+money(tot)+' is more than the balance ('+money(Math.max(bal,0))+'). Record anyway?'))return;
+ const no='RCP-'+today().replace(/-/g,'')+'-'+Math.floor(1000+Math.random()*9000),at=Date.now(),btn=$('#pl_save');
+ btn.disabled=true;
+ try{
+  const b=db.batch();
+  L.forEach((x,i)=>b.set(db.collection('fees').doc(),{studentId:sid,studentName:s.surname+' '+s.firstName,regNo:s.regNo||'',session:s.session||'',type:x.type,trimester:x.tri,amount:x.a,method:v('fee_m'),ref:v('fee_r').trim(),receiptNo:no,lineNo:i+1,lines:L.length,by:me.uid,byName:me.name,at:at+i}));
+  await b.commit();
+  const what=[...new Set(L.map(x=>x.type))].join(', ');
+  await notify('Fee recorded: '+money(tot)+' from '+s.surname+' '+s.firstName+' ('+what+')');
+  await pushTo(sid,'Payment received: '+money(tot)+' ('+what+'). Receipt '+no+'.');
+  go('fees');
+ }catch(e){btn.disabled=false;alert('Could not save payment: '+(e.code||e.message))}}
+async function receipt(id){
+ const f=(await db.doc('fees/'+id).get()).data(),s=(await db.doc('students/'+f.studentId).get()).data()||{};
+ let L=[f];
+ if(f.receiptNo){try{const r=(await list('fees',['studentId','==',f.studentId],['receiptNo','==',f.receiptNo])).sort((a,b)=>a.at-b.at);if(r.length)L=r}catch(e){}}
+ const tot=L.reduce((z,x)=>z+(+x.amount||0),0),w=window.open('');if(!w)return alert('Allow pop-ups to print the receipt.');
+ w.document.write(`<body style="font-family:Arial;padding:30px;max-width:600px"><img src="${esc(new URL(LOGO_URL,location.href).href)}" width=80>${s.photo?`<img src="${esc(s.photo)}" width=90 style="float:right">`:''}<h2>Payment Receipt</h2><p><b>No:</b> ${esc(f.receiptNo||'-')}<br><b>Date:</b> ${new Date(f.at).toLocaleString()}</p><p>${esc(s.surname)} ${esc(s.firstName)} (${esc(s.regNo)}) · ${esc(s.class||'')}</p><table border=1 cellpadding=6 style="border-collapse:collapse;width:100%"><tr><th>Item</th><th>Trimester</th><th>Amount</th></tr>${L.map(x=>`<tr><td>${esc(x.type)}</td><td>${esc(x.trimester||'')}</td><td>${money(x.amount)}</td></tr>`).join('')}<tr><td colspan=2><b>Total</b></td><td><b>${money(tot)}</b></td></tr></table><p>Method: ${esc(f.method||'-')}${f.ref?' · Ref: '+esc(f.ref):''}<br>Received by: ${esc(f.byName||'')}</p><script>print()<\/script>`)}
+
+// ---------- F. Management Overview: edit school contact info ----------
+{const o=V.mgmt;V.mgmt=async function(){await o();
+ const card=`<div class="card"><h3>School Contact Info</h3><p class="mut">Shown on every student's Overview tab. Only management can change it.</p><div class="row"><input id="mc_e" value="${esc(SCHOOL.email)}" placeholder="School email"><input id="mc_p" value="${esc(SCHOOL.phone)}" placeholder="Phone"></div><div class="row"><input id="mc_1" value="${esc(SCHOOL.loc['Ediam']||'')}" placeholder="Ediam campus location"><input id="mc_2" value="${esc(SCHOOL.loc['Ikot Oso']||'')}" placeholder="Ikot Oso campus location"></div><button onclick="saveContactMgmt()">Save contact info</button><p id="mc_m"></p></div>`;
+ const h=[...mainEl.querySelectorAll('h3')].find(x=>x.textContent==='Students'),c=h&&h.closest('.card');
+ if(c)c.insertAdjacentHTML('beforebegin',card);else mainEl.insertAdjacentHTML('beforeend',card)}}
+async function saveContactMgmt(){
+ const m=$('#mc_m'),d={email:v('mc_e').trim(),phone:v('mc_p').trim(),loc:{'Ediam':v('mc_1').trim(),'Ikot Oso':v('mc_2').trim()}};
+ try{await db.doc('settings/school').set(d,{merge:true});SCHOOL.email=d.email;SCHOOL.phone=d.phone;SCHOOL.loc=d.loc;m.className='green';m.textContent='Contact info saved. Students see it on their next sign-in.'}
+ catch(e){m.className='red';m.textContent='Could not save: '+(e.code||e.message)}}
+
+// ---------- G. Personal notifications ----------
+const pushTo=async(uid,msg)=>{if(!uid||!me||uid===me.uid)return;try{await db.collection('userNotes').add({to:uid,msg,read:false,at:Date.now(),by:me.uid,byName:me.name})}catch(e){console.warn('pushTo',e.code)}};
+V.myn=async function(){
+ const s=await db.collection('userNotes').where('to','==',me.uid).get(),n=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>b.at-a.at).slice(0,100);
+ set(`<div class="card"><div class="row"><h3 style="flex:1">My Notifications</h3>${n.length?'<button class="g" onclick="clearMyNotes()">Clear all</button>':''}</div>${n.map(x=>`<div class="ev" style="--k:${x.read?'var(--bd)':'var(--gold)'}"><div>${x.read?'':'<span class="tag" style="background:var(--ok)">NEW</span> '}${esc(x.msg)}<small>${esc(x.byName||'')}</small></div><span class="dt">${new Date(x.at).toLocaleString()}</span></div>`).join('')||'<p class="mut">Nothing yet. You will be notified here about payments, results, attendance, comments and more.</p>'}</div>`);
+ const u=n.filter(x=>!x.read);
+ if(u.length){const b=db.batch();u.forEach(x=>b.update(db.doc('userNotes/'+x.id),{read:true,readAt:Date.now()}));try{await b.commit()}catch(e){console.warn(e.code)}badge()}};
+async function clearMyNotes(){
+ if(!confirm('Clear all your notifications?'))return;
+ const s=await db.collection('userNotes').where('to','==',me.uid).get();
+ for(let i=0;i<s.docs.length;i+=400){const b=db.batch();s.docs.slice(i,i+400).forEach(d=>b.delete(d.ref));await b.commit()}
+ go('myn')}
+{const o=badge;badge=async function(){
+ await o();if(!me)return;
+ try{UNN=(await list('userNotes',['to','==',me.uid],['read','==',false])).length}catch(e){UNN=0;console.warn('userNotes',e.code)}
+ ACT=0;
+ if(MG.includes(me.role)){try{
+  const k='dsseen_'+me.uid;let t=0;try{t=+localStorage.getItem(k)||0}catch(e){}
+  if(!t){t=Date.now();try{localStorage.setItem(k,t)}catch(e){}}
+  ACT=(await list('notifications',['at','>',t])).filter(x=>x.by!==me.uid).length}catch(e){console.warn('activity',e.code)}}
+ const n=BN+UNN+ACT,b=$('#bell');
+ if(b){b.innerHTML='🔔'+(n?`<sup class="bdg">${n}</sup>`:'');b.title=n?n+' new':'Nothing new'}
+ document.title=(n?'('+n+') ':'')+NT.base}}
+function bellGo(){go(UNN?'myn':BN?'msg':(MG.includes(me.role)?'notes':'msg'))}
+{const o=V.notes;V.notes=async function(){try{localStorage.setItem('dsseen_'+me.uid,Date.now())}catch(e){}await o();badge()}}
+function ntOpen(){try{window.focus()}catch(e){}if(me)go(NT.dest||'msg');NT.dest='msg'}
+{const o=ntAlert;ntAlert=function(t,x,d){NT.dest=d||'msg';o(t,x)}}
+{const o=ntStart;ntStart=function(){o();if(!me)return;
+ NT.unsubs.push(db.collection('userNotes').where('to','==',me.uid).onSnapshot(s=>{
+  if(NT.un1===me.uid+'ok')s.docChanges().forEach(c=>{if(c.type!='added')return;const m=c.doc.data();if(m.by!==me.uid)ntAlert('New activity on your account',m.msg||'','myn')});
+  NT.un1=me.uid+'ok'},e=>console.warn('userNotes live',e.code)));
+ if(MG.includes(me.role))NT.unsubs.push(db.collection('notifications').where('at','>',Date.now()).onSnapshot(s=>{
+  s.docChanges().forEach(c=>{if(c.type!='added')return;const m=c.doc.data();if(m.by===me.uid)return;NT.dest='notes';ntBanner('Activity',m.msg||'');if(document.hidden)ntSys('Activity',m.msg||'');badge()})},e=>console.warn('activity live',e.code)))}}
+
+async function postComment(id){
+ const t=v('cm').trim();if(!t)return;
+ await add('comments',{studentId:id,text:t,role:me.role});
+ if(id!==me.uid)await pushTo(id,me.name+' commented on your profile: '+t.slice(0,80));else await notify('New comment from '+me.name);
+ studentDash(id,'ac')}
+async function publish(id){
+ const d=await db.doc('results/'+id).get(),x=d.data()||{},b=(await owingMap())[x.studentId];
+ if(b)return alert('Blocked: this student owes '+money(b)+'. Clear the fees first.');
+ await db.doc('results/'+id).update({published:true});await notify('Results validated');
+ await pushTo(x.studentId,'Your '+x.subject+' result ('+x.trimester+') has been validated and is now available.');
+ go('pub')}
+async function publishAll(){
+ const ow=await owingMap(),r=(await list('results',['published','==',false])).filter(x=>!ow[x.studentId]);
+ if(!r.length)return alert('Nothing to validate (owing students are blocked).');
+ if(!confirm('Validate '+r.length+' result(s)? Results of owing students are skipped.'))return;
+ for(let i=0;i<r.length;i+=400){const b=db.batch();r.slice(i,i+400).forEach(x=>b.update(db.doc('results/'+x.id),{published:true}));await b.commit()}
+ await notify('Pending results validated (owing students skipped)');
+ const by={};r.forEach(x=>{(by[x.studentId]=by[x.studentId]||new Set()).add(x.trimester)});
+ await Promise.all(Object.entries(by).map(([id,t])=>pushTo(id,'Your results ('+[...t].join(', ')+') have been validated and are now available.')));
+ go('pub')}
+{const o=markAtt;markAtt=async function(uid,status,time){await o(uid,status,time);
+ const r=ROLL.rec[uid];if(NOPUSH||!r||uid===me.uid||Date.now()-(r.at||0)>5000)return;
+ pushTo(uid,'Attendance for '+ROLL.d+': '+r.status+(r.time&&r.time!=='-'?' at '+r.time:'')+'.')}}
+{const o=markRest;markRest=async function(){NOPUSH=true;try{await o()}finally{NOPUSH=false}}}
+{const o=reqAct;reqAct=async function(id,a){const r=REQ.find(x=>x.id===id);await o(id,a);
+ if(!r||!r.by||a==='Void')return;
+ try{const d=await db.doc('requisitions/'+id).get();if(d.exists&&d.data().status===a)await pushTo(r.by,'Your requisition '+r.no+' was '+a.toLowerCase()+' by '+me.name+'.')}catch(e){}}}
+// ===================== END UPDATE 7 =====================
+
+// ===================== UPDATE 8 : ABACUS CHAMPIONSHIP =====================
+// Paste this whole block right AFTER the line "END UPDATE 7" (inside the main script, before the closing script tag).
+const ABLV=['beginner','intermediate','advanced','championship'],
+ ABLN={beginner:'Beginner',intermediate:'Intermediate',advanced:'Advanced',championship:'Championship',any:'Mixed'},
+ ABD={beginner:'Single-digit addition and subtraction',intermediate:'Two- and three-digit sums',advanced:'Multiplication, division and mixed',championship:'Multi-step and rapid calculations'},
+ ABR={beginner:3,intermediate:4,advanced:4,championship:5};
+let AB={tab:'home',lvl:'beginner',cls:'',campus:'',prof:null,comps:[],mine:{},board:[]},PR=null,CT=null,abTick=null;
+PAGES.push(['abacus','Abacus Championship']);SAFE.push('abacus');
+{const ms=new Set(['student','teacher','principal','proprietor','admin','chairman','administrator'].map(r=>MENU[r]).filter(Boolean));
+ ms.forEach(m=>{const i=m.findIndex(x=>x.startsWith('news:'));m.splice(i<0?m.length:i,0,'abacus:🧮 Abacus Championship')})}
+
+{const st=document.createElement('style');st.textContent=`
+.abhero{background:linear-gradient(135deg,#10213f 0%,#1c3f94 62%,#e0147a 150%);color:#fff;border-radius:22px;padding:26px;display:grid;grid-template-columns:minmax(0,1.2fr) auto;gap:22px;align-items:center;overflow:hidden}
+.abhero h1{margin:10px 0 8px;font-size:clamp(24px,4vw,36px);line-height:1.1}.abhero p{margin:0 0 14px;color:#cfd9ee;max-width:46ch;line-height:1.6}
+.chip{display:inline-block;padding:4px 12px;border-radius:20px;background:#ffffff26;font-size:12px;font-weight:600}
+.abx{display:inline-block;user-select:none;-webkit-user-select:none;touch-action:manipulation;max-width:100%}
+.abf{display:flex;padding:12px 10px;border-radius:14px;background:linear-gradient(#6b4423,#3f2612);box-shadow:inset 0 0 0 3px #2a190b,0 12px 28px #0006}
+.abr{position:relative;width:54px;flex:0 0 54px}
+.abr:before{content:'';position:absolute;left:50%;top:0;bottom:0;width:4px;margin-left:-2px;background:linear-gradient(90deg,#9a7208,#ffe08a,#9a7208)}
+.abh{position:relative;height:72px;border-bottom:8px solid #2a190b}.abe{position:relative;height:156px}
+.bd{position:absolute;left:5px;width:44px;height:30px;border-radius:50%/46%;cursor:pointer;transition:top .16s ease;box-shadow:inset 0 -4px 6px #0004,inset 0 3px 5px #fff6,0 2px 3px #0006}
+.bd.h{background:radial-gradient(circle at 35% 30%,#ff7ab8,#e0147a 60%,#9c0a55)}
+.bd.e{background:radial-gradient(circle at 35% 30%,#ffe58a,#f5b700 60%,#a87800)}
+.ro .bd{pointer-events:none}
+.abq{font-size:clamp(34px,8vw,56px);font-weight:800;text-align:center;margin:14px 0;letter-spacing:1px}
+.abdisp{text-align:center;font-size:40px;font-weight:800;min-height:58px;border-bottom:3px solid var(--gold);margin:8px auto;max-width:260px}
+.kp{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:300px;margin:10px auto}.kp button{margin:0;min-height:54px;font-size:22px;width:100%}
+.abt{font-variant-numeric:tabular-nums;font-weight:800;font-size:22px}
+.abm{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.abm .card{margin:0}.abm h3{margin:0 0 6px}
+.medal{font-size:20px}.me td{background:rgba(245,183,0,.16);font-weight:700}
+@media(max-width:800px){.abhero{grid-template-columns:1fr;padding:18px}.abhero .abx{justify-self:center}.abf{padding:8px 6px}}
+@media(prefers-reduced-motion:reduce){.bd{transition:none}}`;document.head.appendChild(st)}
+
+// ---------- Questions (same generator for practice and contests) ----------
+const abRnd=s=>()=>{s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
+function abQ(lv,r){
+ const n=(a,b)=>a+Math.floor(r()*(b-a+1));let a,b,c,d;
+ if(lv=='beginner'){a=n(1,9);b=n(1,9);if(r()<.5)return{q:a+' + '+b,a:a+b};if(a<b)[a,b]=[b,a];return{q:a+' − '+b,a:a-b}}
+ if(lv=='intermediate'){a=n(10,999);b=n(10,999);if(r()<.5)return{q:a+' + '+b,a:a+b};if(a<b)[a,b]=[b,a];return{q:a+' − '+b,a:a-b}}
+ if(lv=='advanced'){const t=n(0,2);
+  if(t==0){a=n(2,12);b=n(2,12);return{q:a+' × '+b,a:a*b}}
+  if(t==1){b=n(2,12);c=n(2,12);return{q:(b*c)+' ÷ '+b,a:c}}
+  a=n(1,50);b=n(2,9);c=n(2,9);return{q:a+' + '+b+' × '+c,a:a+b*c}}
+ const t=n(0,3);
+ if(t==0){a=n(10,60);b=n(10,60);c=n(2,9);return{q:'('+a+' + '+b+') × '+c,a:(a+b)*c}}
+ if(t==1){a=n(12,99);b=n(2,9);c=n(1,Math.min(50,a*b-1));return{q:a+' × '+b+' − '+c,a:a*b-c}}
+ if(t==2){a=n(20,99);b=n(2,12);c=n(2,12);d=n(1,a);return{q:a+' + '+b+' × '+c+' − '+d,a:a+b*c-d}}
+ a=n(11,99);b=n(11,99);return{q:a+' × '+b,a:a*b}}
+
+// ---------- Abacus widget (1 heaven bead = 5, 4 earth beads = 1 each, per rod) ----------
+const abRods=n=>Array.from({length:n},()=>({h:0,e:0})),abVal=r=>r.reduce((s,x)=>s*10+x.h*5+x.e,0);
+function abHTML(id,rods,ro){return`<div class="abx${ro?' ro':''}" id="${id}"><div class="abf">${rods.map((x,i)=>`<div class="abr"><div class="abh"><i class="bd h" onclick="abT(${i},'h')" style="top:${x.h?34:0}px"></i></div><div class="abe">${[0,1,2,3].map(k=>`<i class="bd e" onclick="abT(${i},${k})" style="top:${k<x.e?k*30:36+k*30}px"></i>`).join('')}</div></div>`).join('')}</div></div>`}
+function abT(i,k){if(!AB.rods||AB.lock)return;const x=AB.rods[i];if(k==='h')x.h^=1;else x.e=k<x.e?k:k+1;abPaint()}
+function abPaint(){document.querySelectorAll('#abw .abr').forEach((el,i)=>{const x=AB.rods[i];el.querySelector('.h').style.top=(x.h?34:0)+'px';el.querySelectorAll('.e').forEach((b,k)=>b.style.top=(k<x.e?k*30:36+k*30)+'px')});const o=$('#abv');if(o)o.textContent=abVal(AB.rods)}
+function abInput(mode,n){AB.mode=mode;AB.key='';AB.rods=abRods(n);AB.lock=false;
+ return mode=='abacus'?`<div style="text-align:center"><div id="abw">${abHTML('abw0',AB.rods)}</div><p class="mut">The abacus shows <b id="abv" style="font-size:24px;color:var(--tx)">0</b></p></div>`
+ :`<div class="abdisp" id="abv"></div><div class="kp">${[7,8,9,4,5,6,1,2,3].map(k=>`<button onclick="abK('${k}')">${k}</button>`).join('')}<button class="g" onclick="abK('c')">C</button><button onclick="abK('0')">0</button><button class="g" onclick="abK('b')">⌫</button></div>`}
+function abK(k){if(AB.lock)return;if(k=='c')AB.key='';else if(k=='b')AB.key=AB.key.slice(0,-1);else if(AB.key.length<7)AB.key+=k;$('#abv').textContent=AB.key}
+const abIn=()=>AB.mode=='abacus'?abVal(AB.rods):(AB.key===''?null:+AB.key);
+const abFmt=t=>t?new Date(t.toMillis?t.toMillis():t).toLocaleString([],{dateStyle:'medium',timeStyle:'short'}):'-',abMs=t=>t&&t.toMillis?t.toMillis():+t||0;
+const abAudit=(act,id)=>db.collection('abacusAuditLogs').add({act,comp:id,by:me.uid,byName:me.name,at:Date.now()}).catch(()=>{});
+
+// ---------- Page shell ----------
+V.abacus=async function(){await abLoad();abRender()};
+async function abLoad(){
+ const S=me.role==='student';
+ if(S){
+  const s=await db.doc('students/'+me.uid).get(),d=s.exists?s.data():{};AB.cls=d.class||'';AB.campus=d.campus||'';
+  const p=await db.doc('abacusProfiles/'+me.uid).get();AB.prof=p.exists?p.data():null;AB.lvl=(AB.prof&&AB.prof.abilityLevel)||'beginner';
+  AB.comps=(await db.collection('abacusCompetitions').where('status','in',['open','closed']).get()).docs.map(x=>({id:x.id,...x.data()}));
+  AB.mine={};(await db.collection('abacusAttempts').where('studentId','==',me.uid).get()).docs.forEach(x=>AB.mine[x.data().compId]=x.data());
+ }else AB.comps=(await db.collection('abacusCompetitions').get()).docs.map(x=>({id:x.id,...x.data()}));
+ AB.comps.sort((a,b)=>abMs(b.startsAt)-abMs(a.startsAt))}
+function abTabs(l){return`<div class="tabs">${l.map(([k,n])=>`<button class="${AB.tab==k?'':'g'}" onclick="AB.tab='${k}';abRender()">${n}</button>`).join('')}</div>`}
+function abRender(){
+ clearInterval(abTick);PR=null;
+ const S=me.role==='student',M=MG.includes(me.role);
+ const tabs=S?[['home','Home'],['practice','Practice'],['contests','Contests'],['results','Results']]:[...(M?[['comps','Competitions']]:[]),['results','Results'],['levels','Student levels']];
+ if(!tabs.some(t=>t[0]==AB.tab))AB.tab=tabs[0][0];
+ const f={home:abHome,practice:abPracticeHub,contests:abContests,results:abResults,comps:abComps,levels:abLevels}[AB.tab];
+ Promise.resolve(f()).then(h=>set(abTabs(tabs)+h)).catch(e=>set('<div class="card"><b class="red">Could not load this page.</b><p>'+esc(e.code||e.message)+'</p><p class="mut">If this says permission-denied, publish the Update 8 Firestore rules.</p></div>'))}
+
+// ---------- Student: home + practice ----------
+function abHome(){const p=AB.prof||{};
+ return`<div class="abhero"><div><span class="chip">Session 2026/2027</span><h1>Princess Jasmine Abacus Championship</h1><p>Slide the beads, solve it in your head, and climb the leaderboard. Training Godly Future Champions.</p><span class="chip">Your level: ${ABLN[AB.lvl]}</span></div>${abHTML('abm0',[2,0,2,6].map(d=>({h:d>=5?1:0,e:d%5})),1)}</div>
+ <div class="grid" style="margin:14px 0"><div class="card stat"><b>${p.practiceCompleted||0}</b><span>Practice sessions</span></div><div class="card stat"><b>${p.bestPracticeScore||0}/100</b><span>Best practice score</span></div><div class="card stat"><b>${Object.keys(AB.mine).length}</b><span>Contests entered</span></div></div>
+ <div class="abm"><div class="card"><h3>🧮 Practice</h3><p class="mut">Ten questions with the answer shown after each. Practice never changes rankings.</p><button onclick="AB.tab='practice';abRender()">Start practice</button></div>
+ <div class="card"><h3>🏆 Join a contest</h3><p class="mut">See which competitions are open for your level and campus.</p><button class="s" onclick="AB.tab='contests';abRender()">View contests</button></div>
+ <div class="card"><h3>📜 Results</h3><p class="mut">Leaderboards and certificates appear once a contest is scored.</p><button class="g" onclick="AB.tab='results';abRender()">See results</button></div></div>`}
+function abPracticeHub(){const lv=ABLV.slice(0,ABLV.indexOf(AB.lvl)+1);
+ return`<div class="card"><h3>Choose your practice</h3><p class="mut">Ten questions. You can practise at your level or any easier one.</p><select id="ab_pl">${lv.map(l=>`<option value="${l}" ${l==AB.lvl?'selected':''}>${ABLN[l]}: ${ABD[l]}</option>`).join('')}</select><div class="row"><button onclick="abPStart('abacus')">🧮 Virtual abacus</button><button class="s" onclick="abPStart('mental')">🧠 Mental arithmetic</button></div></div>`}
+function abPStart(mode){const lv=v('ab_pl')||AB.lvl;PR={mode,lv,qs:Array.from({length:10},()=>abQ(lv,Math.random)),i:0,ok:0,fb:0};abPQ()}
+function abPQ(){
+ if(PR.i>=PR.qs.length)return abPEnd();
+ const q=PR.qs[PR.i],n=PR.qs.length;
+ set(`<div class="card"><div class="sum"><b>Question ${PR.i+1} of ${n}</b><span class="chip" style="background:var(--bg)">${ABLN[PR.lv]}</span></div><div class="bar"><i style="width:${PR.i/n*100}%"></i></div><div class="abq">${q.q} = ?</div>${abInput(PR.mode,ABR[PR.lv])}<p id="abfb" style="text-align:center;min-height:26px;font-weight:700"></p><div class="row" style="justify-content:center"><button id="abgo" onclick="abPSub()">Check answer</button><button class="g" onclick="abRender()">Quit</button></div></div>`)}
+function abPSub(){
+ if(PR.fb){PR.fb=0;PR.i++;return abPQ()}
+ const val=abIn();if(val===null)return;const q=PR.qs[PR.i],ok=val===q.a;
+ PR.ok+=ok?1:0;PR.fb=1;AB.lock=true;
+ const f=$('#abfb');f.className=ok?'green':'red';f.textContent=ok?'Correct! Well done.':'Not quite. The answer is '+q.a+'.';
+ $('#abgo').textContent=PR.i+1>=PR.qs.length?'See my score':'Next question'}
+async function abPEnd(){
+ const sc=PR.ok*10,p=AB.prof;
+ try{
+  if(p){await db.doc('abacusProfiles/'+me.uid).update({practiceCompleted:firebase.firestore.FieldValue.increment(1),bestPracticeScore:Math.max(p.bestPracticeScore||0,sc),updatedAt:Date.now()});p.practiceCompleted=(p.practiceCompleted||0)+1;p.bestPracticeScore=Math.max(p.bestPracticeScore||0,sc)}
+  else{AB.prof={studentId:me.uid,name:me.name,practiceCompleted:1,bestPracticeScore:sc,updatedAt:Date.now()};await db.doc('abacusProfiles/'+me.uid).set(AB.prof)}
+ }catch(e){console.warn('profile',e.code)}
+ set(`<div class="card" style="text-align:center"><h3>Practice complete</h3><div class="abq">${PR.ok} / ${PR.qs.length}</div><p class="mut">${sc>=80?'Outstanding work, champion!':sc>=50?'Good progress. Keep going.':'Every session makes you faster. Try again.'}</p><div class="row" style="justify-content:center"><button onclick="abPStart('${PR.mode}')">Practise again</button><button class="g" onclick="V.abacus()">Back to Abacus home</button></div></div>`)}
+
+// ---------- Student: contests ----------
+function abContests(){
+ const now=Date.now(),l=AB.comps.filter(c=>c.status=='open');
+ return l.map(c=>{
+  const ok=(c.campus=='All'||c.campus==AB.campus)&&(c.level=='any'||c.level==AB.lvl),st=abMs(c.startsAt),en=abMs(c.endsAt),a=AB.mine[c.id];let tag,btn='';
+  if(a&&a.status!='in-progress')tag=['Submitted','#12a150'];
+  else if(!ok)tag=['Not for your level or campus','#6b7a96'];
+  else if(now<st)tag=['Opens '+abFmt(st),'#1c3f94'];
+  else if(now>en)tag=['Ended','#6b7a96'];
+  else{tag=['Open now','#e0147a'];btn=`<button class="s" onclick="abJoin('${c.id}')">${a?'Resume':'Join'}</button>`}
+  return`<div class="card"><div class="sum"><div><h3 style="margin:0 0 4px">${esc(c.title)}</h3><p class="mut">${c.mode=='abacus'?'Virtual abacus':'Mental arithmetic'} · ${c.format=='live'?'Live championship':'Individual challenge'} · ${ABLN[c.level]} · ${c.questionCount} questions · ${Math.round(c.durationSeconds/60)} min</p><p class="mut">Window: ${abFmt(st)} to ${abFmt(en)}</p></div><div><span class="tag" style="background:${tag[1]}">${esc(tag[0])}</span> ${btn}</div></div></div>`}).join('')
+ ||'<div class="card"><h3>No open contests</h3><p class="mut">Nothing is open right now. Keep practising and check back soon.</p></div>'}
+async function abJoin(id){
+ const c=AB.comps.find(x=>x.id==id);if(!c)return;let a=AB.mine[id];
+ if(!a&&c.format=='live'){const x=prompt('Enter the room code from your teacher');if(x==null)return;if(x.trim().toUpperCase()!==c.code){alert('That room code is not right. Check it with your teacher.');return}}
+ const ref=db.doc('abacusAttempts/'+id+'_'+me.uid);
+ try{
+  if(!a){await ref.set({compId:id,studentId:me.uid,name:me.name,class:AB.cls,campus:AB.campus,startedAt:firebase.firestore.FieldValue.serverTimestamp(),status:'in-progress',score:0,correct:0,answers:{}});a=(await ref.get()).data();AB.mine[id]=a}
+  const q=await db.doc('abacusQuestions/'+id).get();if(!q.exists)throw{message:'Questions are not available yet.'};
+  const start=abMs(a.startedAt),ans=a.answers||{},keys=Object.keys(ans).map(Number);
+  CT={id,c,items:q.data().items,ans,ref:ref.path,i:keys.length?Math.max(...keys)+1:0,end:Math.min(start+c.durationSeconds*1000,abMs(c.endsAt)),done:0,busy:0};
+  if(CT.i>=CT.items.length||CT.end<=Date.now())return abFinish();
+  abCQ();clearInterval(abTick);abTick=setInterval(abTickFn,500);
+ }catch(e){console.error(e);alert('Could not start the contest: '+(e.code||e.message))}}
+function abCQ(){
+ const q=CT.items[CT.i],n=CT.items.length;
+ set(`<div class="card"><div class="sum"><b>${esc(CT.c.title)}</b><span class="abt" id="abT"></span></div><p class="mut">Question ${CT.i+1} of ${n}. Your answers are saved as you go.</p><div class="bar"><i style="width:${CT.i/n*100}%"></i></div><div class="abq">${esc(q.q)} = ?</div>${abInput(CT.c.mode,CT.c.rods||4)}<div class="row" style="justify-content:center"><button onclick="abCSub()">Save and next</button><button class="g" onclick="abCSub(1)">Skip</button><button class="g" onclick="if(confirm('Finish and submit now?'))abFinish()">Finish</button></div></div>`);abTickFn()}
+function abTickFn(){const el=$('#abT');if(!el||!CT||CT.done){clearInterval(abTick);return}
+ const r=CT.end-Date.now();if(r<=0){el.textContent='0:00';return abFinish(1)}
+ const s=Math.ceil(r/1000);el.textContent=Math.floor(s/60)+':'+String(s%60).padStart(2,'0');el.style.color=s<=30?'var(--bad)':''}
+async function abCSub(skip){
+ if(!CT||CT.busy||CT.done)return;let val=null;
+ if(!skip){val=abIn();if(val===null)return}
+ CT.busy=1;
+ if(!skip){CT.ans[CT.i]=val;try{await db.doc(CT.ref).update({['answers.'+CT.i]:val})}catch(e){console.warn('save',e.code)}}
+ CT.busy=0;CT.i++;if(CT.i>=CT.items.length)return abFinish();abCQ()}
+async function abFinish(auto){
+ if(!CT||CT.done)return;CT.done=1;clearInterval(abTick);let ok=1;
+ try{await db.doc(CT.ref).update({status:'submitted',finishedAt:firebase.firestore.FieldValue.serverTimestamp()});AB.mine[CT.id]={...AB.mine[CT.id],status:'submitted'}}catch(e){ok=0;console.warn('submit',e.code)}
+ set(`<div class="card" style="text-align:center"><h3>${auto?'Time is up!':'Answers submitted'}</h3><p class="mut">${ok?'Your answers are in. Your score and the leaderboard appear after the contest is scored.':'Your answers were saved as you went. Your teacher will score what was saved.'}</p><button onclick="V.abacus()">Back to Abacus home</button></div>`)}
+
+// ---------- Results, leaderboard, certificates ----------
+async function abResults(){
+ const cl=AB.comps.filter(c=>c.resultsOut),S=me.role==='student';
+ let h='';
+ if(S){const my=Object.entries(AB.mine).map(([id,a])=>{const c=AB.comps.find(x=>x.id==id);return c?`<tr><td>${esc(c.title)}</td><td>${a.status=='scored'?a.score+' pts':'Awaiting scoring'}</td><td>${a.status=='scored'?a.correct+' / '+c.questionCount:'-'}</td></tr>`:''}).join('');
+  h+=`<div class="card"><h3>My contest results</h3>${my?`<table><tr><th>Contest</th><th>Score</th><th>Correct</th></tr>${my}</table>`:'<p class="mut">You have not entered a contest yet.</p>'}</div>`}
+ return h+`<div class="card"><h3>Leaderboard</h3><select id="ab_rc" onchange="abBoard(this.value)"><option value="">Choose a scored competition</option>${cl.map(c=>`<option value="${c.id}">${esc(c.title)}</option>`).join('')}</select><div id="abbd"></div></div>`}
+async function abBoard(id){
+ const box=$('#abbd');if(!id){box.innerHTML='';return}
+ box.innerHTML='<p class="mut">Loading...</p>';
+ AB.bc=id;AB.board=(await db.collection('abacusBoard').doc(id).collection('entries').get()).docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>a.rank-b.rank);
+ const S=me.role==='student',md=['','🥇','🥈','🥉'];
+ box.innerHTML=`<table><tr><th>Rank</th><th>Name</th><th>Class</th><th>Score</th><th>Correct</th><th>Time</th><th></th></tr>${AB.board.map(e=>`<tr class="${e.id==me.uid?'me':''}"><td class="medal">${md[e.rank]||e.rank}</td><td>${esc(S?e.show:e.name)}${e.id==me.uid?' (you)':''}</td><td>${esc(e.class||'')}</td><td>${e.score}</td><td>${e.correct}</td><td>${e.timeSec}s</td><td>${!S||e.id==me.uid?`<button class="g" onclick="abCert('${id}','${e.id}')">Certificate</button>`:''}</td></tr>`).join('')||'<tr><td>No entries.</td></tr>'}</table>${S?'':'<button onclick="abCSV()">Download CSV</button>'}`}
+function abCSV(){saveCSV('abacus-results-'+today()+'.csv',[['Rank','Name','Class','Campus','Score','Correct','Seconds'],...AB.board.map(e=>[e.rank,e.name,e.class||'',e.campus||'',e.score,e.correct,e.timeSec])])}
+function abCert(id,uid){
+ const c=AB.comps.find(x=>x.id==id),e=AB.board.find(x=>x.id==uid);if(!c||!e)return;
+ const w=window.open('','_blank');if(!w){alert('Allow pop-ups to print the certificate.');return}
+ const t=e.rank<=3?['','1st','2nd','3rd'][e.rank]+' Position':'Certificate of Participation',logo=new URL(LOGO_URL,location.href).href;
+ w.document.write(`<!doctype html><html><head><title>Certificate</title><style>@page{size:A4 landscape;margin:0}body{margin:0;font-family:Georgia,serif;color:#10213f;text-align:center}.b{margin:12mm;padding:14mm 10mm;border:6px double #b8860b;min-height:160mm;box-sizing:border-box}img{height:30mm}h1{font-size:34pt;margin:6mm 0 2mm;color:#1c3f94}h2{font-size:30pt;margin:6mm 0;color:#e0147a}p{font-size:15pt;margin:3mm 0}.s{margin-top:16mm;display:flex;justify-content:space-around}.s div{border-top:1px solid #10213f;padding-top:2mm;width:60mm;font-size:11pt}</style></head><body><div class="b"><img src="${logo}" onerror="this.remove()"><p>PRINCESS JASMINE INTERNATIONAL SCHOOL</p><h1>${esc(t)}</h1><p>is proudly awarded to</p><h2>${esc(e.name)}</h2><p>for ${e.rank<=3?'outstanding performance':'taking part'} in the</p><p><b>${esc(c.title)}</b></p><p>Score: ${e.score} points · ${e.correct} correct · Rank ${e.rank} of ${AB.board.length}</p><p>Session 2026/2027</p><div class="s"><div>Principal</div><div>Proprietor</div></div></div><script>setTimeout(()=>print(),400)<\/script></body></html>`);w.document.close()}
+
+// ---------- Staff: create, publish, score ----------
+function abComps(){
+ const lv=ABLV.map(l=>`<option value="${l}">${ABLN[l]}</option>`).join('')+'<option value="any">Mixed (everyone)</option>';
+ return`<div class="card"><h3>New competition</h3><div class="row"><input id="ab_t" placeholder="Title, e.g. DSAC Primary Championship"><select id="ab_m"><option value="abacus">Virtual abacus</option><option value="mental">Mental arithmetic</option></select><select id="ab_f"><option value="live">Live championship (room code)</option><option value="individual">Individual challenge</option></select></div>
+ <div class="row"><select id="ab_l">${lv}</select><select id="ab_c"><option value="All">All campuses</option>${Object.keys(SCHOOL.loc).map(k=>`<option>${esc(k)}</option>`).join('')}</select><input id="ab_n" type="number" value="20" placeholder="Questions"><input id="ab_d" type="number" value="10" placeholder="Minutes"><input id="ab_p" type="number" value="10" placeholder="Points per correct answer"></div>
+ <div class="row"><label class="mut">Starts<input id="ab_s" type="datetime-local"></label><label class="mut">Closes (individual challenge only)<input id="ab_e" type="datetime-local"></label></div>
+ <button onclick="abSave()">Create draft</button><p id="abm2" class="red"></p><p class="mut">Questions and answer keys are generated now. Students never receive the answer key.</p></div>
+ <div class="card"><h3>All competitions</h3><table><tr><th>Title</th><th>Type</th><th>Level</th><th>Campus</th><th>Starts</th><th>Room code</th><th>Status</th><th></th></tr>${AB.comps.map(c=>{const sc={draft:'#6b7a96',open:'#e0147a',closed:'#12a150'}[c.status];return`<tr><td>${esc(c.title)}</td><td>${c.mode=='abacus'?'Abacus':'Mental'} · ${c.format}</td><td>${ABLN[c.level]||''}</td><td>${esc(c.campus)}</td><td>${abFmt(c.startsAt)}</td><td><b>${esc(c.code||'-')}</b></td><td><span class="tag" style="background:${sc}">${c.status=='closed'?'scored':c.status}</span></td><td>${c.status=='draft'?`<button onclick="abPub('${c.id}')">Publish</button>`:''}${c.status=='open'?`<button class="s" onclick="abScore('${c.id}')">Close and score</button>`:''}${TOP.includes(me.role)?` <button class="g" onclick="abDel('${c.id}')">Delete</button>`:''}</td></tr>`}).join('')||'<tr><td>No competitions yet.</td></tr>'}</table></div>`}
+async function abSave(){
+ const m=$('#abm2'),t=v('ab_t').trim(),n=+v('ab_n'),mn=+v('ab_d'),s=v('ab_s'),fmt=v('ab_f');
+ if(!t||!s||!(n>0&&n<=100)||!(mn>0&&mn<=180)){m.textContent='Enter a title, a start time, 1 to 100 questions and 1 to 180 minutes.';return}
+ const st=new Date(s),en=fmt=='live'?new Date(st.getTime()+mn*60000+90000):(v('ab_e')?new Date(v('ab_e')):new Date(st.getTime()+7*864e5));
+ if(en<=st){m.textContent='The closing time must be after the start time.';return}
+ const l=v('ab_l'),ql=l=='any'?'intermediate':l,r=abRnd(Date.now()%2147483647),qs=Array.from({length:n},()=>abQ(ql,r)),T=firebase.firestore.Timestamp,ref=db.collection('abacusCompetitions').doc(),b=db.batch();
+ b.set(ref,{title:t,mode:v('ab_m'),format:fmt,level:l,campus:v('ab_c'),questionCount:n,durationSeconds:mn*60,pts:+v('ab_p')||10,rods:ABR[ql],startsAt:T.fromDate(st),endsAt:T.fromDate(en),status:'draft',resultsOut:false,code:fmt=='live'?Math.random().toString(36).slice(2,8).toUpperCase():'',createdBy:me.uid,createdByName:me.name,at:Date.now()});
+ b.set(db.doc('abacusQuestions/'+ref.id),{items:qs.map(x=>({q:x.q}))});b.set(db.doc('abacusKeys/'+ref.id),{answers:qs.map(x=>x.a)});
+ try{await b.commit();await abAudit('create',ref.id);await abLoad();abRender()}catch(e){m.textContent='Could not save: '+(e.code||e.message)}}
+async function abPub(id){try{await db.doc('abacusCompetitions/'+id).update({status:'open'});const c=AB.comps.find(x=>x.id==id);await notify('Abacus competition published: '+(c?c.title:''));await abAudit('publish',id);await abLoad();abRender()}catch(e){alert('Could not publish: '+(e.code||e.message))}}
+async function abDel(id){if(!confirm('Delete this competition and its questions? This cannot be undone.'))return;try{await Promise.all([db.doc('abacusCompetitions/'+id).delete(),db.doc('abacusQuestions/'+id).delete(),db.doc('abacusKeys/'+id).delete()]);await abAudit('delete',id);await abLoad();abRender()}catch(e){alert('Could not delete: '+(e.code||e.message))}}
+async function abScore(id){
+ const c=AB.comps.find(x=>x.id==id);if(!c||!confirm('Close "'+c.title+'", score every attempt and publish the leaderboard?'))return;
+ try{
+  const keys=(await db.doc('abacusKeys/'+id).get()).data().answers,pts=c.pts||10;
+  const at=(await db.collection('abacusAttempts').where('compId','==',id).get()).docs;
+  const rows=at.map(d=>{const a=d.data(),an=a.answers||{};let ok=0;keys.forEach((k,i)=>{if(an[i]===k)ok++});
+   const fin=a.finishedAt?Math.max(1,Math.round((abMs(a.finishedAt)-abMs(a.startedAt))/1000)):c.durationSeconds,nm=(a.name||'').trim().split(/\s+/);
+   return{ref:d.ref,uid:a.studentId,name:a.name||'',show:nm[0]+(nm.length>1?' '+nm[nm.length-1][0]+'.':''),class:a.class||'',campus:a.campus||'',score:ok*pts,correct:ok,timeSec:Math.min(fin,c.durationSeconds)}});
+  rows.sort((a,b)=>b.score-a.score||a.timeSec-b.timeSec);
+  for(let i=0;i<rows.length;i+=200){const b=db.batch();rows.slice(i,i+200).forEach((r,j)=>{const rank=i+j+1;
+   b.update(r.ref,{score:r.score,correct:r.correct,status:'scored',timeSec:r.timeSec,rank});
+   b.set(db.doc('abacusBoard/'+id+'/entries/'+r.uid),{name:r.name,show:r.show,class:r.class,campus:r.campus,score:r.score,correct:r.correct,timeSec:r.timeSec,rank})});await b.commit()}
+  await db.doc('abacusCompetitions/'+id).update({status:'closed',resultsOut:true,scoredAt:Date.now(),scoredBy:me.uid});
+  await abAudit('score',id);await abLoad();abRender();alert('Scored '+rows.length+' attempt(s). The leaderboard is now visible to students.');
+ }catch(e){console.error(e);alert('Could not score: '+(e.code||e.message))}}
+
+// ---------- Staff: student ability levels ----------
+async function abLevels(){
+ const [ss,ps]=await Promise.all([list('students'),db.collection('abacusProfiles').get()]),P={};ps.docs.forEach(d=>P[d.id]=d.data());
+ ss.sort((a,b)=>(a.surname||'').localeCompare(b.surname||''));
+ return`<div class="card"><h3>Student ability levels</h3><p class="mut">New students start at Beginner. Pick a level, then tap Save.</p><table><tr><th>Student</th><th>Class</th><th>Campus</th><th>Level</th><th></th></tr>${ss.map(s=>`<tr><td>${esc(s.surname)} ${esc(s.firstName)}</td><td>${esc(s.class||'')}</td><td>${esc(s.campus||'')}</td><td><select id="lv_${s.id}" style="margin:0">${ABLV.map(l=>`<option value="${l}" ${((P[s.id]||{}).abilityLevel||'beginner')==l?'selected':''}>${ABLN[l]}</option>`).join('')}</select></td><td><button onclick="abLv('${s.id}')">Save</button></td></tr>`).join('')||'<tr><td>No students found.</td></tr>'}</table></div>`}
+async function abLv(uid){try{await db.doc('abacusProfiles/'+uid).set({studentId:uid,abilityLevel:v('lv_'+uid),updatedAt:Date.now(),updatedBy:me.uid},{merge:true});alert('Level saved.')}catch(e){alert('Could not save: '+(e.code||e.message))}}
+// ===================== END UPDATE 8 =====================
+
+// ===================== UPDATE 9 : ABACUS VOICE (read aloud, listening mode, spoken feedback, say-your-answer) =====================
+// Paste this whole block right AFTER the line "END UPDATE 8" (inside the main script, before the closing script tag).
+const VO={on:'speechSynthesis' in window,mic:!!(window.SpeechRecognition||window.webkitSpeechRecognition),auto:false,oral:false,fb:true};
+try{VO.auto=localStorage.getItem('dsvo_auto')=='1';VO.oral=localStorage.getItem('dsvo_oral')=='1';VO.fb=localStorage.getItem('dsvo_fb')!='0'}catch(e){}
+function voSay(t,rate){
+ if(!VO.on)return;
+ try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t),vs=speechSynthesis.getVoices();
+  u.voice=vs.find(x=>/en[-_]NG/i.test(x.lang))||vs.find(x=>/en[-_]GB/i.test(x.lang))||vs.find(x=>/^en/i.test(x.lang))||null;
+  u.lang=u.voice?u.voice.lang:'en-GB';u.rate=rate||.9;speechSynthesis.speak(u)}catch(e){}}
+const voQ=q=>q.replace(/\s*\+\s*/g,', plus, ').replace(/\s*−\s*/g,', minus, ').replace(/\s*×\s*/g,', times, ').replace(/\s*÷\s*/g,', divided by, ').replace(/\(/g,'open bracket, ').replace(/\)/g,', close bracket, ');
+function voCur(){if(PR&&PR.i<PR.qs.length)return PR.qs[PR.i].q;if(CT&&!CT.done&&CT.items[CT.i])return CT.items[CT.i].q;return''}
+function voBar(){
+ if(!VO.on&&!VO.mic)return'';
+ const cb=(k,l)=>`<label class="mut" style="display:flex;align-items:center;gap:6px"><input type="checkbox" ${VO[k]?'checked':''} onchange="voSet('${k}',this.checked)" style="width:auto;margin:0">${l}</label>`;
+ return`<div class="card" style="margin:0 0 10px;padding:10px 12px"><div class="row" style="align-items:center;justify-content:center">${VO.on?`<button class="g" onclick="voRepeat()">🔊 Read aloud</button>`:''}${VO.mic?`<button class="g" onclick="voListen()">🎤 Say my answer</button>`:''}</div>
+ <div class="row" style="align-items:center;justify-content:center;margin-top:4px">${VO.on?cb('auto','Read each question automatically')+cb('oral','Listening mode (hide the question)')+cb('fb','Speak feedback'):''}</div><p id="vomsg" class="mut" style="text-align:center;min-height:18px;margin:4px 0 0"></p></div>`}
+function voSet(k,b){VO[k]=b;try{localStorage.setItem('dsvo_'+k,b?'1':'0')}catch(e){}
+ if(k=='oral'){const h=$('.abq'),q=voCur();if(h&&q)h.textContent=b?'🎧 Listen, then answer':q+' = ?';if(b)voRepeat()}
+ if(k=='auto'&&b)voRepeat()}
+function voRepeat(){const q=voCur();if(q)voSay(voQ(q),.85)}
+function voAfter(){
+ const q=voCur(),h=$('.abq');if(!q||!h)return;
+ h.insertAdjacentHTML('beforebegin',voBar());
+ if(VO.oral)h.textContent='🎧 Listen, then answer';
+ if(VO.auto||VO.oral)voSay(voQ(q),.85)}
+{const o=abPQ;abPQ=function(){const r=o.apply(this,arguments);voAfter();return r}}
+{const o=abCQ;abCQ=function(){const r=o.apply(this,arguments);voAfter();return r}}
+{const o=abPSub;abPSub=function(){const r=o.apply(this,arguments);const f=$('#abfb');
+ if(PR&&PR.fb&&f&&f.textContent&&VO.fb)voSay(f.textContent,.9);return r}}
+{const o=abPEnd;abPEnd=async function(){const r=await o.apply(this,arguments);
+ if(VO.fb&&PR)voSay('Practice complete. You scored '+PR.ok+' out of '+PR.qs.length+'.',.9);return r}}
+{const o=abFinish;abFinish=async function(auto){const was=CT&&CT.done;const r=await o.apply(this,arguments);
+ if(!was&&VO.fb)voSay((auto?'Time is up. ':'')+'Your answers have been submitted.',.9);return r}}
+{const o=abRender;abRender=function(){try{speechSynthesis.cancel()}catch(e){}return o.apply(this,arguments)}}
+
+// ---------- Say your answer (always check the number, then press Check / Save) ----------
+function voNum(t){
+ t=t.toLowerCase().replace(/,/g,'').replace(/-/g,' ');const d=t.match(/\d+/);if(d)return+d[0];
+ const U={zero:0,one:1,won:1,two:2,to:2,too:2,three:3,four:4,for:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,eleven:11,twelve:12,thirteen:13,fourteen:14,fifteen:15,sixteen:16,seventeen:17,eighteen:18,nineteen:19,twenty:20,thirty:30,forty:40,fifty:50,sixty:60,seventy:70,eighty:80,ninety:90};
+ let tot=0,cur=0,any=0;
+ for(const w of t.split(/\s+/)){if(w in U){cur+=U[w];any=1}else if(w=='hundred'){cur=(cur||1)*100;any=1}else if(w=='thousand'){tot+=(cur||1)*1000;cur=0;any=1}}
+ return any?tot+cur:null}
+function voFill(n){
+ if(AB.lock)return;
+ if(AB.mode=='abacus'){const L=AB.rods.length;if(n>=Math.pow(10,L)){$('#vomsg').textContent='I heard '+n+', which is too big for this abacus. Try again.';return}
+  const s=String(n).padStart(L,'0');AB.rods.forEach((x,i)=>{const dg=+s[i];x.h=dg>=5?1:0;x.e=dg%5});abPaint()}
+ else{AB.key=String(n).slice(0,7);$('#abv').textContent=AB.key}
+ $('#vomsg').textContent='I heard '+n+'. Check it, then continue.'}
+function voListen(){
+ const R=window.SpeechRecognition||window.webkitSpeechRecognition,m=$('#vomsg');if(!R||AB.lock)return;
+ try{speechSynthesis.cancel()}catch(e){}
+ const r=new R();r.lang='en-NG';r.interimResults=false;r.maxAlternatives=3;m.textContent='Listening... say your answer.';let got=0;
+ r.onresult=e=>{got=1;const a=[...e.results[0]].map(x=>x.transcript);let n=null;for(const t of a){n=voNum(t);if(n!==null)break}
+  if(n===null){m.textContent='I heard "'+a[0]+'". Please try again.';return}voFill(n)};
+ r.onerror=e=>{got=1;m.textContent=e.error=='not-allowed'?'Allow the microphone to use this. If you opened the portal inside Apps Script, use the GitHub Pages link.':'Microphone problem ('+e.error+'). Please try again.'};
+ r.onend=()=>{if(!got)m.textContent='I did not hear anything. Tap Say my answer and try again.'};
+ try{r.start()}catch(e){m.textContent='Could not start the microphone.'}}
+// ===================== END UPDATE 9 =====================
+
+</script></body></html>
