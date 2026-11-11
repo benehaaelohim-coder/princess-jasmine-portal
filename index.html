@@ -101,6 +101,9 @@ table{width:100%;border-collapse:collapse;font-size:14px;display:block;overflow-
 <div id="appBox"><aside id="side"></aside><div id="ov" onclick="side.classList.remove('open')"></div><main><div class="top"><button id="menu" onclick="side.classList.toggle('open')">☰</button><h2 id="ttl"></h2><div><span id="bell" style="cursor:pointer" onclick="go('notes')">🔔</span> <button class="g" id="lockBtn" onclick="lock()" style="display:none">🔒 Lock</button> <button class="g" onclick="auth.signOut()">Logout</button></div></div><div id="main"></div></main></div>
 <script>
 const LOGO_URL="./logo.png"; // logo.png must sit in the same folder as this page (GitHub Pages)
+// NOTE: a Firebase web apiKey is a public project identifier, NOT a secret - it must be in the page.
+// Real protection = Firestore rules (firestore.rules) + restricting this key in Google Cloud Console
+// (APIs & Services > Credentials: HTTP referrers = your GitHub Pages domain, and API restrictions).
 const CFG={apiKey:"AIzaSyAfQSFk1fmF8LavQF_dJemFCwZ0CTUlyGI",authDomain:"princess-jasmine-portal.firebaseapp.com",projectId:"princess-jasmine-portal",storageBucket:"princess-jasmine-portal.firebasestorage.app",messagingSenderId:"147956460080",appId:"1:147956460080:web:9817e911a93d39aabfdbf5"};
 firebase.initializeApp(CFG);
 const auth=firebase.auth(),db=firebase.firestore();
