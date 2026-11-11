@@ -116,7 +116,9 @@ const FAKE='@princessjasmine.app';
 const TOP=['proprietor','admin'],FULL=['proprietor','admin','chairman','administrator'],MG=['proprietor','admin','chairman','administrator','principal'];
 const RL={proprietor:'Proprietor',admin:'Admin',chairman:'Chairman',administrator:'School Administrator',principal:'Principal',teacher:'Teacher',staff:'Staff',accountant:'Accountant',student:'Student'};
 // ---- School settings (EDIT THESE) ----
-const SCHOOL={email:'info@princessjasmine.edu.ng',phone:'+234 800 000 0000',loc:{'Ediam':'Ediam, Eket, Akwa Ibom','Ikot Oso':'Ikot Oso, Eket, Akwa Ibom'}};
+const SCHOOL={email:'info@princessjasmine.edu.ng',phone:'+234 800 000 0000',loc:{'Afaha Ukwa':'Afaha Ukwa, Eket, Akwa Ibom'}};
+// The school runs ONE campus. Change this single name (and the address above) if it ever changes.
+const CAMPUS='Afaha Ukwa';
 const CLASSES=['Creche','Nursery 1','Nursery 2','Nursery 3','Primary 1','Primary 2','Primary 3','Primary 4','Primary 5','Primary 6','JSS1','JSS2','JSS3','SS1','SS2','SS3'];
 const TRIS=['1st Trimester','2nd Trimester','3rd Trimester'];
 const EXP_CATS=['Salaries','Utilities','Maintenance','Stationery & supplies','Transport','Feeding','Events','Other'];
@@ -260,7 +262,7 @@ async dash(){
  const nm=s.name||me.name||'',ab=at.filter(a=>a.status=='Absent').length;
  set(`<div class="sd2">
  <div class="card sdp">${s.photo?`<img class="ph" src="${esc(s.photo)}" alt="">`:`<div class="ph" style="display:grid;place-items:center;font-size:56px;margin:0 auto">${esc((nm||'?')[0])}</div>`}
- <h2>${esc(nm)}</h2><p class="mut">${esc(s.position||RL[me.role]||me.role)}</p><p class="mut">Staff ID: ${esc(s.staffId||me.username||'-')}</p><p class="mut">${esc(s.campus||'-')}${s.department?' · '+esc(s.department):''}</p>
+ <h2>${esc(nm)}</h2><p class="mut">${esc(s.position||RL[me.role]||me.role)}</p><p class="mut">Staff ID: ${esc(s.staffId||me.username||'-')}</p><p class="mut">${esc(CAMPUS)}${s.department?' · '+esc(s.department):''}</p>
  <div class="trio"><div><span>Present</span><b class="green">${at.length-ab}</b></div><div><span>Absent</span><b class="red">${ab}</b></div><div><span>Fines</span><b>${money(ab*1000)}</b></div></div></div>
  <div class="card sdm"><div class="sdtabs">${[['ov','Overview'],['ab','About'],['at','Attendance']].map(([k,l])=>`<a data-t="${k}" onclick="stTab('${k}')">${l}</a>`).join('')}</div><div id="sdt"></div></div></div>`);
  stTab('ov')},
@@ -278,14 +280,14 @@ async pub(){
 async mgmt(){
  const[s,t,n]=await Promise.all([list('students'),list('staff'),list('attendance',['date','==',today()])]);
  set(`<div class="grid"><div class="card stat"><span>Students</span><b>${s.length}</b></div><div class="card stat"><span>Staff</span><b>${t.length}</b></div><div class="card stat"><span>Staff present today</span><b class="green">${n.filter(x=>x.status=='Present').length}</b></div></div>
- <div class="card"><h3>Students</h3><table><tr><th>ID</th><th>Name</th><th>Class</th><th>Campus</th><th></th></tr>${s.map(x=>`<tr><td>${esc(x.regNo)}</td><td>${esc(x.surname)} ${esc(x.firstName)}</td><td>${esc(x.class)}</td><td>${esc(x.campus)}</td><td><button class="g" onclick="studentDash('${x.id}')">Open</button></td></tr>`).join('')}</table></div>`)},
-reg(){photo='';FP={t:[]};set(`<div class="card"><h3>Student Registration</h3><div class="grid">${F([['surname','Surname'],['firstName','First name'],['middleName','Middle name'],['gender','Gender','Male,Female'],['dob','Date of birth','date'],['pob','Place of birth'],['nationality','Nationality'],['state','State of origin'],['lga','LGA'],['address','Residential address'],['phone','Phone'],['email','Student email (optional)','email'],['indigene','Status','Indigene,Non-Indigene'],['level','Section','Creche,Nursery,Primary,Junior High School,Senior High School'],['class','Class',CLASSES.join(',')],['session','Session (2026/2027)'],['campus','Campus','Ediam,Ikot Oso'],['boarding','Boarding?','Day,Boarding'],['father','Father name'],['fatherPhone','Father phone'],['mother','Mother name'],['motherPhone','Mother phone'],['guardianEmail','Parent email (REQUIRED - the same email can be used for many children)','email'],['emName','Emergency contact'],['emPhone','Emergency phone'],['blood','Blood group'],['genotype','Genotype'],['allergies','Allergies'],['about','About the student (short story and ambitions)'],['feeDue','Total fees due (₦)','number']])}</div>
+ <div class="card"><h3>Students</h3><table><tr><th>ID</th><th>Name</th><th>Class</th><th>Campus</th><th></th></tr>${s.map(x=>`<tr><td>${esc(x.regNo)}</td><td>${esc(x.surname)} ${esc(x.firstName)}</td><td>${esc(x.class)}</td><td>${esc(CAMPUS)}</td><td><button class="g" onclick="studentDash('${x.id}')">Open</button></td></tr>`).join('')}</table></div>`)},
+reg(){photo='';FP={t:[]};set(`<div class="card"><h3>Student Registration</h3><div class="grid">${F([['surname','Surname'],['firstName','First name'],['middleName','Middle name'],['gender','Gender','Male,Female'],['dob','Date of birth','date'],['pob','Place of birth'],['nationality','Nationality'],['state','State of origin'],['lga','LGA'],['address','Residential address'],['phone','Phone'],['email','Student email (optional)','email'],['indigene','Status','Indigene,Non-Indigene'],['level','Section','Creche,Nursery,Primary,Junior High School,Senior High School'],['class','Class',CLASSES.join(',')],['session','Session (2026/2027)'],['campus','Campus',CAMPUS],['boarding','Boarding?','Day,Boarding'],['father','Father name'],['fatherPhone','Father phone'],['mother','Mother name'],['motherPhone','Mother phone'],['guardianEmail','Parent email (REQUIRED - the same email can be used for many children)','email'],['emName','Emergency contact'],['emPhone','Emergency phone'],['blood','Blood group'],['genotype','Genotype'],['allergies','Allergies'],['about','About the student (short story and ambitions)'],['feeDue','Total fees due (₦)','number']])}</div>
  <p><b>Biometric ID</b> <small>(auto-numbered. Enrol this number on the fingerprint scanner so attendance can be taken)</small></p><input id="f_bioId" type="number">${FPUI}
  <p>Passport photo:</p><input type="file" accept="image/*" capture="user" onchange="snap(this)"><img id="pv" class="pic"><br><button onclick="regStudent()">Register & Create Account</button><p id="rmsg"></p></div>`)},
 async notes(){
  const n=(await list('notifications')).sort((a,b)=>b.at-a.at).slice(0,50);
  set(n.map(x=>`<div class="card">${esc(x.msg)}<br><small>${new Date(x.at).toLocaleString()}</small></div>`).join('')||'<div class="card">Nothing yet.</div>')},
-staffreg(){photo='';FP={t:[]};set(`<div class="card"><h3>Add Staff / Teacher / Role</h3><p><small>Several staff may share the same email address; each still gets their own username and password. Roles: Chairman and Administrator have full access except Reset.</small></p>${F([['name','Full name'],['username','Username / Staff ID'],['email','Staff email (for password recovery; may be shared)','email'],['phone','Phone (shown to students as class teacher contact)'],['password','Temporary password (min 6 characters)'],['role','Role','teacher,staff,principal,accountant,admin,chairman,administrator'],['position','Position'],['department','Department'],['campus','Campus','Ediam,Ikot Oso'],['salary','Basic salary','number'],['about','About the staff member (short bio)']])}
+staffreg(){photo='';FP={t:[]};set(`<div class="card"><h3>Add Staff / Teacher / Role</h3><p><small>Several staff may share the same email address; each still gets their own username and password. Roles: Chairman and Administrator have full access except Reset.</small></p>${F([['name','Full name'],['username','Username / Staff ID'],['email','Staff email (for password recovery; may be shared)','email'],['phone','Phone (shown to students as class teacher contact)'],['password','Temporary password (min 6 characters)'],['role','Role','teacher,staff,principal,accountant,admin,chairman,administrator'],['position','Position'],['department','Department'],['campus','Campus',CAMPUS],['salary','Basic salary','number'],['about','About the staff member (short bio)']])}
  <p><b>Biometric ID</b> <small>(auto-numbered. Enrol this number on the fingerprint scanner so attendance can be taken)</small></p><input id="f_bioId" type="number">${FPUI}
  <p>Staff photo:</p><input type="file" accept="image/*" capture="user" onchange="snap(this)"><img id="pv" class="pic"><br><button onclick="addStaff()">Create Staff</button><p id="rmsg"></p></div>`)},
 async stat(){
@@ -367,7 +369,7 @@ function stTab(k){
  pf=(l,x)=>`<div><span>${l}</span><b>${esc(x||'-')}</b></div>`;
  document.querySelectorAll('[data-t]').forEach(b=>b.classList.toggle('on',b.dataset.t==k));
  const H={
- ov:`<div class="card"><h4>Profile</h4><div class="pf">${pf('Full name',nm)}${pf('Staff ID / Username',s.staffId||me.username)}${pf('Role',RL[me.role]||me.role)}${pf('Position',s.position)}${pf('Department',s.department)}${pf('Campus',s.campus)}${pf('Phone',s.phone)}${pf('Email',s.email||me.contactEmail)}${pf('Biometric ID',s.bioId)}${pf('Fingerprint',s.fpEnrolled?'Enrolled':'Not enrolled')}</div></div>
+ ov:`<div class="card"><h4>Profile</h4><div class="pf">${pf('Full name',nm)}${pf('Staff ID / Username',s.staffId||me.username)}${pf('Role',RL[me.role]||me.role)}${pf('Position',s.position)}${pf('Department',s.department)}${pf('Campus',CAMPUS)}${pf('Phone',s.phone)}${pf('Email',s.email||me.contactEmail)}${pf('Biometric ID',s.bioId)}${pf('Fingerprint',s.fpEnrolled?'Enrolled':'Not enrolled')}</div></div>
  <div class="card"><h4>Pay summary</h4><div class="grid"><div class="card stat"><span>Basic salary</span><b>${money(sal)}</b></div><div class="card stat"><span>Fines (₦1,000/absence)</span><b class="red">${money(ab*1000)}</b></div><div class="card stat"><span>Net pay</span><b class="green">${money(sal-ab*1000)}</b></div><div class="card stat"><span>Days present</span><b>${at.length-ab}</b></div></div></div>
  <div class="card"><h4>About</h4><p>${esc(s.about||'No bio added yet. Open the About tab to write one.')}</p></div>`,
  ab:`<div class="card"><h4>About me</h4><p>${esc(s.about||'No bio added yet.')}</p><textarea id="sab" rows="4" placeholder="Write a short bio: your role, experience and interests">${esc(s.about||'')}</textarea><button onclick="saveStaffAbout()">Save</button><p id="sab_m"></p></div>`,
@@ -450,7 +452,7 @@ async function publishAll(){
  for(let i=0;i<docs.length;i+=400){const b=db.batch();docs.slice(i,i+400).forEach(d=>b.update(d.ref,{published:true}));await b.commit()}
  await notify('All pending results validated');go('pub')}
 async function addStat(){await add('stationery',{item:v('si'),price:+v('sp')||0});go('stat')}
-const RESETS=['announcements','results','attendance','fees','expenses','notifications','events','comments','stationery','classes','subjects','biometrics'];
+const RESETS=['announcements','results','attendance','fees','expenses','notifications','events','comments','stationery','subjects','biometrics']; // classes: only the Proprietor manages them, on the Classes page
 async function doReset(){
  if(!TOP.includes(me.role))return alert('Only the Proprietor or Admin can reset data.');
  const c=v('rc'),cols=c=='all'?RESETS:[c],m=$('#rst_msg');
@@ -611,7 +613,7 @@ async function dlFin(a,b,k){
  }catch(e){alert('Could not download: '+(e.code||e.message))}}
 
 // ----- Classes, subjects, events, compute -----
-async function seedClasses(){const b=db.batch();CLASSES.forEach(n=>b.set(db.doc('classes/'+n.replace(/ /g,'_')),{name:n}));await b.commit();go('setup')}
+async function seedClasses(){if(me.role!=='proprietor')return alert('Only the Proprietor can add or remove classes.');const b=db.batch();CLASSES.forEach(n=>b.set(db.doc('classes/'+n.replace(/ /g,'_')),{name:n}));await b.commit();go('setup')}
 async function assignTeacher(id){const t=TEACH.find(x=>x.id==v('ct_'+id))||{};await db.doc('classes/'+id).update({teacherId:t.id||'',teacherName:t.name||'',teacherPhone:t.phone||''});alert('Saved')}
 async function addSubj(){const c=v('sj_c'),n=v('sj_n').trim();if(!n)return alert('Enter a subject name.');await db.doc('subjects/'+subId(c,n)).set({class:c,name:n});go('subj')}
 async function delSubj(id){await db.doc('subjects/'+id).delete();go('subj')}
@@ -655,7 +657,7 @@ async function studentDash(id,tab){
  nm=((s.firstName||'')+' '+(s.surname||'')).trim();
  set(`<div class="sd">
  <div class="card sdp">${s.photo?`<img class="ph" src="${esc(s.photo)}" alt="">`:`<div class="ph" style="display:grid;place-items:center;font-size:56px;margin:0 auto">${esc((s.firstName||'?')[0])}</div>`}
- <h2>${esc(nm)}</h2><p class="mut">Student ID: ${esc(s.regNo||'-')}</p><p class="mut">${esc(cn||'-')} · ${esc(s.campus||'-')}</p>
+ <h2>${esc(nm)}</h2><p class="mut">Student ID: ${esc(s.regNo||'-')}</p><p class="mut">${esc(cn||'-')} · ${esc(CAMPUS)}</p>
  <div class="trio"><div><span>Average</span><b>${avg}</b><span>${avg=='-'?'':gradeInfo(+avg,1)}</span></div><div><span>Attendance</span><b>${att}</b></div><div><span>Fees</span><b class="${fit?'green':'red'}">${fit?'Fit':'Owing'}</b></div></div>
  <div class="fb"><small>Fees paid ${pc}%</small><div class="bar"><i style="width:${pc}%"></i></div></div></div>
  <div class="card sdm"><div class="sdtabs">${T.map(([k,l])=>`<a data-t="${k}" onclick="sdTab('${k}')">${l}</a>`).join('')}</div><div id="sdt"></div></div>
@@ -674,7 +676,7 @@ function sdTab(k){
  const H={
  ov:`<div class="card"><h4>About</h4><p>${esc(s.about||'No story added yet.')}</p>${MG.includes(me.role)||me.uid==id?`<textarea id="ab" rows="3" placeholder="Write a short story about the student and their ambitions">${esc(s.about||'')}</textarea><button onclick="saveAbout()">Save</button>`:''}</div>
  ${acSum}
- <div class="card"><h4>Contact Info</h4><p style="line-height:1.9;margin:0">School E-mail: <b>${esc(SCHOOL.email)}</b><br>Phone: <b>${esc(SCHOOL.phone)}</b><br>Location: <b>${esc(SCHOOL.loc[s.campus]||s.campus||'-')}</b></p></div>`,
+ <div class="card"><h4>Contact Info</h4><p style="line-height:1.9;margin:0">School E-mail: <b>${esc(SCHOOL.email)}</b><br>Phone: <b>${esc(SCHOOL.phone)}</b><br>Location: <b>${esc(SCHOOL.loc[CAMPUS]||CAMPUS)}</b></p></div>`,
  sb:`<div class="card"><h4>Subjects - ${esc(s.class||'')}</h4><table><tr><th>Subject</th><th>Latest total</th><th>Grade</th></tr>${sj.map(x=>{const l=r.filter(y=>y.subject==x.name).sort((a,b)=>TRIS.indexOf(b.trimester)-TRIS.indexOf(a.trimester))[0],n=l?l.test+l.exam:null;return`<tr><td>${esc(x.name)}</td><td>${n==null?'-':n}</td><td>${n==null?'-':grade(n)}</td></tr>`}).join('')||'<tr><td>No subjects set for this class yet.</td></tr>'}</table></div>`,
  rs:TRIS.map(t=>{const l=r.filter(x=>x.trimester==t);if(!l.length)return'';const tot=l.reduce((a,x)=>a+x.test+x.exam,0);return`<div class="card"><h4>${t} <small>(Total ${tot} · Avg ${(tot/l.length).toFixed(1)} · ${gradeInfo(tot/l.length)})</small></h4><table><tr><th>Subject</th><th>Test</th><th>Exam</th><th>Total</th><th>Grade</th></tr>${l.map(x=>{const n=x.test+x.exam;return`<tr><td>${esc(x.subject)}</td><td>${x.test}</td><td>${x.exam}</td><td class="${n<50?'red':'green'}">${n}</td><td>${grade(n)}</td></tr>`}).join('')}</table></div>`}).join('')||'<div class="card">Results not yet released.</div>',
  ac:acSum+`<div class="card"><h4>Attendance</h4><p>Days attended <b>${here}/${at.length}</b></p></div><div class="card"><h4>Fees</h4><p>Paid <b>${money(paid)}</b> · Balance <b>${money(Math.max(due-paid,0))}</b> · Status <b class="${fit?'green':'red'}">${fit?'Fit':'Owing'}</b></p></div><div class="card"><h4>Comments</h4>${c.map(x=>`<p><b>${esc(x.byName)}</b>: ${esc(x.text)}</p>`).join('')}<input id="cm" placeholder="Write a comment"><button onclick="postComment('${id}')">Post</button></div>`,
@@ -781,7 +783,7 @@ async function delPerson(kind,id){
 V.mgmt=async function(){
  const[s,t,n]=await Promise.all([list('students'),list('staff'),list('attendance',['date','==',today()])]),can=DEL.includes(me.role),att=ATT.includes(me.role);
  set(`<div class="grid"><div class="card stat"><span>Students</span><b>${s.length}</b></div><div class="card stat"><span>Staff</span><b>${t.length}</b></div>${att?`<div class="card stat"><span>Staff present today</span><b class="green">${n.filter(x=>x.status=='Present'&&x.kind=='staff').length}</b></div>`:''}</div>
- <div class="card"><h3>Students</h3><table><tr><th>ID</th><th>Name</th><th>Class</th><th>Campus</th><th></th></tr>${s.map(x=>`<tr><td>${esc(x.regNo)}</td><td>${esc(x.surname)} ${esc(x.firstName)}</td><td>${esc(x.class)}</td><td>${esc(x.campus)}</td><td><button class="g" data-id="${esc(x.id)}" onclick="studentDash(this.dataset.id)">Open</button>${can?` <button class="s" data-id="${esc(x.id)}" onclick="delPerson('student',this.dataset.id)">Delete</button>`:''}</td></tr>`).join('')}</table></div>`)};
+ <div class="card"><h3>Students</h3><table><tr><th>ID</th><th>Name</th><th>Class</th><th>Campus</th><th></th></tr>${s.map(x=>`<tr><td>${esc(x.regNo)}</td><td>${esc(x.surname)} ${esc(x.firstName)}</td><td>${esc(x.class)}</td><td>${esc(CAMPUS)}</td><td><button class="g" data-id="${esc(x.id)}" onclick="studentDash(this.dataset.id)">Open</button>${can?` <button class="s" data-id="${esc(x.id)}" onclick="delPerson('student',this.dataset.id)">Delete</button>`:''}</td></tr>`).join('')}</table></div>`)};
 {const o=V.staffreg;V.staffreg=async function(){o();
  const s=(await list('staff')).sort((a,b)=>(a.name||'').localeCompare(b.name||''));
  mainEl.insertAdjacentHTML('beforeend',`<div class="card"><h3>All staff (${s.length})</h3><table><tr><th>Name</th><th>ID</th><th>Role</th><th>Position</th><th>Campus</th><th></th></tr>${s.map(x=>`<tr><td>${esc(x.name)}</td><td>${esc(x.staffId||'')}</td><td>${esc(RL[x.role]||x.role||'')}</td><td>${esc(x.position||'')}</td><td>${esc(x.campus||'')}</td><td>${DEL.includes(me.role)&&x.id!==me.uid?`<button class="s" data-id="${esc(x.id)}" onclick="delPerson('staff',this.dataset.id)">Delete</button>`:''}</td></tr>`).join('')}</table></div>`)}}
@@ -795,7 +797,7 @@ V.req=async function(){
  REQ=(await list('requisitions')).sort((a,b)=>b.at-a.at);
  const fin=FULL.includes(me.role),pend=REQ.filter(x=>x.status=='Pending').length;
  set(`<div class="grid"><div class="card stat"><span>Pending approval</span><b>${pend}</b></div><div class="card stat"><span>Approved, unpaid</span><b>${money(REQ.filter(x=>x.status=='Approved').reduce((s,x)=>s+x.total,0))}</b></div><div class="card stat"><span>Paid out</span><b class="green">${money(REQ.filter(x=>x.status=='Paid').reduce((s,x)=>s+x.total,0))}</b></div></div>
- <div class="card"><h3>New Requisition</h3><div class="row"><input id="rq_d" type="date" value="${today()}"><input id="rq_dep" placeholder="Department / unit"><select id="rq_cam"><option>Ediam</option><option>Ikot Oso</option></select></div>
+ <div class="card"><h3>New Requisition</h3><div class="row"><input id="rq_d" type="date" value="${today()}"><input id="rq_dep" placeholder="Department / unit"><select id="rq_cam"><option>${esc(CAMPUS)}</option></select></div>
  <div class="row"><select id="rq_cat">${opts(EXP_CATS)}</select><select id="rq_tri">${opts([...TRIS,'Full session'])}</select><input id="rq_ses" placeholder="Session e.g. 2026/2027"><select id="rq_urg"><option>Normal</option><option>Urgent</option></select></div>
  <textarea id="rq_pur" rows="2" placeholder="Purpose / justification"></textarea>
  <p><b>Items</b></p><div id="rq_items"></div><button type="button" class="g" onclick="reqRow()">+ Add item</button>
@@ -845,7 +847,7 @@ const SAFE=['dash','news','msg','acct','attend','fees'];
 [...new Set(Object.values(MENU))].forEach(m=>{const i=m.findIndex(x=>x.startsWith('news:'));m.splice(i+1,0,'msg:Messages')});
 
 // ---------- Settings + custom roles are loaded before the menu is built ----------
-async function loadSettings(){try{const d=await db.doc('settings/school').get();if(d.exists){const x=d.data();if(x.email)SCHOOL.email=x.email;if(x.phone)SCHOOL.phone=x.phone;if(x.loc)SCHOOL.loc={...SCHOOL.loc,...x.loc}}}catch(e){console.warn('settings',e.code)}}
+async function loadSettings(){try{const d=await db.doc('settings/school').get();if(d.exists){const x=d.data();if(x.email)SCHOOL.email=x.email;if(x.phone)SCHOOL.phone=x.phone;if(x.loc&&x.loc[CAMPUS])SCHOOL.loc={[CAMPUS]:x.loc[CAMPUS]}}}catch(e){console.warn('settings',e.code)}}
 function applyRole(r){
  const id=r.id;[MG,FULL,ATT].forEach(a=>{const i=a.indexOf(id);if(i>=0)a.splice(i,1)});
  RL[id]=r.label;
@@ -867,11 +869,11 @@ function drawComments(){
 function contactCard(){
  const h=[...document.querySelectorAll('#sdt .card h4')].find(x=>x.textContent=='Contact Info');if(!h)return;
  const s=SD.s,can=MG.includes(me.role);
- h.closest('.card').innerHTML=`<h4>Contact Info</h4><p style="line-height:1.9;margin:0">School E-mail: <b>${esc(SCHOOL.email)}</b><br>Phone: <b>${esc(SCHOOL.phone)}</b><br>Location: <b>${esc(SCHOOL.loc[s.campus]||s.campus||'-')}</b></p>`+
- (can?`<details style="margin-top:10px"><summary>Edit contact info (management only)</summary><input id="ci_e" value="${esc(SCHOOL.email)}" placeholder="School email"><input id="ci_p" value="${esc(SCHOOL.phone)}" placeholder="Phone"><input id="ci_1" value="${esc(SCHOOL.loc['Ediam']||'')}" placeholder="Ediam campus location"><input id="ci_2" value="${esc(SCHOOL.loc['Ikot Oso']||'')}" placeholder="Ikot Oso campus location"><button onclick="saveContact()">Save contact info</button></details>`:'')}
+ h.closest('.card').innerHTML=`<h4>Contact Info</h4><p style="line-height:1.9;margin:0">School E-mail: <b>${esc(SCHOOL.email)}</b><br>Phone: <b>${esc(SCHOOL.phone)}</b><br>Location: <b>${esc(SCHOOL.loc[CAMPUS]||CAMPUS)}</b></p>`+
+ (can?`<details style="margin-top:10px"><summary>Edit contact info (management only)</summary><input id="ci_e" value="${esc(SCHOOL.email)}" placeholder="School email"><input id="ci_p" value="${esc(SCHOOL.phone)}" placeholder="Phone"><input id="ci_1" value="${esc(SCHOOL.loc[CAMPUS]||'')}" placeholder="School location"><button onclick="saveContact()">Save contact info</button></details>`:'')}
 async function saveContact(){
  if(!MG.includes(me.role))return;
- const d={email:v('ci_e').trim(),phone:v('ci_p').trim(),loc:{'Ediam':v('ci_1').trim(),'Ikot Oso':v('ci_2').trim()}};
+ const d={email:v('ci_e').trim(),phone:v('ci_p').trim(),loc:{[CAMPUS]:v('ci_1').trim()}};
  try{await db.doc('settings/school').set(d);SCHOOL.email=d.email;SCHOOL.phone=d.phone;SCHOOL.loc=d.loc;contactCard()}
  catch(e){alert('Could not save: '+(e.code||e.message))}}
 {const o=sdTab;sdTab=function(k){o(k);if(k=='ov')contactCard();if(k=='ac')drawComments()}}
@@ -1040,7 +1042,7 @@ const photoBtn=(k,id)=>!TOP.includes(me.role)?'':`<label class="pbtn">📷 Chang
  $('#sdt').insertAdjacentHTML('afterbegin',`<div class="pban">${s.photo?`<img class="ph" src="${esc(s.photo)}" alt="">`:`<div class="ph" style="display:grid;place-items:center;font-size:44px;background:var(--bd)">${esc((nm||'?')[0])}</div>`}<div><h2>${esc(nm)}</h2><span class="ch">${esc(s.position||RL[me.role]||me.role)}</span><span class="ch">${esc(s.staffId||me.username||'')}</span><span class="ch">${esc(s.campus||'')}</span><br>${photoBtn('staff',me.uid)}</div></div>`)}}
 
 // ---------- Student Profile tab + record editing ----------
-const EF=[['surname','Surname'],['firstName','First name'],['middleName','Middle name'],['gender','Gender','Male,Female'],['dob','Date of birth','date'],['pob','Place of birth'],['nationality','Nationality'],['state','State of origin'],['lga','LGA'],['address','Residential address'],['phone','Phone'],['email','Student email'],['indigene','Status','Indigene,Non-Indigene'],['level','Section','Creche,Nursery,Primary,Junior High School,Senior High School'],['class','Class',CLASSES.join(',')],['session','Session'],['campus','Campus','Ediam,Ikot Oso'],['boarding','Boarding?','Day,Boarding'],['father','Father name'],['fatherPhone','Father phone'],['mother','Mother name'],['motherPhone','Mother phone'],['guardianEmail','Parent email'],['emName','Emergency contact'],['emPhone','Emergency phone'],['blood','Blood group'],['genotype','Genotype'],['allergies','Allergies'],['feeDue','Total fees due (₦)','number']];
+const EF=[['surname','Surname'],['firstName','First name'],['middleName','Middle name'],['gender','Gender','Male,Female'],['dob','Date of birth','date'],['pob','Place of birth'],['nationality','Nationality'],['state','State of origin'],['lga','LGA'],['address','Residential address'],['phone','Phone'],['email','Student email'],['indigene','Status','Indigene,Non-Indigene'],['level','Section','Creche,Nursery,Primary,Junior High School,Senior High School'],['class','Class',CLASSES.join(',')],['session','Session'],['campus','Campus',CAMPUS],['boarding','Boarding?','Day,Boarding'],['father','Father name'],['fatherPhone','Father phone'],['mother','Mother name'],['motherPhone','Mother phone'],['guardianEmail','Parent email'],['emName','Emergency contact'],['emPhone','Emergency phone'],['blood','Blood group'],['genotype','Genotype'],['allergies','Allergies'],['feeDue','Total fees due (₦)','number']];
 function profHTML(){
  const s=SD.s,nm=((s.firstName||'')+' '+(s.middleName||'')+' '+(s.surname||'')).replace(/\s+/g,' ').trim(),
  g=(t,i,a)=>`<div class="card"><h4>${i} ${t}</h4><div class="pf">${a.map(([k,l])=>`<div><span>${l}</span><b>${esc((k=='feeDue'?money(s[k]):s[k])||'-')}</b></div>`).join('')}</div></div>`;
@@ -1196,10 +1198,7 @@ let MYC='',UNN=0,ACT=0,NOPUSH=false,SCC={t:0,p:null};
 const PAYTYPES=['Tuition','School Uniform','Stationery','Books','Boarding','Transport','School Bus','Exam','Other'];
 
 // ---------- A. Campus scope ----------
-function CAMPUS_SCOPE(){
- if(!me||!MYC)return'';
- const c=CUSTOM.find(r=>r.id===me.role);
- return(me.role==='teacher'||me.role==='principal'||(c&&c.level==='mgt'))?MYC:''}
+function CAMPUS_SCOPE(){return''} // single campus: no per-campus filtering needed
 function scIds(sc){
  if(!SCC.p||Date.now()-SCC.t>20000){SCC.t=Date.now();SCC.p=db.collection('students').where('campus','==',sc).get().then(s=>new Set(s.docs.map(d=>d.id)))}
  return SCC.p}
@@ -1229,7 +1228,7 @@ EF.push(['schoolBus','School Bus (Optional)','Yes,No'],['busStop','Bus stop / ro
  const b=document.getElementById('f_boarding');
  if(b)b.insertAdjacentHTML('afterend',F([['schoolBus','School Bus (Optional)','Yes,No'],['busStop','Bus stop / route (if using school bus)']]));
  const c=document.getElementById('f_campus'),sc=CAMPUS_SCOPE();
- if(c&&sc){c.value=sc;c.disabled=true}}}
+ if(c){c.value=CAMPUS;c.disabled=true}}}
 async function nextReg(){
  const ref=db.doc('settings/counters');let seed=null;
  const cur=await ref.get();
@@ -1238,7 +1237,7 @@ async function nextReg(){
   catch(e){throw new Error('Registration numbers are not set up yet. Ask the Proprietor, Admin, Chairman or School Administrator to open Registration and register one student first.')}}
  return db.runTransaction(async t=>{const d=await t.get(ref);let n=d.exists?(+d.data().reg||0):0;if(!n&&seed!=null)n=seed;n++;t.set(ref,{reg:n},{merge:true});return n})}
 async function regStudent(){
- const g=G(),m=$('#rmsg'),sc=CAMPUS_SCOPE();
+ const g=G(),m=$('#rmsg'),sc=CAMPUS_SCOPE();g.campus=CAMPUS;
  if(!g.surname||!g.firstName){m.textContent='Enter surname and first name.';return}
  if(!g.class){m.textContent='Choose the student\'s class.';return}
  if(!g.campus){m.textContent='Choose the campus.';return}
@@ -1257,7 +1256,7 @@ async function regStudent(){
 {const o=V.staffreg;V.staffreg=async function(){await o();
  const h=[...mainEl.querySelectorAll('h3')].find(x=>x.textContent.startsWith('All staff'));if(!h)return;
  const s=(await list('staff')).sort((a,b)=>(a.name||'').localeCompare(b.name||''));
- h.closest('.card').innerHTML=`<h3>All staff (${s.length})</h3><table><tr><th>Name</th><th>ID</th><th>Role</th><th>Position</th><th>Campus</th><th></th></tr>${s.map(x=>`<tr><td>${esc(x.name)}</td><td>${esc(x.staffId||'')}</td><td>${esc(RL[x.role]||x.role||'')}</td><td>${esc(x.position||'')}</td><td><select id="sc_${esc(x.id)}" style="min-width:120px"><option value="">-- not set --</option>${['Ediam','Ikot Oso'].map(c=>`<option ${c==x.campus?'selected':''}>${c}</option>`).join('')}</select></td><td><button class="g" data-id="${esc(x.id)}" onclick="saveStaffCampus(this.dataset.id)">Save campus</button>${DEL.includes(me.role)&&x.id!==me.uid?` <button class="s" data-id="${esc(x.id)}" onclick="delPerson('staff',this.dataset.id)">Delete</button>`:''}</td></tr>`).join('')}</table><p class="mut">Teachers, Principals and Vice Principals only see students of the campus set here. It applies the next time they sign in.</p>`}}
+ h.closest('.card').innerHTML=`<h3>All staff (${s.length})</h3><table><tr><th>Name</th><th>ID</th><th>Role</th><th>Position</th><th>Campus</th><th></th></tr>${s.map(x=>`<tr><td>${esc(x.name)}</td><td>${esc(x.staffId||'')}</td><td>${esc(RL[x.role]||x.role||'')}</td><td>${esc(x.position||'')}</td><td><select id="sc_${esc(x.id)}" style="min-width:120px"><option value="">-- not set --</option>${[CAMPUS].map(c=>`<option ${c==x.campus?'selected':''}>${c}</option>`).join('')}</select></td><td><button class="g" data-id="${esc(x.id)}" onclick="saveStaffCampus(this.dataset.id)">Save campus</button>${DEL.includes(me.role)&&x.id!==me.uid?` <button class="s" data-id="${esc(x.id)}" onclick="delPerson('staff',this.dataset.id)">Delete</button>`:''}</td></tr>`).join('')}</table><p class="mut">Teachers, Principals and Vice Principals only see students of the campus set here. It applies the next time they sign in.</p>`}}
 async function saveStaffCampus(id){
  try{await db.doc('staff/'+id).set({campus:v('sc_'+id)},{merge:true});alert('Campus saved. It applies the next time this person signs in.')}
  catch(e){alert('Could not save: '+(e.code||e.message))}}
@@ -1302,11 +1301,11 @@ async function receipt(id){
 
 // ---------- F. Management Overview: edit school contact info ----------
 {const o=V.mgmt;V.mgmt=async function(){await o();
- const card=`<div class="card"><h3>School Contact Info</h3><p class="mut">Shown on every student's Overview tab. Only management can change it.</p><div class="row"><input id="mc_e" value="${esc(SCHOOL.email)}" placeholder="School email"><input id="mc_p" value="${esc(SCHOOL.phone)}" placeholder="Phone"></div><div class="row"><input id="mc_1" value="${esc(SCHOOL.loc['Ediam']||'')}" placeholder="Ediam campus location"><input id="mc_2" value="${esc(SCHOOL.loc['Ikot Oso']||'')}" placeholder="Ikot Oso campus location"></div><button onclick="saveContactMgmt()">Save contact info</button><p id="mc_m"></p></div>`;
+ const card=`<div class="card"><h3>School Contact Info</h3><p class="mut">Shown on every student's Overview tab. Only management can change it.</p><div class="row"><input id="mc_e" value="${esc(SCHOOL.email)}" placeholder="School email"><input id="mc_p" value="${esc(SCHOOL.phone)}" placeholder="Phone"></div><div class="row"><input id="mc_1" value="${esc(SCHOOL.loc[CAMPUS]||'')}" placeholder="School location"></div><button onclick="saveContactMgmt()">Save contact info</button><p id="mc_m"></p></div>`;
  const h=[...mainEl.querySelectorAll('h3')].find(x=>x.textContent==='Students'),c=h&&h.closest('.card');
  if(c)c.insertAdjacentHTML('beforebegin',card);else mainEl.insertAdjacentHTML('beforeend',card)}}
 async function saveContactMgmt(){
- const m=$('#mc_m'),d={email:v('mc_e').trim(),phone:v('mc_p').trim(),loc:{'Ediam':v('mc_1').trim(),'Ikot Oso':v('mc_2').trim()}};
+ const m=$('#mc_m'),d={email:v('mc_e').trim(),phone:v('mc_p').trim(),loc:{[CAMPUS]:v('mc_1').trim()}};
  try{await db.doc('settings/school').set(d,{merge:true});SCHOOL.email=d.email;SCHOOL.phone=d.phone;SCHOOL.loc=d.loc;m.className='green';m.textContent='Contact info saved. Students see it on their next sign-in.'}
  catch(e){m.className='red';m.textContent='Could not save: '+(e.code||e.message)}}
 
@@ -1441,7 +1440,7 @@ V.abacus=async function(){await abLoad();abRender()};
 async function abLoad(){
  const S=me.role==='student';
  if(S){
-  const s=await db.doc('students/'+me.uid).get(),d=s.exists?s.data():{};AB.cls=d.class||'';AB.campus=d.campus||'';
+  const s=await db.doc('students/'+me.uid).get(),d=s.exists?s.data():{};AB.cls=d.class||'';AB.campus=CAMPUS;
   const p=await db.doc('abacusProfiles/'+me.uid).get();AB.prof=p.exists?p.data():null;AB.lvl=(AB.prof&&AB.prof.abilityLevel)||'beginner';
   AB.comps=(await db.collection('abacusCompetitions').where('status','in',['open','closed']).get()).docs.map(x=>({id:x.id,...x.data()}));
   AB.mine={};(await db.collection('abacusAttempts').where('studentId','==',me.uid).get()).docs.forEach(x=>AB.mine[x.data().compId]=x.data());
@@ -1647,4 +1646,35 @@ function voListen(){
  try{r.start()}catch(e){m.textContent='Could not start the microphone.'}}
 // ===================== END UPDATE 9 =====================
 
-</script></body></html>
+</script>
+<script>
+// ===================== Classes: only the Proprietor adds / removes =====================
+const clsId=n=>n.trim().replace(/\s+/g,'_');
+async function loadClassList(){
+ try{const d=(await db.collection('classes').get()).docs.map(x=>x.data().name).filter(Boolean);
+  if(d.length){const std=CLASSES.filter(c=>d.includes(c)),extra=d.filter(c=>!CLASSES.includes(c)).sort();CLASSES.splice(0,CLASSES.length,...std,...extra)}}
+ catch(e){console.warn('classes',e.code)}}
+{const o=enter;enter=async function(u){await loadClassList();return o(u)}}
+{const o=V.setup;V.setup=async function(){
+ await o();
+ if(me.role!=='proprietor'){mainEl.querySelectorAll('button').forEach(b=>{if(/Create standard classes/.test(b.textContent))b.remove()});return}
+ mainEl.insertAdjacentHTML('afterbegin',`<div class="card"><h3>Add or remove a class <small class="mut">(Proprietor only)</small></h3><div class="row"><input id="nc_n" placeholder="New class name e.g. Primary 7"><button onclick="addClass()">Add class</button></div><div class="row"><select id="nc_r">${opts(CLASSES)}</select><button class="s" onclick="removeClass()">Remove class</button></div><p id="nc_m"></p></div>`)}}
+async function addClass(){
+ if(me.role!=='proprietor')return alert('Only the Proprietor can add classes.');
+ const n=v('nc_n').trim().replace(/\s+/g,' '),m=$('#nc_m');m.className='red';
+ if(!n){m.textContent='Enter a class name.';return}
+ if(CLASSES.some(c=>c.toLowerCase()===n.toLowerCase())){m.textContent='That class already exists.';return}
+ try{await db.doc('classes/'+clsId(n)).set({name:n});CLASSES.push(n);go('setup')}catch(e){m.textContent='Could not add: '+(e.code||e.message)}}
+async function removeClass(){
+ if(me.role!=='proprietor')return alert('Only the Proprietor can remove classes.');
+ const n=v('nc_r'),m=$('#nc_m');m.className='red';if(!n)return;
+ try{
+  const st=await db.collection('students').where('class','==',n).limit(1).get();
+  if(!st.empty){m.textContent='Cannot remove '+n+': students are still enrolled in it. Move them to another class first.';return}
+  if(!confirm('Remove the class "'+n+'" and its subject template? This cannot be undone.'))return;
+  const sj=await db.collection('subjects').where('class','==',n).get(),b=db.batch();
+  b.delete(db.doc('classes/'+clsId(n)));sj.docs.forEach(d=>b.delete(d.ref));await b.commit();
+  const i=CLASSES.indexOf(n);if(i>=0)CLASSES.splice(i,1);go('setup');
+ }catch(e){m.textContent='Could not remove: '+(e.code||e.message)}}
+</script>
+</body></html>
