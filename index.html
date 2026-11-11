@@ -874,7 +874,7 @@ function contactCard(){
 async function saveContact(){
  if(!MG.includes(me.role))return;
  const d={email:v('ci_e').trim(),phone:v('ci_p').trim(),loc:{[CAMPUS]:v('ci_1').trim()}};
- try{await db.doc('settings/school').set(d);SCHOOL.email=d.email;SCHOOL.phone=d.phone;SCHOOL.loc=d.loc;contactCard()}
+ try{await db.doc('settings/school').set(d,{merge:true});SCHOOL.email=d.email;SCHOOL.phone=d.phone;SCHOOL.loc=d.loc;contactCard()}
  catch(e){alert('Could not save: '+(e.code||e.message))}}
 {const o=sdTab;sdTab=function(k){o(k);if(k=='ov')contactCard();if(k=='ac')drawComments()}}
 
@@ -1676,5 +1676,118 @@ async function removeClass(){
   b.delete(db.doc('classes/'+clsId(n)));sj.docs.forEach(d=>b.delete(d.ref));await b.commit();
   const i=CLASSES.indexOf(n);if(i>=0)CLASSES.splice(i,1);go('setup');
  }catch(e){m.textContent='Could not remove: '+(e.code||e.message)}}
+</script>
+<script>
+// ===================== TRIMESTER REPORT CARD UPDATE =====================
+// 1) Skills & Behaviour page (Psychomotor + Affective ratings, per student per trimester)
+// 2) School Administrator signature (uploaded once by management, printed on every report card)
+// 3) New downloadable report card: school logo, student picture, ratings, signature space
+const PSY=[['games','Games / Sport'],['tools','Handling of Tools'],['hand','Handwriting'],['comm','Communication Skills'],['paint','Painting and Drawing'],['music','Musical Skills'],['craft','Crafts'],['dance','Dancing Skills']];
+const AFF=[['aesth','Aesthetic Appreciation'],['creat','Creativity'],['honest','Honesty'],['init','Initiative'],['lead','Leadership Role'],['neat','Neatness'],['obed','Obedience'],['punct','Punctuality'],['polite','Politeness'],['self','Self Control'],['social','Sociality'],['persev','Perseverance'],['resp','Sense of Responsibility']];
+const RATE=[[5,'Excellent'],[4,'Very Good'],[3,'Good'],[2,'Fair'],[1,'Poor']];
+const trId=(sid,t)=>sid+'_'+String(t).replace(/\s+/g,'');
+
+// ---- menu: add the new page for teachers and management, and make it assignable to custom roles ----
+PAGES.push(['traits','Skills & Behaviour']);
+{const ms=new Set(['teacher','principal','proprietor','admin','chairman','administrator'].map(r=>MENU[r]).filter(Boolean));
+ ms.forEach(m=>{if(m.some(x=>x.startsWith('traits:')))return;const i=m.findIndex(x=>x.startsWith('comp:'));m.splice(i<0?m.length:i+1,0,'traits:Skills & Behaviour')})}
+if(!RESETS.includes('traits'))RESETS.push('traits');
+
+// ---- Skills & Behaviour entry page ----
+let TR={st:[],map:{}};
+V.traits=async function(){
+ let cl=CLASSES.slice();
+ if(me.role=='teacher'){
+  try{const[own,sj]=await Promise.all([list('classes',['teacherId','==',me.uid]),list('subjects',['teacherId','==',me.uid])]);
+   if(own.length)cl=own.map(x=>x.name);else if(sj.length)cl=CLASSES.filter(c=>sj.some(x=>x.class==c))}catch(e){}
+ }
+ set(`<div class="card"><h3>Skills & Behaviour Ratings</h3><p class="mut">Rate each learner for the trimester: <b>5</b> Excellent · <b>4</b> Very Good · <b>3</b> Good · <b>2</b> Fair · <b>1</b> Poor. The ratings print on the student's trimester report card.</p><div class="row"><select id="tr_c" onchange="trLoad()">${opts(cl)}</select><select id="tr_t" onchange="trLoad()">${opts(TRIS)}</select></div><div class="row"><select id="tr_s" onchange="trForm()"></select></div></div><div id="tr_form"></div>`);
+ trLoad()};
+async function trLoad(keep){
+ const c=v('tr_c'),t=v('tr_t');if(!c){$('#tr_s').innerHTML='<option value="">No class available</option>';$('#tr_form').innerHTML='';return}
+ const[st,tr]=await Promise.all([list('students',['class','==',c]),list('traits',['class','==',c],['trimester','==',t])]);
+ st.sort((a,b)=>(a.surname||'').localeCompare(b.surname||''));
+ TR.st=st;TR.map={};tr.forEach(x=>TR.map[x.studentId]=x);
+ trList(keep);trForm()}
+function trList(sel){
+ $('#tr_s').innerHTML='<option value="">-- choose student --</option>'+TR.st.map(s=>`<option value="${esc(s.id)}" ${s.id==sel?'selected':''}>${TR.map[s.id]?'✓ ':''}${esc((s.surname||'')+' '+(s.firstName||''))}</option>`).join('')}
+function trForm(){
+ const id=v('tr_s'),o=$('#tr_form');if(!id){o.innerHTML=TR.st.length?'':'<div class="card">No students in this class.</div>';return}
+ const d=TR.map[id]||{},sel=(g,k)=>`<select data-g="${g}" data-k="${k}" style="min-width:150px"><option value="">—</option>${RATE.map(([n,l])=>`<option value="${n}" ${(d[g]||{})[k]==n?'selected':''}>${n} - ${l}</option>`).join('')}</select>`,
+ tb=(g,a)=>`<table>${a.map(([k,l])=>`<tr><td>${esc(l)}</td><td>${sel(g,k)}</td></tr>`).join('')}</table>`;
+ o.innerHTML=`<div class="card"><h4>Psychomotor Trait / Skill</h4>${tb('psy',PSY)}</div><div class="card"><h4>Affective Trait / Behaviour</h4>${tb('aff',AFF)}</div><div class="card"><button onclick="trSave(false)">Save</button> <button class="g" onclick="trSave(true)">Save & next student</button><p id="tr_m"></p></div>`}
+async function trSave(next){
+ const id=v('tr_s'),st=TR.st.find(x=>x.id==id),m=$('#tr_m');if(!st)return;
+ const d={studentId:id,studentName:(st.surname||'')+' '+(st.firstName||''),class:v('tr_c'),trimester:v('tr_t'),psy:{},aff:{},by:me.uid,byName:me.name,at:Date.now()};
+ document.querySelectorAll('#tr_form select[data-g]').forEach(s=>{if(s.value)d[s.dataset.g][s.dataset.k]=+s.value});
+ try{await db.doc('traits/'+trId(id,d.trimester)).set(d);TR.map[id]=d;
+  const i=TR.st.findIndex(x=>x.id==id),nx=next&&TR.st[i+1]?TR.st[i+1].id:id;
+  trList(nx);trForm();const mm=$('#tr_m');if(mm){mm.className='green';mm.textContent=next&&nx==id?'Saved. That was the last student in the class.':'Saved.'}
+  if(next&&nx!=id)window.scrollTo(0,0)}
+ catch(e){m.className='red';m.textContent='Could not save: '+(e.code||e.message)}}
+
+// ---- School Administrator signature (management Overview page) ----
+{const o=V.mgmt;V.mgmt=async function(){await o();
+ let s={};try{const d=await db.doc('settings/school').get();if(d.exists)s=d.data()}catch(e){}
+ const card=`<div class="card"><h3>Report Card Signature</h3><p class="mut">The School Administrator's signature and name print at the bottom of every trimester report card. Upload a clear photo or scan of the signature on white paper.</p><div id="sg_pv">${s.signature?`<img src="${esc(s.signature)}" alt="signature" style="max-height:70px;background:#fff;border:1px solid var(--bd);padding:4px;border-radius:6px">`:'<p class="mut">No signature uploaded yet.</p>'}</div><div class="row"><input id="sg_n" value="${esc(s.signName||'')}" placeholder="Administrator's full name (printed under the signature)"></div><div class="row"><label class="pbtn">✍ Upload signature<input type="file" accept="image/*" hidden onchange="sigUpload(this)"></label><button class="g" onclick="sigName()">Save name</button>${s.signature?' <button class="s" onclick="sigRemove()">Remove signature</button>':''}</div><p id="sg_m"></p></div>`;
+ const h=[...mainEl.querySelectorAll('h3')].find(x=>x.textContent==='Students'),c=h&&h.closest('.card');
+ if(c)c.insertAdjacentHTML('beforebegin',card);else mainEl.insertAdjacentHTML('beforeend',card)}}
+function sigMsg(t,ok){const m=$('#sg_m');if(m){m.className=ok?'green':'red';m.textContent=t}}
+function sigUpload(inp){
+ if(!MG.includes(me.role))return;const f=inp.files[0];if(!f)return;const im=new Image();
+ im.onerror=()=>sigMsg('That file could not be read as an image.');
+ im.onload=async()=>{const W=Math.min(420,im.width),H=Math.round(im.height*W/im.width),c=document.createElement('canvas');c.width=W;c.height=H;
+  const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,W,H);x.drawImage(im,0,0,W,H);
+  try{await db.doc('settings/school').set({signature:c.toDataURL('image/jpeg',.85),signName:v('sg_n').trim()},{merge:true});go('mgmt')}
+  catch(e){sigMsg('Could not save: '+(e.code||e.message))}};
+ im.src=URL.createObjectURL(f)}
+async function sigName(){if(!MG.includes(me.role))return;try{await db.doc('settings/school').set({signName:v('sg_n').trim()},{merge:true});sigMsg('Name saved.',1)}catch(e){sigMsg('Could not save: '+(e.code||e.message))}}
+async function sigRemove(){if(!MG.includes(me.role)||!confirm('Remove the signature from report cards?'))return;try{await db.doc('settings/school').set({signature:''},{merge:true});go('mgmt')}catch(e){sigMsg('Could not remove: '+(e.code||e.message))}}
+
+// ---- New report card (replaces the old result slip) ----
+async function slip(t){
+ const w=window.open('');if(!w)return alert('Allow pop-ups to download the report card.');
+ w.document.write('<body style="font-family:Arial;padding:30px">Preparing report card...</body>');
+ let sch={},tr={};
+ try{const d=await db.doc('settings/school').get();if(d.exists)sch=d.data()}catch(e){console.warn('school settings',e.code)}
+ try{const d=await db.doc('traits/'+trId(SD.id,t)).get();if(d.exists)tr=d.data()}catch(e){console.warn('traits',e.code)}
+ const s=SD.s,cl=SD.cl||{},rows=SD.r.filter(x=>x.trimester==t).sort((a,b)=>(a.subject||'').localeCompare(b.subject||'')),
+ gk=n=>KEY[n>=90?0:n>=80?1:n>=70?2:n>=60?3:n>=50?4:5],
+ tot=rows.reduce((a,x)=>a+x.test+x.exam,0),avg=rows.length?tot/rows.length:0,
+ nm=[s.surname,s.firstName,s.middleName].filter(Boolean).join(' '),
+ logo=new URL(LOGO_URL,location.href).href,
+ tick=(g,k)=>RATE.map(([n])=>`<td class="c">${((tr[g]||{})[k]==n)?'✔':''}</td>`).join(''),
+ trt=(title,g,a)=>`<table class="tr"><tr><th class="l">${title}</th>${RATE.map(([n])=>`<th class="c">${n}</th>`).join('')}</tr>${a.map(([k,l])=>`<tr><td class="l">${esc(l)}</td>${tick(g,k)}</tr>`).join('')}</table>`,
+ info=(l,x)=>`<div><span>${l}</span><b>${esc(x||'-')}</b></div>`,
+ css=`@page{size:A4;margin:9mm}*{box-sizing:border-box}body{font-family:Arial,Helvetica,sans-serif;color:#10213f;font-size:10.5pt;margin:0;padding:10px}
+ .bar{text-align:center;margin-bottom:10px}.bar button{padding:10px 22px;font-size:14px;border:0;border-radius:8px;background:#1c3f94;color:#fff;cursor:pointer}
+ .pg{border:2px solid #1c3f94;padding:8mm}.hd{display:flex;align-items:center;gap:12px;border-bottom:3px double #b8860b;padding-bottom:8px}
+ .lg{width:78px;height:78px;object-fit:contain}.ph{width:84px;height:100px;object-fit:cover;border:1px solid #10213f;border-radius:4px}.phx{width:84px;height:100px;border:1px dashed #889;display:grid;place-items:center;font-size:9pt;color:#889;text-align:center}
+ .ti{flex:1;text-align:center}.ti h1{margin:0;font-size:17pt;color:#1c3f94;letter-spacing:.5px}.ti p{margin:2px 0;font-size:9pt}.ti h2{margin:6px 0 0;font-size:12pt;color:#e0147a}
+ .info{display:grid;grid-template-columns:repeat(3,1fr);gap:4px 12px;margin:10px 0;padding:8px;background:#f2f5fc;border-radius:6px}.info span{display:block;font-size:8pt;color:#667}.info b{font-size:10pt}
+ table{border-collapse:collapse;width:100%}th,td{border:1px solid #556;padding:3px 5px;font-size:9.5pt}th{background:#dfe7f8}.c{text-align:center}.l{text-align:left}
+ .sum td{font-weight:700;background:#f2f5fc}.two{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;align-items:start}
+ .tr th,.tr td{font-size:9pt;padding:2px 4px}.tr .c{width:24px}h3{margin:12px 0 4px;font-size:11pt;color:#1c3f94}
+ .key{font-size:8.5pt;margin-top:6px;color:#334}.sg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin-top:14px;text-align:center;font-size:9.5pt;page-break-inside:avoid}
+ .sg .sp{height:58px;display:flex;align-items:flex-end;justify-content:center}.sg img{max-height:56px;max-width:100%}.sl{border-top:1px solid #10213f;margin-top:2px;padding-top:3px}
+ @media print{.bar{display:none}body{padding:0}}`,
+ html=`<!doctype html><html><head><meta charset="utf-8"><title>Report Card - ${esc(nm)} - ${esc(t)}</title><style>${css}</style></head><body>
+ <div class="bar"><button onclick="print()">⬇ Download / Print (choose "Save as PDF")</button></div>
+ <div class="pg"><div class="hd"><img class="lg" src="${esc(logo)}" alt="" onerror="this.style.visibility='hidden'">
+ <div class="ti"><h1>PRINCESS JASMINE INTERNATIONAL SCHOOL</h1><p><i>Godly Foundation for Excellence</i></p><p>${esc(SCHOOL.loc[CAMPUS]||CAMPUS)} · ${esc(SCHOOL.phone||'')} · ${esc(SCHOOL.email||'')}</p><h2>STUDENT ${esc(t.toUpperCase())} REPORT CARD</h2></div>
+ ${s.photo?`<img class="ph" src="${esc(s.photo)}" alt="">`:'<div class="phx">Student<br>photo</div>'}</div>
+ <div class="info">${info('Student name',nm)}${info('Student ID',s.regNo)}${info('Class',s.class)}${info('Session',s.session)}${info('Trimester',t)}${info('Gender',s.gender)}</div>
+ <table><tr><th class="l">Subject</th><th class="c">Test /40</th><th class="c">Exam /60</th><th class="c">Total /100</th><th class="c">Grade</th><th class="l">Remark</th></tr>
+ ${rows.map(x=>{const n=x.test+x.exam;return`<tr><td class="l">${esc(x.subject)}</td><td class="c">${x.test}</td><td class="c">${x.exam}</td><td class="c"><b>${n}</b></td><td class="c">${grade(n)}</td><td class="l">${gk(n)[2]}</td></tr>`}).join('')||'<tr><td colspan="6" class="c">No validated results.</td></tr>'}
+ <tr class="sum"><td class="l">Total / Average</td><td colspan="2" class="c">Subjects: ${rows.length}</td><td class="c">${tot} / ${rows.length*100}</td><td class="c">${rows.length?grade(avg):'-'}</td><td class="l">Average: ${rows.length?avg.toFixed(1)+' · '+gk(avg)[2]:'-'}</td></tr></table>
+ <div class="key"><b>Grading:</b> ${KEY.map(k=>k[0]+' = '+k[1]+' ('+k[2]+')').join(' · ')}</div>
+ <div class="two"><div><h3 style="margin-top:0">PSYCHOMOTOR TRAIT / SKILL</h3>${trt('Skill','psy',PSY)}</div><div><h3 style="margin-top:0">AFFECTIVE TRAIT / BEHAVIOUR</h3>${trt('Behaviour','aff',AFF)}</div></div>
+ <div class="key"><b>Rating key:</b> ${RATE.map(([n,l])=>n+' = '+l).join(' · ')}</div>
+ <div class="sg"><div><div class="sp"></div><div class="sl">Class Teacher<br><b>${esc(cl.teacherName||'')}</b></div></div>
+ <div><div class="sp">${sch.signature?`<img src="${esc(sch.signature)}" alt="">`:''}</div><div class="sl">School Administrator<br><b>${esc(sch.signName||'')}</b></div></div>
+ <div><div class="sp"></div><div class="sl">Date</div></div></div></div>
+ <script>window.onload=()=>setTimeout(()=>print(),500)<\/script></body></html>`;
+ w.document.open();w.document.write(html);w.document.close()}
+// ===================== END REPORT CARD UPDATE =====================
 </script>
 </body></html>
