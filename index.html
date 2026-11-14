@@ -120,7 +120,7 @@ const SCHOOL={email:'info@princessjasmine.edu.ng',phone:'+234 800 000 0000',loc:
 // The school runs ONE campus. Change this single name (and the address above) if it ever changes.
 const CAMPUS='Afaha Ukwa';
 const CLASSES=['Creche','Nursery 1','Nursery 2','Nursery 3','Primary 1','Primary 2','Primary 3','Primary 4','Primary 5','Primary 6','JSS1','JSS2','JSS3','SS1','SS2','SS3'];
-const TRIS=['1st Trimester','2nd Trimester','3rd Trimester'];
+const TRIS=['1st Term','2nd Term','3rd Term'];
 const EXP_CATS=['Salaries','Utilities','Maintenance','Stationery & supplies','Transport','Feeding','Events','Other'];
 const grade=n=>n>=90?'A':n>=80?'B':n>=70?'C':n>=60?'D':n>=50?'E':'F';
 const gradeInfo=(n,sh)=>{const k=KEY[n>=90?0:n>=80?1:n>=70?2:n>=60?3:n>=50?4:5];return sh?k[0]+' · '+k[2]:k[0]+'. '+k[1]+' · '+k[2]};
@@ -276,12 +276,12 @@ async attend(){
  ${ex.exists?`<p class="green">Recorded: ${esc(ex.data().status)} at ${esc(ex.data().time)}</p>`:`<button onclick="clock()">👆 Fingerprint Clock-In</button>${bioGet(me.uid)?'':'<p><small>Tip: enable fingerprint in My Account to require a fingerprint check here.</small></p>'}`}</div>`)},
 async pub(){
  const r=await list('results',['published','==',false]);
- set(`<div class="card"><h3>Results awaiting validation</h3><table><tr><th>Student</th><th>Class</th><th>Subject</th><th>Trimester</th><th>Total</th><th></th></tr>${r.map(x=>`<tr><td>${esc(x.studentName)}</td><td>${esc(x.class||'')}</td><td>${esc(x.subject)}</td><td>${esc(x.trimester)}</td><td>${x.test+x.exam}</td><td><button onclick="publish('${x.id}')">Validate</button></td></tr>`).join('')||'<tr><td>Nothing waiting.</td></tr>'}</table>${r.length?'<button class="s" onclick="publishAll()">Validate all</button>':''}</div>`)},
+ set(`<div class="card"><h3>Results awaiting validation</h3><table><tr><th>Student</th><th>Class</th><th>Subject</th><th>Term</th><th>Total</th><th></th></tr>${r.map(x=>`<tr><td>${esc(x.studentName)}</td><td>${esc(x.class||'')}</td><td>${esc(x.subject)}</td><td>${esc(x.term)}</td><td>${x.test+x.exam}</td><td><button onclick="publish('${x.id}')">Validate</button></td></tr>`).join('')||'<tr><td>Nothing waiting.</td></tr>'}</table>${r.length?'<button class="s" onclick="publishAll()">Validate all</button>':''}</div>`)},
 async mgmt(){
  const[s,t,n]=await Promise.all([list('students'),list('staff'),list('attendance',['date','==',today()])]);
  set(`<div class="grid"><div class="card stat"><span>Students</span><b>${s.length}</b></div><div class="card stat"><span>Staff</span><b>${t.length}</b></div><div class="card stat"><span>Staff present today</span><b class="green">${n.filter(x=>x.status=='Present').length}</b></div></div>
  <div class="card"><h3>Students</h3><table><tr><th>ID</th><th>Name</th><th>Class</th><th>Campus</th><th></th></tr>${s.map(x=>`<tr><td>${esc(x.regNo)}</td><td>${esc(x.surname)} ${esc(x.firstName)}</td><td>${esc(x.class)}</td><td>${esc(CAMPUS)}</td><td><button class="g" onclick="studentDash('${x.id}')">Open</button></td></tr>`).join('')}</table></div>`)},
-reg(){photo='';FP={t:[]};set(`<div class="card"><h3>Student Registration</h3><div class="grid">${F([['surname','Surname'],['firstName','First name'],['middleName','Middle name'],['gender','Gender','Male,Female'],['dob','Date of birth','date'],['pob','Place of birth'],['nationality','Nationality'],['state','State of origin'],['lga','LGA'],['address','Residential address'],['phone','Phone'],['email','Student email (optional)','email'],['indigene','Status','Indigene,Non-Indigene'],['level','Section','Creche,Nursery,Primary,Junior High School,Senior High School'],['class','Class',CLASSES.join(',')],['session','Session (2026/2027)'],['campus','Campus',CAMPUS],['boarding','Boarding?','Day,Boarding'],['father','Father name'],['fatherPhone','Father phone'],['mother','Mother name'],['motherPhone','Mother phone'],['guardianEmail','Parent email (REQUIRED - the same email can be used for many children)','email'],['emName','Emergency contact'],['emPhone','Emergency phone'],['blood','Blood group'],['genotype','Genotype'],['allergies','Allergies'],['about','About the student (short story and ambitions)'],['feeDue','Total fees due (₦)','number']])}</div>
+reg(){photo='';FP={t:[]};set(`<div class="card"><h3>Student Registration</h3><div class="grid">${F([['surname','Surname'],['firstName','First name'],['middleName','Middle name'],['gender','Gender','Male,Female'],['dob','Date of birth','date'],['pob','Place of birth'],['nationality','Nationality'],['state','State of origin'],['lga','LGA'],['address','Residential address'],['phone','Phone'],['email','Student email (optional)','email'],['indigene','Status','Indigene,Non-Indigene'],['level','Section','Creche,Nursery,Primary,Junior High School,Senior High School'],['class','Class',CLASSES.join(',')],['session','Session (2026/2027)'],['campus','Campus',CAMPUS],['boarding','Boarding?','Day,Boarding'],['father','Father name'],['fatherPhone','Father phone'],['mother','Mother name'],['motherPhone','Mother phone'],['guardianEmail','Parent email (REQUIRED - the same email can be used for many children)','email'],['emName','Emergency contact'],['emPhone','Emergency phone'],['blood','Blood group'],['genotype','Genotype'],['allergies','Allergies'],['about','About the student (short story and ambitions)'],['feeT1','1st Term fee (₦)','number'],['feeT2','2nd Term fee (₦)','number'],['feeT3','3rd Term fee (₦)','number']])}</div>
  <p><b>Biometric ID</b> <small>(auto-numbered. Enrol this number on the fingerprint scanner so attendance can be taken)</small></p><input id="f_bioId" type="number">${FPUI}
  <p>Passport photo:</p><input type="file" accept="image/*" capture="user" onchange="snap(this)"><img id="pv" class="pic"><br><button onclick="regStudent()">Register & Create Account</button><p id="rmsg"></p></div>`)},
 async notes(){
@@ -317,21 +317,21 @@ async fees(){
  <div class="card"><h3>Search & Filter</h3><input id="fq" placeholder="🔍 Search student name or ID" oninput="drawFees()"><div class="row"><div><small>From date</small><input id="fd1" type="date" onchange="drawFees()"></div><div><small>To date</small><input id="fd2" type="date" onchange="drawFees()"></div><button class="g" style="align-self:end" onclick="['fq','fd1','fd2'].forEach(i=>document.getElementById(i).value='');drawFees()">Clear</button></div>
  ${MG.includes(me.role)?`<button style="margin-top:8px" onclick="dlFin(v('fd1'),v('fd2'),'all')">⬇ Download transactions for this period (CSV)</button>`:''}</div>
  <div class="card"><h3>Students owing</h3><table><tr><th>ID</th><th>Name</th><th>Class</th><th>Due</th><th>Balance</th></tr><tbody id="owTb"></tbody></table></div>
- <div class="card"><h3>Payments <small id="payCnt"></small></h3><table><tr><th>Receipt</th><th>Date</th><th>Student</th><th>Type</th><th>Trimester</th><th>Amount</th><th>Method</th><th>By</th><th></th></tr><tbody id="payTb"></tbody></table></div>`);
+ <div class="card"><h3>Payments <small id="payCnt"></small></h3><table><tr><th>Receipt</th><th>Date</th><th>Student</th><th>Type</th><th>Term</th><th>Amount</th><th>Method</th><th>By</th><th></th></tr><tbody id="payTb"></tbody></table></div>`);
  drawFees()},
-// ----- NEW: Financial tab (management): income, expenses, balance per trimester + CSV download -----
+// ----- NEW: Financial tab (management): income, expenses, balance per term + CSV download -----
 async fin(){
  if(!MG.includes(me.role))return;
  const[fs,ex]=await Promise.all([list('fees'),list('expenses')]);
  const ses=[...new Set([...fs,...ex].map(x=>x.session).filter(Boolean))].sort().reverse();
  FIN={fs,ex:ex.sort((a,b)=>(b.date||'')>(a.date||'')?1:-1),ses};
- set(`<div class="card"><h3>Income, Expenses & Balance per Trimester</h3><select id="fn_s" onchange="drawFin()"><option value="">All sessions</option>${opts(ses)}</select><div id="fn_sum"></div></div>
+ set(`<div class="card"><h3>Income, Expenses & Balance per Term</h3><select id="fn_s" onchange="drawFin()"><option value="">All sessions</option>${opts(ses)}</select><div id="fn_sum"></div></div>
  <div class="card"><h3>Download transactions (CSV)</h3><p class="mut">Pick a period from the calendar. Leave both dates empty to download everything.</p>
  <div class="row"><div><small>From date</small><input id="dl1" type="date"></div><div><small>To date</small><input id="dl2" type="date"></div><div><small>Include</small><select id="dl_k"><option value="all">Income and expenses</option><option value="in">Income only</option><option value="out">Expenses only</option></select></div></div>
  <button onclick="dlFin(v('dl1'),v('dl2'),v('dl_k'))">⬇ Download CSV</button></div>
  <div class="card"><h3>Record expense</h3><div class="row"><input id="ex_d" type="date" value="${today()}"><select id="ex_t">${opts([...TRIS,'Full session'])}</select><select id="ex_c">${opts(EXP_CATS)}</select></div>
  <input id="ex_n" placeholder="Description e.g. October electricity bill"><div class="row"><input id="ex_a" type="number" min="0" placeholder="Amount (₦)"><input id="ex_s" placeholder="Session e.g. 2026/2027" value="${esc(ses[0]||'')}"></div><button onclick="saveExpense()">Save expense</button></div>
- <div class="card"><h3>Expenses</h3><table><tr><th>Date</th><th>Trimester</th><th>Category</th><th>Description</th><th>Amount</th><th>By</th><th></th></tr><tbody id="exTb"></tbody></table></div>`);
+ <div class="card"><h3>Expenses</h3><table><tr><th>Date</th><th>Term</th><th>Category</th><th>Description</th><th>Amount</th><th>By</th><th></th></tr><tbody id="exTb"></tbody></table></div>`);
  drawFin()},
 acct(){
  const shown=me.contactEmail||auth.currentUser.email||'',fake=shown.endsWith(FAKE);
@@ -360,7 +360,7 @@ async comp(){
 // ----- Events -----
 async events(){
  const e=(await list('events')).sort((a,b)=>a.date>b.date?1:-1);
- set(`<div class="card"><h3>Add Event</h3><select id="ev_t"><option>Test/Exam</option><option>Holiday</option></select><input id="ev_n" placeholder="Title e.g. 1st Trimester Exams"><input id="ev_d" type="date"><button onclick="addEvent()">Add</button></div><div class="card"><table>${e.map(x=>`<tr><td>${esc(x.date)}</td><td>${esc(x.type)}</td><td>${esc(x.title)}</td><td><button class="s" onclick="delEvent('${x.id}')">✕</button></td></tr>`).join('')||'<tr><td>No events yet.</td></tr>'}</table></div>`)}
+ set(`<div class="card"><h3>Add Event</h3><select id="ev_t"><option>Test/Exam</option><option>Holiday</option></select><input id="ev_n" placeholder="Title e.g. 1st Term Exams"><input id="ev_d" type="date"><button onclick="addEvent()">Add</button></div><div class="card"><table>${e.map(x=>`<tr><td>${esc(x.date)}</td><td>${esc(x.type)}</td><td>${esc(x.title)}</td><td><button class="s" onclick="delEvent('${x.id}')">✕</button></td></tr>`).join('')||'<tr><td>No events yet.</td></tr>'}</table></div>`)}
 };
 
 // ---------- Staff dashboard ----------
@@ -393,7 +393,8 @@ async function sendMyReset(){
 // One real email can serve many accounts. Firebase allows one login per address, so when the address is already taken
 // the account is created under a "+username" alias (name+username@domain). Mail to the alias lands in the same inbox
 // (works with Gmail, Outlook, iCloud). The real email is kept in contactEmail / usernames.real for display and recovery.
-async function mkUser(username,pw,data,realEmail){
+const termFees=g=>{const a=+g.feeT1||0,b=+g.feeT2||0,c=+g.feeT3||0;return{feeT1:a,feeT2:b,feeT3:c,feeDue:a+b+c}};
+async function mkUser(username,pw,data,realEmail,noReset){
  username=username.toLowerCase();
  const real=(realEmail||'').trim().toLowerCase();
  const sec=firebase.apps.find(a=>a.name=='sec')||firebase.initializeApp(CFG,'sec');
@@ -404,7 +405,7 @@ async function mkUser(username,pw,data,realEmail){
    const i=real.lastIndexOf('@');email=real.slice(0,i).split('+')[0]+'+'+username+real.slice(i);
    c=await sec.auth().createUserWithEmailAndPassword(email,pw);
   }else throw e}
- if(real){try{await sec.auth().sendPasswordResetEmail(email)}catch(e){console.warn(e.code)}}
+ if(real&&!noReset){try{await sec.auth().sendPasswordResetEmail(email)}catch(e){console.warn(e.code)}}
  await sec.auth().signOut();
  await db.doc('users/'+c.user.uid).set({...data,email,username,contactEmail:real});
  await db.doc('usernames/'+username).set({email,real});
@@ -415,13 +416,13 @@ async function regStudent(){
  const g=G(),m=$('#rmsg');
  if(!g.surname||!g.firstName){m.textContent='Enter surname and first name.';return}
  if(!g.class){m.textContent='Choose the student\'s class.';return}
- if(!g.guardianEmail){m.textContent='Parent email is required so the parent can set and recover the password.';return}
+ if(!g.guardianEmail){m.textContent='Parent email is required so the parent can recover the account.';return}
  const n=(await list('students')).length+1,reg='PJIS/'+new Date().getFullYear()+'/'+String(n).padStart(4,'0'),un=reg.replace(/\//g,'').toLowerCase();
  try{
-  const uid=await mkUser(un,'Jasmine'+Math.floor(100000+Math.random()*900000),{role:'student',name:g.firstName+' '+g.surname},g.guardianEmail);
-  await db.doc('students/'+uid).set({...g,feeDue:+g.feeDue||0,regNo:reg,username:un,photo,fpEnrolled:FP.t.filter(Boolean).length>0,status:'Active',registered:Date.now()});await fpSave(uid,'student');
+  const uid=await mkUser(un,un,{role:'student',name:g.firstName+' '+g.surname},g.guardianEmail,true);
+  await db.doc('students/'+uid).set({...g,...termFees(g),regNo:reg,username:un,photo,fpEnrolled:FP.t.filter(Boolean).length>0,status:'Active',registered:Date.now()});await fpSave(uid,'student');
   await notify('New student registered: '+g.firstName+' '+g.surname);
-  m.innerHTML=`Done. Username: <b>${un}</b>. A link to set the password was emailed to ${esc(g.guardianEmail)}.`+aliasNote(g.guardianEmail,mkUser.last);
+  m.innerHTML=`Done. Username: <b>${un}</b>. Password: <b>${un}</b> (same as the username). The student can change it under My Account.`+aliasNote(g.guardianEmail,mkUser.last);
  }catch(e){console.error(e);m.textContent='Could not register: '+(e.code||e.message)}}
 async function addStaff(){
  const g=G(),m=$('#rmsg');
@@ -550,13 +551,13 @@ async function setBio(uid){
  const val=v('bi_'+uid).trim();if(!val)return;
  if(ROLL.ppl.some(x=>String(x.bio)===val))return alert('That Biometric ID is already used.');
  try{await db.doc((ROLL.kind=='staff'?'staff/':'students/')+uid).update({bioId:val});ROLL.ppl.find(x=>x.id===uid).bio=val;drawRoll()}catch(e){alert('Could not save: '+(e.code||e.message))}}
-function feeInfo(){const s=FEE.st.find(x=>x.id===v('fee_s')),i=$('#fee_info');if(!s){i.innerHTML='';return}const pd=FEE.paid[s.id]||0,b=(+s.feeDue||0)-pd;i.innerHTML=`Fee due <b>${money(s.feeDue)}</b> · Paid <b>${money(pd)}</b> · Balance <b class="${b>0?'red':'green'}">${money(Math.max(b,0))}</b>`}
+function feeInfo(){const s=FEE.st.find(x=>x.id===v('fee_s')),i=$('#fee_info');if(!s){i.innerHTML='';return}const pd=FEE.paid[s.id]||0,b=(+s.feeDue||0)-pd;i.innerHTML=`Fee due <b>${money(s.feeDue)}</b>${s.feeT1!=null?' <small>(1st Term '+money(s.feeT1)+' · 2nd Term '+money(s.feeT2)+' · 3rd Term '+money(s.feeT3)+')</small>':''} · Paid <b>${money(pd)}</b> · Balance <b class="${b>0?'red':'green'}">${money(Math.max(b,0))}</b>`}
 function drawFees(){
  const q=v('fq').trim().toLowerCase(),a=v('fd1'),b=v('fd2'),day=x=>ld(x.at),hit=n=>(n||'').toLowerCase().includes(q);
  $('#owTb').innerHTML=FEE.owing.filter(s=>hit(s.surname+' '+s.firstName+' '+s.regNo)).map(s=>`<tr><td>${esc(s.regNo)}</td><td>${esc(s.surname)} ${esc(s.firstName)}</td><td>${esc(s.class)}</td><td>${money(s.feeDue)}</td><td class="red">${money(s.bal)}</td></tr>`).join('')||'<tr><td>No match.</td></tr>';
  const p=FEE.fs.filter(x=>hit(x.studentName+' '+(x.regNo||''))&&(!a||day(x)>=a)&&(!b||day(x)<=b)),tot=p.reduce((s,x)=>s+(+x.amount||0),0);
  $('#payCnt').textContent=`(${p.length} found · ${money(tot)})`;
- $('#payTb').innerHTML=p.slice(0,100).map(x=>`<tr><td>${esc(x.receiptNo||'-')}</td><td>${new Date(x.at).toLocaleDateString()}</td><td>${esc(x.studentName)}</td><td>${esc(x.type)}</td><td>${esc(x.trimester||'')}</td><td>${money(x.amount)}</td><td>${esc(x.method||'')}</td><td>${esc(x.byName)}</td><td><button class="g" onclick="receipt('${x.id}')">Receipt</button>${FULL.includes(me.role)?` <button class="s" onclick="voidFee('${x.id}')">Void</button>`:''}</td></tr>`).join('')||'<tr><td>No payments found.</td></tr>'}
+ $('#payTb').innerHTML=p.slice(0,100).map(x=>`<tr><td>${esc(x.receiptNo||'-')}</td><td>${new Date(x.at).toLocaleDateString()}</td><td>${esc(x.studentName)}</td><td>${esc(x.type)}</td><td>${esc(x.term||'')}</td><td>${money(x.amount)}</td><td>${esc(x.method||'')}</td><td>${esc(x.byName)}</td><td><button class="g" onclick="receipt('${x.id}')">Receipt</button>${FULL.includes(me.role)?` <button class="s" onclick="voidFee('${x.id}')">Void</button>`:''}</td></tr>`).join('')||'<tr><td>No payments found.</td></tr>'}
 async function saveFee(){
  const sid=v('fee_s'),a=+v('fee_a');
  if(!sid)return alert('Select a student.');
@@ -565,7 +566,7 @@ async function saveFee(){
  if(a>bal&&!confirm('This is more than the balance ('+money(Math.max(bal,0))+'). Record anyway?'))return;
  const no='RCP-'+today().replace(/-/g,'')+'-'+Math.floor(1000+Math.random()*9000);
  try{
-  await add('fees',{studentId:sid,studentName:s.surname+' '+s.firstName,regNo:s.regNo||'',session:s.session||'',type:v('fee_t'),trimester:v('fee_tri'),amount:a,method:v('fee_m'),ref:v('fee_r').trim(),receiptNo:no});
+  await add('fees',{studentId:sid,studentName:s.surname+' '+s.firstName,regNo:s.regNo||'',session:s.session||'',type:v('fee_t'),term:v('fee_tri'),amount:a,method:v('fee_m'),ref:v('fee_r').trim(),receiptNo:no});
   await notify('Fee recorded: '+money(a)+' from '+s.surname+' '+s.firstName+' ('+v('fee_t')+')');
   go('fees');
  }catch(e){alert('Could not save payment: '+(e.code||e.message))}}
@@ -575,22 +576,22 @@ async function postComment(id){if(!v('cm').trim())return;await add('comments',{s
 // ----- Financial tab actions -----
 function drawFin(){
  const ss=v('fn_s'),f=FIN.fs.filter(x=>!ss||(x.session||'')==ss),e=FIN.ex.filter(x=>!ss||(x.session||'')==ss),
- sm=(a,t)=>a.filter(x=>(x.trimester||'')==t).reduce((s,x)=>s+(+x.amount||0),0),
+ sm=(a,t)=>a.filter(x=>(x.term||'')==t).reduce((s,x)=>s+(+x.amount||0),0),
  known=[...TRIS,'Full session'],rows=known.map(t=>({t,i:sm(f,t),o:sm(e,t)}));
- const oi=f.filter(x=>!known.includes(x.trimester)).reduce((s,x)=>s+(+x.amount||0),0),oo=e.filter(x=>!known.includes(x.trimester)).reduce((s,x)=>s+(+x.amount||0),0);
+ const oi=f.filter(x=>!known.includes(x.term)).reduce((s,x)=>s+(+x.amount||0),0),oo=e.filter(x=>!known.includes(x.term)).reduce((s,x)=>s+(+x.amount||0),0);
  if(oi||oo)rows.push({t:'Unassigned',i:oi,o:oo});
  const TI=rows.reduce((s,r)=>s+r.i,0),TO=rows.reduce((s,r)=>s+r.o,0),bc=n=>n<0?'red':'green';
  $('#fn_sum').innerHTML=`<div class="grid" style="margin:10px 0"><div class="card stat"><span>Total income</span><b class="green">${money(TI)}</b></div><div class="card stat"><span>Total expenses</span><b class="red">${money(TO)}</b></div><div class="card stat"><span>Balance</span><b class="${bc(TI-TO)}">${money(TI-TO)}</b></div></div>
- <table><tr><th>Trimester</th><th>Income</th><th>Expenses</th><th>Balance</th></tr>${rows.map(r=>`<tr><td>${esc(r.t)}</td><td class="green">${money(r.i)}</td><td class="red">${money(r.o)}</td><td class="${bc(r.i-r.o)}">${money(r.i-r.o)}</td></tr>`).join('')}<tr><td><b>Total</b></td><td><b>${money(TI)}</b></td><td><b>${money(TO)}</b></td><td class="${bc(TI-TO)}"><b>${money(TI-TO)}</b></td></tr></table>
- <p class="mut">Income comes from recorded fee payments (each payment's trimester). "Full session" payments are shown on their own line.</p>`;
- $('#exTb').innerHTML=e.map(x=>`<tr><td>${esc(x.date||ld(x.at))}</td><td>${esc(x.trimester||'')}</td><td>${esc(x.category||'')}</td><td>${esc(x.description||'')}</td><td>${money(x.amount)}</td><td>${esc(x.byName||'')}</td><td>${FULL.includes(me.role)?`<button class="s" onclick="voidExp('${x.id}')">Void</button>`:''}</td></tr>`).join('')||'<tr><td>No expenses recorded.</td></tr>'}
+ <table><tr><th>Term</th><th>Income</th><th>Expenses</th><th>Balance</th></tr>${rows.map(r=>`<tr><td>${esc(r.t)}</td><td class="green">${money(r.i)}</td><td class="red">${money(r.o)}</td><td class="${bc(r.i-r.o)}">${money(r.i-r.o)}</td></tr>`).join('')}<tr><td><b>Total</b></td><td><b>${money(TI)}</b></td><td><b>${money(TO)}</b></td><td class="${bc(TI-TO)}"><b>${money(TI-TO)}</b></td></tr></table>
+ <p class="mut">Income comes from recorded fee payments (each payment's term). "Full session" payments are shown on their own line.</p>`;
+ $('#exTb').innerHTML=e.map(x=>`<tr><td>${esc(x.date||ld(x.at))}</td><td>${esc(x.term||'')}</td><td>${esc(x.category||'')}</td><td>${esc(x.description||'')}</td><td>${money(x.amount)}</td><td>${esc(x.byName||'')}</td><td>${FULL.includes(me.role)?`<button class="s" onclick="voidExp('${x.id}')">Void</button>`:''}</td></tr>`).join('')||'<tr><td>No expenses recorded.</td></tr>'}
 async function saveExpense(){
  const a=+v('ex_a'),n=v('ex_n').trim();
  if(!v('ex_d'))return alert('Choose the date.');
  if(!n)return alert('Enter a description.');
  if(!(a>0))return alert('Enter a valid amount.');
  try{
-  await add('expenses',{date:v('ex_d'),trimester:v('ex_t'),category:v('ex_c'),description:n,amount:a,session:v('ex_s').trim()});
+  await add('expenses',{date:v('ex_d'),term:v('ex_t'),category:v('ex_c'),description:n,amount:a,session:v('ex_s').trim()});
   await notify('Expense recorded: '+money(a)+' ('+v('ex_c')+' - '+n+')');
   go('fin');
  }catch(e){alert('Could not save expense: '+(e.code||e.message)+'. Check that your Firestore rules cover the "expenses" collection.')}}
@@ -600,14 +601,14 @@ async function dlFin(a,b,k){
  if(!MG.includes(me.role))return alert('Only management can download financial records.');
  try{
   const[fs,ex]=await Promise.all([list('fees'),list('expenses')]),inR=d=>(!a||d>=a)&&(!b||d<=b),R=[];
-  if(k!=='out')fs.forEach(x=>{const d=ld(x.at);if(inR(d))R.push({d,t:'Income',ref:x.receiptNo||'',n:(x.studentName||'')+(x.regNo?' ('+x.regNo+')':''),c:x.type||'',tri:x.trimester||'',m:x.method||'',i:+x.amount||0,o:0,by:x.byName||''})});
-  if(k!=='in')ex.forEach(x=>{const d=x.date||ld(x.at);if(inR(d))R.push({d,t:'Expense',ref:'',n:x.description||'',c:x.category||'',tri:x.trimester||'',m:'',i:0,o:+x.amount||0,by:x.byName||''})});
+  if(k!=='out')fs.forEach(x=>{const d=ld(x.at);if(inR(d))R.push({d,t:'Income',ref:x.receiptNo||'',n:(x.studentName||'')+(x.regNo?' ('+x.regNo+')':''),c:x.type||'',tri:x.term||'',m:x.method||'',i:+x.amount||0,o:0,by:x.byName||''})});
+  if(k!=='in')ex.forEach(x=>{const d=x.date||ld(x.at);if(inR(d))R.push({d,t:'Expense',ref:'',n:x.description||'',c:x.category||'',tri:x.term||'',m:'',i:0,o:+x.amount||0,by:x.byName||''})});
   if(!R.length)return alert('No transactions found for that period.');
   R.sort((x,y)=>x.d<y.d?-1:x.d>y.d?1:0);
   const TI=R.reduce((s,r)=>s+r.i,0),TO=R.reduce((s,r)=>s+r.o,0);
   saveCSV(`DSIS_financial_${a||'start'}_to_${b||'latest'}.csv`,[
    ['Princess Jasmine International School - Financial transactions'],['Period',(a||'beginning')+' to '+(b||'latest')],['Downloaded by',me.name],[],
-   ['Date','Type','Receipt / Ref','Student / Description','Category','Trimester','Method','Income (NGN)','Expense (NGN)','Recorded by'],
+   ['Date','Type','Receipt / Ref','Student / Description','Category','Term','Method','Income (NGN)','Expense (NGN)','Recorded by'],
    ...R.map(r=>[r.d,r.t,r.ref,r.n,r.c,r.tri,r.m,r.i||'',r.o||'',r.by]),[],
    ['','','','','','','TOTAL',TI,TO],['','','','','','','BALANCE',TI-TO]]);
  }catch(e){alert('Could not download: '+(e.code||e.message))}}
@@ -622,7 +623,7 @@ async function delEvent(id){await db.doc('events/'+id).delete();go('events')}
 async function compClass(){const s=await list('subjects',['class','==',v('cp_c')]);s.sort((a,b)=>a.name.localeCompare(b.name));$('#cp_s').innerHTML=s.map(x=>`<option>${esc(x.name)}</option>`).join('')||'<option value="">No subjects (add in template)</option>';loadComp()}
 async function loadComp(){
  const c=v('cp_c'),t=v('cp_t'),sj=v('cp_s'),o=$('#cp_out');if(!sj){o.innerHTML='<div class="card">No subjects for this class yet. Add them under Subjects Template.</div>';return}
- const[st,r]=await Promise.all([list('students',['class','==',c]),list('results',['class','==',c],['trimester','==',t],['subject','==',sj])]),m={};
+ const[st,r]=await Promise.all([list('students',['class','==',c]),list('results',['class','==',c],['term','==',t],['subject','==',sj])]),m={};
  st.sort((a,b)=>(a.surname||'').localeCompare(b.surname||''));r.forEach(x=>m[x.studentId]=x);
  o.innerHTML=`<div class="card"><table><tr><th>Student</th><th>Test /40</th><th>Exam /60</th><th>Total</th><th>Grade</th><th>Status</th></tr>${st.map(s=>{const x=m[s.id]||{};return`<tr><td>${esc(s.surname+' '+s.firstName)}</td><td><input class="cs" data-i="${s.id}" data-k="test" data-n="${esc(s.surname+' '+s.firstName)}" type="number" min="0" max="40" value="${x.test??''}" oninput="rowTot(this)" style="width:80px"></td><td><input class="cs" data-i="${s.id}" data-k="exam" type="number" min="0" max="60" value="${x.exam??''}" oninput="rowTot(this)" style="width:80px"></td><td id="t_${s.id}"></td><td id="g_${s.id}"></td><td>${x.published?'<span class="green">Validated</span>':x.studentId?'Pending':''}</td></tr>`}).join('')||'<tr><td>No students in this class.</td></tr>'}</table><button onclick="saveComp()">Save scores</button> <button class="g" onclick="rank()">Class ranking</button></div><div id="rk"></div>`;
  st.forEach(s=>rowTot(document.querySelector(`.cs[data-i="${s.id}"]`)))}
@@ -633,11 +634,11 @@ async function saveComp(){
  let n=0;
  for(const i of ids){const q=k=>document.querySelector(`.cs[data-i="${i}"][data-k="${k}"]`),a=q('test').value,x=q('exam').value;if(a===''&&x==='')continue;
   if(+a<0||+a>40||+x<0||+x>60)return alert('Test must be 0-40 and exam 0-60.');
-  b.set(db.doc('results/'+subId(i,sj+'_'+t)),{studentId:i,studentName:q('test').dataset.n,class:c,subject:sj,trimester:t,test:+a||0,exam:+x||0,published:false,by:me.uid,byName:me.name,at:Date.now()});n++}
+  b.set(db.doc('results/'+subId(i,sj+'_'+t)),{studentId:i,studentName:q('test').dataset.n,class:c,subject:sj,term:t,test:+a||0,exam:+x||0,published:false,by:me.uid,byName:me.name,at:Date.now()});n++}
  if(!n)return alert('Nothing to save.');
  await b.commit();alert(n+' score(s) saved. Management can validate them under "Validate Results".');loadComp()}
 async function rank(){
- const r=await list('results',['class','==',v('cp_c')],['trimester','==',v('cp_t')]),m={};
+ const r=await list('results',['class','==',v('cp_c')],['term','==',v('cp_t')]),m={};
  r.forEach(x=>{const o=m[x.studentId]||(m[x.studentId]={n:x.studentName,t:0,c:0});o.t+=x.test+x.exam;o.c++});
  const a=Object.values(m).sort((x,y)=>y.t-x.t);
  $('#rk').innerHTML=`<div class="card"><h3>Class ranking</h3><table><tr><th>Pos</th><th>Student</th><th>Subjects</th><th>Total</th><th>Average</th><th>Grade</th></tr>${a.map((o,i)=>`<tr><td>${i+1}</td><td>${esc(o.n)}</td><td>${o.c}</td><td>${o.t}</td><td>${(o.t/o.c).toFixed(1)}</td><td>${grade(o.t/o.c)}</td></tr>`).join('')||'<tr><td>No scores yet.</td></tr>'}</table></div>`}
@@ -677,18 +678,18 @@ function sdTab(k){
  ov:`<div class="card"><h4>About</h4><p>${esc(s.about||'No story added yet.')}</p>${MG.includes(me.role)||me.uid==id?`<textarea id="ab" rows="3" placeholder="Write a short story about the student and their ambitions">${esc(s.about||'')}</textarea><button onclick="saveAbout()">Save</button>`:''}</div>
  ${acSum}
  <div class="card"><h4>Contact Info</h4><p style="line-height:1.9;margin:0">School E-mail: <b>${esc(SCHOOL.email)}</b><br>Phone: <b>${esc(SCHOOL.phone)}</b><br>Location: <b>${esc(SCHOOL.loc[CAMPUS]||CAMPUS)}</b></p></div>`,
- sb:`<div class="card"><h4>Subjects - ${esc(s.class||'')}</h4><table><tr><th>Subject</th><th>Latest total</th><th>Grade</th></tr>${sj.map(x=>{const l=r.filter(y=>y.subject==x.name).sort((a,b)=>TRIS.indexOf(b.trimester)-TRIS.indexOf(a.trimester))[0],n=l?l.test+l.exam:null;return`<tr><td>${esc(x.name)}</td><td>${n==null?'-':n}</td><td>${n==null?'-':grade(n)}</td></tr>`}).join('')||'<tr><td>No subjects set for this class yet.</td></tr>'}</table></div>`,
- rs:TRIS.map(t=>{const l=r.filter(x=>x.trimester==t);if(!l.length)return'';const tot=l.reduce((a,x)=>a+x.test+x.exam,0);return`<div class="card"><h4>${t} <small>(Total ${tot} · Avg ${(tot/l.length).toFixed(1)} · ${gradeInfo(tot/l.length)})</small></h4><table><tr><th>Subject</th><th>Test</th><th>Exam</th><th>Total</th><th>Grade</th></tr>${l.map(x=>{const n=x.test+x.exam;return`<tr><td>${esc(x.subject)}</td><td>${x.test}</td><td>${x.exam}</td><td class="${n<50?'red':'green'}">${n}</td><td>${grade(n)}</td></tr>`}).join('')}</table></div>`}).join('')||'<div class="card">Results not yet released.</div>',
+ sb:`<div class="card"><h4>Subjects - ${esc(s.class||'')}</h4><table><tr><th>Subject</th><th>Latest total</th><th>Grade</th></tr>${sj.map(x=>{const l=r.filter(y=>y.subject==x.name).sort((a,b)=>TRIS.indexOf(b.term)-TRIS.indexOf(a.term))[0],n=l?l.test+l.exam:null;return`<tr><td>${esc(x.name)}</td><td>${n==null?'-':n}</td><td>${n==null?'-':grade(n)}</td></tr>`}).join('')||'<tr><td>No subjects set for this class yet.</td></tr>'}</table></div>`,
+ rs:TRIS.map(t=>{const l=r.filter(x=>x.term==t);if(!l.length)return'';const tot=l.reduce((a,x)=>a+x.test+x.exam,0);return`<div class="card"><h4>${t} <small>(Total ${tot} · Avg ${(tot/l.length).toFixed(1)} · ${gradeInfo(tot/l.length)})</small></h4><table><tr><th>Subject</th><th>Test</th><th>Exam</th><th>Total</th><th>Grade</th></tr>${l.map(x=>{const n=x.test+x.exam;return`<tr><td>${esc(x.subject)}</td><td>${x.test}</td><td>${x.exam}</td><td class="${n<50?'red':'green'}">${n}</td><td>${grade(n)}</td></tr>`}).join('')}</table></div>`}).join('')||'<div class="card">Results not yet released.</div>',
  ac:acSum+`<div class="card"><h4>Attendance</h4><p>Days attended <b>${here}/${at.length}</b></p></div><div class="card"><h4>Fees</h4><p>Paid <b>${money(paid)}</b> · Balance <b>${money(Math.max(due-paid,0))}</b> · Status <b class="${fit?'green':'red'}">${fit?'Fit':'Owing'}</b></p></div><div class="card"><h4>Comments</h4>${c.map(x=>`<p><b>${esc(x.byName)}</b>: ${esc(x.text)}</p>`).join('')}<input id="cm" placeholder="Write a comment"><button onclick="postComment('${id}')">Post</button></div>`,
- dc:`<div class="card"><h4>Payment Receipts</h4><table>${f.map(x=>`<tr><td>${new Date(x.at).toLocaleDateString()}</td><td>${esc(x.type)}</td><td>${money(x.amount)}</td><td><button class="g" onclick="receipt('${x.id}')">Print</button></td></tr>`).join('')||'<tr><td>No receipts.</td></tr>'}</table></div><div class="card"><h4>Result Slips</h4>${TRIS.filter(t=>r.some(x=>x.trimester==t)).map(t=>`<button class="g" onclick="slip('${t}')">${t}</button> `).join('')||'No released results yet.'}</div>`};
+ dc:`<div class="card"><h4>Payment Receipts</h4><table>${f.map(x=>`<tr><td>${new Date(x.at).toLocaleDateString()}</td><td>${esc(x.type)}</td><td>${money(x.amount)}</td><td><button class="g" onclick="receipt('${x.id}')">Print</button></td></tr>`).join('')||'<tr><td>No receipts.</td></tr>'}</table></div><div class="card"><h4>Result Slips</h4>${TRIS.filter(t=>r.some(x=>x.term==t)).map(t=>`<button class="g" onclick="slip('${t}')">${t}</button> `).join('')||'No released results yet.'}</div>`};
  $('#sdt').innerHTML=H[k]}
 async function saveAbout(){const t=v('ab').trim();await db.doc('students/'+SD.id).update({about:t});SD.s.about=t;sdTab('ov')}
-function slip(t){const l=SD.r.filter(x=>x.trimester==t),s=SD.s,w=window.open('');if(!w)return alert('Allow pop-ups.');
+function slip(t){const l=SD.r.filter(x=>x.term==t),s=SD.s,w=window.open('');if(!w)return alert('Allow pop-ups.');
  w.document.write(`<body style="font-family:Arial;padding:30px;max-width:700px"><img src="${esc(new URL(LOGO_URL,location.href).href)}" width=80><h2>Result Slip - ${esc(t)}</h2><p>${esc(s.surname)} ${esc(s.firstName)} · ${esc(s.regNo)} · ${esc(s.class)} · ${esc(s.session||'')}</p><table border=1 cellpadding=6 style="border-collapse:collapse;width:100%"><tr><th>Subject</th><th>Test</th><th>Exam</th><th>Total</th><th>Grade</th></tr>${l.map(x=>`<tr><td>${esc(x.subject)}</td><td>${x.test}</td><td>${x.exam}</td><td>${x.test+x.exam}</td><td>${grade(x.test+x.exam)}</td></tr>`).join('')}</table><script>print()<\/script>`)}
 async function receipt(id){
  const f=(await db.doc('fees/'+id).get()).data(),s=(await db.doc('students/'+f.studentId).get()).data()||{};
  const w=window.open('');if(!w)return alert('Allow pop-ups to print the receipt.');
- w.document.write(`<body style="font-family:Arial;padding:30px;max-width:600px"><img src="${esc(new URL(LOGO_URL,location.href).href)}" width=80>${s.photo?`<img src="${esc(s.photo)}" width=90 style="float:right">`:''}<h2>Payment Receipt</h2><p><b>No:</b> ${esc(f.receiptNo||'-')}<br><b>Date:</b> ${new Date(f.at).toLocaleString()}</p><p>${esc(s.surname)} ${esc(s.firstName)} (${esc(s.regNo)})</p><p>${esc(f.type)}${f.trimester?' - '+esc(f.trimester):''}<br><b>Amount: ${money(f.amount)}</b><br>Method: ${esc(f.method||'-')}${f.ref?' · Ref: '+esc(f.ref):''}</p><p>Received by: ${esc(f.byName||'')}</p><script>print()<\/script>`)}
+ w.document.write(`<body style="font-family:Arial;padding:30px;max-width:600px"><img src="${esc(new URL(LOGO_URL,location.href).href)}" width=80>${s.photo?`<img src="${esc(s.photo)}" width=90 style="float:right">`:''}<h2>Payment Receipt</h2><p><b>No:</b> ${esc(f.receiptNo||'-')}<br><b>Date:</b> ${new Date(f.at).toLocaleString()}</p><p>${esc(s.surname)} ${esc(s.firstName)} (${esc(s.regNo)})</p><p>${esc(f.type)}${f.term?' - '+esc(f.term):''}<br><b>Amount: ${money(f.amount)}</b><br>Method: ${esc(f.method||'-')}${f.ref?' · Ref: '+esc(f.ref):''}</p><p>Received by: ${esc(f.byName||'')}</p><script>print()<\/script>`)}
 
 // ===================== FIXES =====================
 // 1. Show errors instead of an endless "Loading..."
@@ -703,7 +704,7 @@ function saveCSV(name,rows){const c=x=>{let s=String(x??'');if(typeof x!=='numbe
 // 3. Validate button and subject delete (✕) safe with apostrophes
 V.pub=async function(){
  const r=await list('results',['published','==',false]);
- set(`<div class="card"><h3>Results awaiting validation</h3><table><tr><th>Student</th><th>Class</th><th>Subject</th><th>Trimester</th><th>Total</th><th></th></tr>${r.map(x=>`<tr><td>${esc(x.studentName)}</td><td>${esc(x.class||'')}</td><td>${esc(x.subject)}</td><td>${esc(x.trimester)}</td><td>${x.test+x.exam}</td><td><button data-id="${esc(x.id)}" onclick="publish(this.dataset.id)">Validate</button></td></tr>`).join('')||'<tr><td>Nothing waiting.</td></tr>'}</table>${r.length?'<button class="s" onclick="publishAll()">Validate all</button>':''}</div>`)};
+ set(`<div class="card"><h3>Results awaiting validation</h3><table><tr><th>Student</th><th>Class</th><th>Subject</th><th>Term</th><th>Total</th><th></th></tr>${r.map(x=>`<tr><td>${esc(x.studentName)}</td><td>${esc(x.class||'')}</td><td>${esc(x.subject)}</td><td>${esc(x.term)}</td><td>${x.test+x.exam}</td><td><button data-id="${esc(x.id)}" onclick="publish(this.dataset.id)">Validate</button></td></tr>`).join('')||'<tr><td>Nothing waiting.</td></tr>'}</table>${r.length?'<button class="s" onclick="publishAll()">Validate all</button>':''}</div>`)};
 V.subj=async function(){
  const s=await list('subjects');
  set(`<div class="card"><h3>Subject Template (per class)</h3><select id="sj_c">${opts(CLASSES)}</select><input id="sj_n" placeholder="Subject e.g. Mathematics"><button onclick="addSubj()">Add subject</button>
@@ -810,7 +811,7 @@ async function saveReq(){
  if(!items.length)return alert('Add at least one item with quantity and unit cost.');
  if(!v('rq_pur').trim())return alert('State the purpose of the requisition.');
  const total=items.reduce((s,i)=>s+i.q*i.p,0),no='REQ-'+today().replace(/-/g,'')+'-'+Math.floor(1000+Math.random()*9000);
- try{await add('requisitions',{no,date:v('rq_d'),dept:v('rq_dep').trim(),campus:v('rq_cam'),category:v('rq_cat'),trimester:v('rq_tri'),session:v('rq_ses').trim(),urgency:v('rq_urg'),purpose:v('rq_pur').trim(),items,total,status:'Pending'});
+ try{await add('requisitions',{no,date:v('rq_d'),dept:v('rq_dep').trim(),campus:v('rq_cam'),category:v('rq_cat'),term:v('rq_tri'),session:v('rq_ses').trim(),urgency:v('rq_urg'),purpose:v('rq_pur').trim(),items,total,status:'Pending'});
   await notify('New requisition '+no+' ('+money(total)+') by '+me.name);go('req')}
  catch(e){alert('Could not submit: '+(e.code||e.message))}}
 async function reqAct(id,a){
@@ -819,13 +820,13 @@ async function reqAct(id,a){
  try{
   if(a=='Void'){if(!confirm('Void (delete) '+r.no+'?'))return;await db.doc('requisitions/'+id).delete();await notify(r.no+' voided by '+me.name);return go('req')}
   if(a=='Paid'){if(!confirm('Release '+money(r.total)+' and record it as an expense?'))return;
-   await add('expenses',{date:today(),trimester:r.trimester,category:r.category,description:r.no+': '+r.purpose,amount:r.total,session:r.session||'',reqId:id})}
+   await add('expenses',{date:today(),term:r.term,category:r.category,description:r.no+': '+r.purpose,amount:r.total,session:r.session||'',reqId:id})}
   await db.doc('requisitions/'+id).update({status:a,actBy:me.name,actAt:Date.now()});
   await notify(r.no+' '+a.toLowerCase()+' by '+me.name);go('req');
  }catch(e){alert('Action failed: '+(e.code||e.message))}}
 function reqPrint(id){
  const r=REQ.find(x=>x.id===id),w=window.open('');if(!w)return alert('Allow pop-ups.');
- w.document.write(`<body style="font-family:Arial;padding:30px;max-width:700px"><img src="${esc(new URL(LOGO_URL,location.href).href)}" width=70><h2>Expense Requisition</h2><p><b>No:</b> ${esc(r.no)} · <b>Date:</b> ${esc(r.date)} · <b>Status:</b> ${esc(r.status)}<br><b>Department:</b> ${esc(r.dept||'-')} · <b>Campus:</b> ${esc(r.campus||'-')}<br><b>Category:</b> ${esc(r.category)} · ${esc(r.trimester)} ${esc(r.session||'')} · <b>Priority:</b> ${esc(r.urgency)}</p><p><b>Purpose:</b> ${esc(r.purpose)}</p><table border=1 cellpadding=6 style="border-collapse:collapse;width:100%"><tr><th>Item</th><th>Qty</th><th>Unit cost</th><th>Amount</th></tr>${r.items.map(i=>`<tr><td>${esc(i.d)}</td><td>${i.q}</td><td>${money(i.p)}</td><td>${money(i.q*i.p)}</td></tr>`).join('')}<tr><td colspan=3><b>Total</b></td><td><b>${money(r.total)}</b></td></tr></table><p>Requested by: ${esc(r.byName)}</p><br><p>Approved by: ______________ Date: ________<br><br>Received by: ______________ Date: ________</p><script>print()<\/script>`)}
+ w.document.write(`<body style="font-family:Arial;padding:30px;max-width:700px"><img src="${esc(new URL(LOGO_URL,location.href).href)}" width=70><h2>Expense Requisition</h2><p><b>No:</b> ${esc(r.no)} · <b>Date:</b> ${esc(r.date)} · <b>Status:</b> ${esc(r.status)}<br><b>Department:</b> ${esc(r.dept||'-')} · <b>Campus:</b> ${esc(r.campus||'-')}<br><b>Category:</b> ${esc(r.category)} · ${esc(r.term)} ${esc(r.session||'')} · <b>Priority:</b> ${esc(r.urgency)}</p><p><b>Purpose:</b> ${esc(r.purpose)}</p><table border=1 cellpadding=6 style="border-collapse:collapse;width:100%"><tr><th>Item</th><th>Qty</th><th>Unit cost</th><th>Amount</th></tr>${r.items.map(i=>`<tr><td>${esc(i.d)}</td><td>${i.q}</td><td>${money(i.p)}</td><td>${money(i.q*i.p)}</td></tr>`).join('')}<tr><td colspan=3><b>Total</b></td><td><b>${money(r.total)}</b></td></tr></table><p>Requested by: ${esc(r.byName)}</p><br><p>Approved by: ______________ Date: ________<br><br>Received by: ______________ Date: ________</p><script>print()<\/script>`)}
 
 // ---- CSS + student About (read-only for students), added here so the original needs no other edits ----
 {const st=document.createElement('style');st.textContent='.top button,button.g{background:var(--gold);color:#10213f;border:0}.top button:hover,button.g:hover{filter:brightness(1.1)}.just{text-align:justify;line-height:1.75}';document.head.appendChild(st)}
@@ -993,13 +994,13 @@ async function setStaffRole(id){
  sum=l=>l.reduce((z,x)=>z+(+x.amount||0),0),I=sum(fs),E=sum(ex),mon=today().slice(0,7),
  Im=sum(fs.filter(x=>ld(x.at).slice(0,7)==mon)),Em=sum(ex.filter(x=>(x.date||ld(x.at)).slice(0,7)==mon)),
  bc=n=>n<0?'red':'green',kn=[...TRIS,'Full session'],
- rows=kn.map(k=>({t:k,i:sum(fs.filter(x=>x.trimester==k)),o:sum(ex.filter(x=>x.trimester==k))}));
+ rows=kn.map(k=>({t:k,i:sum(fs.filter(x=>x.term==k)),o:sum(ex.filter(x=>x.term==k))}));
  const ui=I-rows.reduce((z,r)=>z+r.i,0),uo=E-rows.reduce((z,r)=>z+r.o,0);if(ui||uo)rows.push({t:'Unassigned',i:ui,o:uo});
  const st=(l,x,c)=>`<div class="card stat"><span>${l}</span><b class="${c||''}">${x}</b></div>`;
  mainEl.insertAdjacentHTML('afterbegin',`<div class="card"><h3>Attendance today (${today()})</h3><h5 class="mut">Staff (${t.length})</h5><div class="grid">${st('Present',cnt('staff','Present'),'green')}${st('Absent',cnt('staff','Absent'),'red')}${st('Not marked',t.length-mk('staff'))}</div>
  <h5 class="mut">Students (${s.length})</h5><div class="grid">${st('Present',cnt('student','Present'),'green')}${st('Late',cnt('student','Late'))}${st('Absent',cnt('student','Absent'),'red')}${st('Not marked',s.length-mk('student'))}</div></div>
  <div class="card"><h3>Income, Expenses & Balance</h3><div class="grid">${st('Total income',money(I),'green')}${st('Total expenses',money(E),'red')}${st('Balance',money(I-E),bc(I-E))}${st('This month balance',money(Im-Em),bc(Im-Em))}</div>
- <table><tr><th>Trimester</th><th>Income</th><th>Expenses</th><th>Balance</th></tr>${rows.map(r=>`<tr><td>${esc(r.t)}</td><td class="green">${money(r.i)}</td><td class="red">${money(r.o)}</td><td class="${bc(r.i-r.o)}">${money(r.i-r.o)}</td></tr>`).join('')}</table><p class="mut">Read-only summary.</p></div>`)}}
+ <table><tr><th>Term</th><th>Income</th><th>Expenses</th><th>Balance</th></tr>${rows.map(r=>`<tr><td>${esc(r.t)}</td><td class="green">${money(r.i)}</td><td class="red">${money(r.o)}</td><td class="${bc(r.i-r.o)}">${money(r.i-r.o)}</td></tr>`).join('')}</table><p class="mut">Read-only summary.</p></div>`)}}
 // ===================== END UPDATE 3 =====================
 
 // ===================== UPDATE 4 =====================
@@ -1042,17 +1043,18 @@ const photoBtn=(k,id)=>!TOP.includes(me.role)?'':`<label class="pbtn">📷 Chang
  $('#sdt').insertAdjacentHTML('afterbegin',`<div class="pban">${s.photo?`<img class="ph" src="${esc(s.photo)}" alt="">`:`<div class="ph" style="display:grid;place-items:center;font-size:44px;background:var(--bd)">${esc((nm||'?')[0])}</div>`}<div><h2>${esc(nm)}</h2><span class="ch">${esc(s.position||RL[me.role]||me.role)}</span><span class="ch">${esc(s.staffId||me.username||'')}</span><span class="ch">${esc(s.campus||'')}</span><br>${photoBtn('staff',me.uid)}</div></div>`)}}
 
 // ---------- Student Profile tab + record editing ----------
-const EF=[['surname','Surname'],['firstName','First name'],['middleName','Middle name'],['gender','Gender','Male,Female'],['dob','Date of birth','date'],['pob','Place of birth'],['nationality','Nationality'],['state','State of origin'],['lga','LGA'],['address','Residential address'],['phone','Phone'],['email','Student email'],['indigene','Status','Indigene,Non-Indigene'],['level','Section','Creche,Nursery,Primary,Junior High School,Senior High School'],['class','Class',CLASSES.join(',')],['session','Session'],['campus','Campus',CAMPUS],['boarding','Boarding?','Day,Boarding'],['father','Father name'],['fatherPhone','Father phone'],['mother','Mother name'],['motherPhone','Mother phone'],['guardianEmail','Parent email'],['emName','Emergency contact'],['emPhone','Emergency phone'],['blood','Blood group'],['genotype','Genotype'],['allergies','Allergies'],['feeDue','Total fees due (₦)','number']];
+const EF=[['surname','Surname'],['firstName','First name'],['middleName','Middle name'],['gender','Gender','Male,Female'],['dob','Date of birth','date'],['pob','Place of birth'],['nationality','Nationality'],['state','State of origin'],['lga','LGA'],['address','Residential address'],['phone','Phone'],['email','Student email'],['indigene','Status','Indigene,Non-Indigene'],['level','Section','Creche,Nursery,Primary,Junior High School,Senior High School'],['class','Class',CLASSES.join(',')],['session','Session'],['campus','Campus',CAMPUS],['boarding','Boarding?','Day,Boarding'],['father','Father name'],['fatherPhone','Father phone'],['mother','Mother name'],['motherPhone','Mother phone'],['guardianEmail','Parent email'],['emName','Emergency contact'],['emPhone','Emergency phone'],['blood','Blood group'],['genotype','Genotype'],['allergies','Allergies'],['feeT1','1st Term fee (₦)','number'],['feeT2','2nd Term fee (₦)','number'],['feeT3','3rd Term fee (₦)','number']];
 function profHTML(){
  const s=SD.s,nm=((s.firstName||'')+' '+(s.middleName||'')+' '+(s.surname||'')).replace(/\s+/g,' ').trim(),
- g=(t,i,a)=>`<div class="card"><h4>${i} ${t}</h4><div class="pf">${a.map(([k,l])=>`<div><span>${l}</span><b>${esc((k=='feeDue'?money(s[k]):s[k])||'-')}</b></div>`).join('')}</div></div>`;
+ g=(t,i,a)=>`<div class="card"><h4>${i} ${t}</h4><div class="pf">${a.map(([k,l])=>`<div><span>${l}</span><b>${esc((['feeDue','feeT1','feeT2','feeT3'].includes(k)?money(s[k]||0):s[k])||'-')}</b></div>`).join('')}</div></div>`;
  return `<div class="pban">${s.photo?`<img class="ph" src="${esc(s.photo)}" alt="">`:`<div class="ph" style="display:grid;place-items:center;font-size:44px;background:var(--bd)">${esc((s.firstName||'?')[0])}</div>`}<div><h2>${esc(nm)}</h2><span class="ch">${esc(s.regNo||'')}</span><span class="ch">${esc(s.class||'')}</span><span class="ch">${esc(s.campus||'')}</span><span class="ch">${esc(s.session||'')}</span>${MG.includes(me.role)?'<br><button class="g" style="margin-top:8px" onclick="editRec()">✏ Edit student record</button>':''}</div></div>`+
- g('Personal Information','👤',EF.slice(0,13))+g('School Details','🎓',[['regNo','Student ID'],...EF.slice(13,18),EF[28]])+g('Parent / Guardian','👪',EF.slice(18,23))+g('Emergency Contact','☎',EF.slice(23,25))+g('Health Information','🩺',EF.slice(25,28))+`<div class="card"><h4>📖 About</h4><p class="just">${esc(s.about||'No story added yet.')}</p></div>`}
+ g('Personal Information','👤',EF.slice(0,13))+g('School Details','🎓',[['regNo','Student ID'],...EF.slice(13,18),...EF.slice(28,31),['feeDue','Total fees due (₦)']])+g('Parent / Guardian','👪',EF.slice(18,23))+g('Emergency Contact','☎',EF.slice(23,25))+g('Health Information','🩺',EF.slice(25,28))+`<div class="card"><h4>📖 About</h4><p class="just">${esc(s.about||'No story added yet.')}</p></div>`}
 function editRec(){
  if(!MG.includes(me.role))return;const s=SD.s;
  $('#sdt').innerHTML=`<div class="card"><h4>Edit student record</h4><p class="mut">Corrections update the profile. Existing results stay under the class they were computed for.</p><div class="pf">${EF.map(([k,l,o])=>`<div><span>${l}</span>${o&&o!='date'&&o!='number'?`<select id="e_${k}"><option value=""></option>${o.split(',').map(x=>`<option ${x==s[k]?'selected':''}>${x}</option>`).join('')}</select>`:`<input id="e_${k}" type="${o||'text'}" value="${esc(s[k]??'')}">`}</div>`).join('')}</div><br><button onclick="saveRec()">Save changes</button> <button class="g" onclick="sdTab('pf')">Cancel</button><p id="e_m" class="red"></p></div>`}
 async function saveRec(){
  const d={};EF.forEach(([k,,o])=>{const x=v('e_'+k).trim();d[k]=o=='number'?(+x||0):x});
+ d.feeDue=(+d.feeT1||0)+(+d.feeT2||0)+(+d.feeT3||0);
  if(!d.surname||!d.firstName){$('#e_m').textContent='Surname and first name are required.';return}
  try{await db.doc('students/'+SD.id).update(d);Object.assign(SD.s,d);await notify('Student record updated: '+d.firstName+' '+d.surname+' by '+me.name);studentDash(SD.id,'pf')}
  catch(e){$('#e_m').textContent='Could not save: '+(e.code||e.message)}}
@@ -1117,9 +1119,9 @@ let VR=[];
 V.pub=async function(){
  const[r,ow,vr]=await Promise.all([list('results',['published','==',false]),owingMap(),list('results',['published','==',true])]);VR=vr;
  const ok=r.filter(x=>!ow[x.studentId]).length;
- set(`<div class="card"><h3>Results awaiting validation</h3><p class="mut">Results of students who owe fees cannot be validated until the balance is cleared.</p><table><tr><th>Student</th><th>Class</th><th>Subject</th><th>Trimester</th><th>Total</th><th>Fees</th><th></th></tr>${r.map(x=>`<tr><td>${esc(x.studentName)}</td><td>${esc(x.class||'')}</td><td>${esc(x.subject)}</td><td>${esc(x.trimester)}</td><td>${x.test+x.exam}</td><td>${ow[x.studentId]?`<span class="tag" style="background:var(--bad)">Owing ${money(ow[x.studentId])}</span>`:'<span class="green">Cleared</span>'}</td><td>${ow[x.studentId]?'':`<button data-id="${esc(x.id)}" onclick="publish(this.dataset.id)">Validate</button>`}</td></tr>`).join('')||'<tr><td>Nothing waiting.</td></tr>'}</table>${ok?`<button class="s" onclick="publishAll()">Validate all cleared (${ok})</button>`:''}</div>
- <div class="card"><h3>Validated results - correct or recall</h3><input id="pv_q" placeholder="🔍 Search student, class or subject" oninput="drawVR()"><table><tr><th>Student</th><th>Class</th><th>Subject</th><th>Trimester</th><th>Test</th><th>Exam</th><th>Total</th><th></th></tr><tbody id="vrTb"></tbody></table></div>`);drawVR()};
-function drawVR(){const q=v('pv_q').toLowerCase();$('#vrTb').innerHTML=VR.filter(x=>((x.studentName||'')+' '+(x.subject||'')+' '+(x.class||'')).toLowerCase().includes(q)).slice(0,100).map(x=>`<tr><td>${esc(x.studentName)}</td><td>${esc(x.class||'')}</td><td>${esc(x.subject)}</td><td>${esc(x.trimester)}</td><td>${x.test}</td><td>${x.exam}</td><td>${x.test+x.exam}</td><td><button class="g" data-id="${esc(x.id)}" onclick="fixRes(this.dataset.id)">Correct</button> <button class="s" data-id="${esc(x.id)}" onclick="unval(this.dataset.id)">Recall</button></td></tr>`).join('')||'<tr><td>None found.</td></tr>'}
+ set(`<div class="card"><h3>Results awaiting validation</h3><p class="mut">Results of students who owe fees cannot be validated until the balance is cleared.</p><table><tr><th>Student</th><th>Class</th><th>Subject</th><th>Term</th><th>Total</th><th>Fees</th><th></th></tr>${r.map(x=>`<tr><td>${esc(x.studentName)}</td><td>${esc(x.class||'')}</td><td>${esc(x.subject)}</td><td>${esc(x.term)}</td><td>${x.test+x.exam}</td><td>${ow[x.studentId]?`<span class="tag" style="background:var(--bad)">Owing ${money(ow[x.studentId])}</span>`:'<span class="green">Cleared</span>'}</td><td>${ow[x.studentId]?'':`<button data-id="${esc(x.id)}" onclick="publish(this.dataset.id)">Validate</button>`}</td></tr>`).join('')||'<tr><td>Nothing waiting.</td></tr>'}</table>${ok?`<button class="s" onclick="publishAll()">Validate all cleared (${ok})</button>`:''}</div>
+ <div class="card"><h3>Validated results - correct or recall</h3><input id="pv_q" placeholder="🔍 Search student, class or subject" oninput="drawVR()"><table><tr><th>Student</th><th>Class</th><th>Subject</th><th>Term</th><th>Test</th><th>Exam</th><th>Total</th><th></th></tr><tbody id="vrTb"></tbody></table></div>`);drawVR()};
+function drawVR(){const q=v('pv_q').toLowerCase();$('#vrTb').innerHTML=VR.filter(x=>((x.studentName||'')+' '+(x.subject||'')+' '+(x.class||'')).toLowerCase().includes(q)).slice(0,100).map(x=>`<tr><td>${esc(x.studentName)}</td><td>${esc(x.class||'')}</td><td>${esc(x.subject)}</td><td>${esc(x.term)}</td><td>${x.test}</td><td>${x.exam}</td><td>${x.test+x.exam}</td><td><button class="g" data-id="${esc(x.id)}" onclick="fixRes(this.dataset.id)">Correct</button> <button class="s" data-id="${esc(x.id)}" onclick="unval(this.dataset.id)">Recall</button></td></tr>`).join('')||'<tr><td>None found.</td></tr>'}
 async function fixRes(id){
  const x=VR.find(r=>r.id==id),t=prompt('Test score (0-40): '+x.studentName+' - '+x.subject,x.test);if(t===null)return;
  const e=prompt('Exam score (0-60)',x.exam);if(e===null)return;
@@ -1241,15 +1243,15 @@ async function regStudent(){
  if(!g.surname||!g.firstName){m.textContent='Enter surname and first name.';return}
  if(!g.class){m.textContent='Choose the student\'s class.';return}
  if(!g.campus){m.textContent='Choose the campus.';return}
- if(!g.guardianEmail){m.textContent='Parent email is required so the parent can set and recover the password.';return}
+ if(!g.guardianEmail){m.textContent='Parent email is required so the parent can recover the account.';return}
  if(sc&&g.campus!==sc){m.textContent='You can only register students for your own campus ('+sc+').';return}
  let n;try{n=await nextReg()}catch(e){m.textContent=e.message||('Could not get a registration number: '+e.code);return}
  const reg='PJIS/'+new Date().getFullYear()+'/'+String(n).padStart(4,'0'),un=reg.replace(/\//g,'').toLowerCase();
  try{
-  const uid=await mkUser(un,'Jasmine'+Math.floor(100000+Math.random()*900000),{role:'student',name:g.firstName+' '+g.surname},g.guardianEmail);
-  await db.doc('students/'+uid).set({...g,feeDue:+g.feeDue||0,regNo:reg,username:un,photo,fpEnrolled:FP.t.filter(Boolean).length>0,status:'Active',registered:Date.now()});await fpSave(uid,'student');
+  const uid=await mkUser(un,un,{role:'student',name:g.firstName+' '+g.surname},g.guardianEmail,true);
+  await db.doc('students/'+uid).set({...g,...termFees(g),regNo:reg,username:un,photo,fpEnrolled:FP.t.filter(Boolean).length>0,status:'Active',registered:Date.now()});await fpSave(uid,'student');
   await notify('New student registered: '+g.firstName+' '+g.surname+' ('+g.campus+')');
-  m.innerHTML=`Done. Username: <b>${un}</b>. A link to set the password was emailed to ${esc(g.guardianEmail)}.`+aliasNote(g.guardianEmail,mkUser.last);
+  m.innerHTML=`Done. Username: <b>${un}</b>. Password: <b>${un}</b> (same as the username). The student can change it under My Account.`+aliasNote(g.guardianEmail,mkUser.last);
  }catch(e){console.error(e);m.textContent='Could not register: '+(e.code||e.message)}}
 
 // ---------- D. Staff & Roles: campus per staff member ----------
@@ -1285,7 +1287,7 @@ async function saveFeeMulti(){
  btn.disabled=true;
  try{
   const b=db.batch();
-  L.forEach((x,i)=>b.set(db.collection('fees').doc(),{studentId:sid,studentName:s.surname+' '+s.firstName,regNo:s.regNo||'',session:s.session||'',type:x.type,trimester:x.tri,amount:x.a,method:v('fee_m'),ref:v('fee_r').trim(),receiptNo:no,lineNo:i+1,lines:L.length,by:me.uid,byName:me.name,at:at+i}));
+  L.forEach((x,i)=>b.set(db.collection('fees').doc(),{studentId:sid,studentName:s.surname+' '+s.firstName,regNo:s.regNo||'',session:s.session||'',type:x.type,term:x.tri,amount:x.a,method:v('fee_m'),ref:v('fee_r').trim(),receiptNo:no,lineNo:i+1,lines:L.length,by:me.uid,byName:me.name,at:at+i}));
   await b.commit();
   const what=[...new Set(L.map(x=>x.type))].join(', ');
   await notify('Fee recorded: '+money(tot)+' from '+s.surname+' '+s.firstName+' ('+what+')');
@@ -1297,7 +1299,7 @@ async function receipt(id){
  let L=[f];
  if(f.receiptNo){try{const r=(await list('fees',['studentId','==',f.studentId],['receiptNo','==',f.receiptNo])).sort((a,b)=>a.at-b.at);if(r.length)L=r}catch(e){}}
  const tot=L.reduce((z,x)=>z+(+x.amount||0),0),w=window.open('');if(!w)return alert('Allow pop-ups to print the receipt.');
- w.document.write(`<body style="font-family:Arial;padding:30px;max-width:600px"><img src="${esc(new URL(LOGO_URL,location.href).href)}" width=80>${s.photo?`<img src="${esc(s.photo)}" width=90 style="float:right">`:''}<h2>Payment Receipt</h2><p><b>No:</b> ${esc(f.receiptNo||'-')}<br><b>Date:</b> ${new Date(f.at).toLocaleString()}</p><p>${esc(s.surname)} ${esc(s.firstName)} (${esc(s.regNo)}) · ${esc(s.class||'')}</p><table border=1 cellpadding=6 style="border-collapse:collapse;width:100%"><tr><th>Item</th><th>Trimester</th><th>Amount</th></tr>${L.map(x=>`<tr><td>${esc(x.type)}</td><td>${esc(x.trimester||'')}</td><td>${money(x.amount)}</td></tr>`).join('')}<tr><td colspan=2><b>Total</b></td><td><b>${money(tot)}</b></td></tr></table><p>Method: ${esc(f.method||'-')}${f.ref?' · Ref: '+esc(f.ref):''}<br>Received by: ${esc(f.byName||'')}</p><script>print()<\/script>`)}
+ w.document.write(`<body style="font-family:Arial;padding:30px;max-width:600px"><img src="${esc(new URL(LOGO_URL,location.href).href)}" width=80>${s.photo?`<img src="${esc(s.photo)}" width=90 style="float:right">`:''}<h2>Payment Receipt</h2><p><b>No:</b> ${esc(f.receiptNo||'-')}<br><b>Date:</b> ${new Date(f.at).toLocaleString()}</p><p>${esc(s.surname)} ${esc(s.firstName)} (${esc(s.regNo)}) · ${esc(s.class||'')}</p><table border=1 cellpadding=6 style="border-collapse:collapse;width:100%"><tr><th>Item</th><th>Term</th><th>Amount</th></tr>${L.map(x=>`<tr><td>${esc(x.type)}</td><td>${esc(x.term||'')}</td><td>${money(x.amount)}</td></tr>`).join('')}<tr><td colspan=2><b>Total</b></td><td><b>${money(tot)}</b></td></tr></table><p>Method: ${esc(f.method||'-')}${f.ref?' · Ref: '+esc(f.ref):''}<br>Received by: ${esc(f.byName||'')}</p><script>print()<\/script>`)}
 
 // ---------- F. Management Overview: edit school contact info ----------
 {const o=V.mgmt;V.mgmt=async function(){await o();
@@ -1352,7 +1354,7 @@ async function publish(id){
  const d=await db.doc('results/'+id).get(),x=d.data()||{},b=(await owingMap())[x.studentId];
  if(b)return alert('Blocked: this student owes '+money(b)+'. Clear the fees first.');
  await db.doc('results/'+id).update({published:true});await notify('Results validated');
- await pushTo(x.studentId,'Your '+x.subject+' result ('+x.trimester+') has been validated and is now available.');
+ await pushTo(x.studentId,'Your '+x.subject+' result ('+x.term+') has been validated and is now available.');
  go('pub')}
 async function publishAll(){
  const ow=await owingMap(),r=(await list('results',['published','==',false])).filter(x=>!ow[x.studentId]);
@@ -1360,7 +1362,7 @@ async function publishAll(){
  if(!confirm('Validate '+r.length+' result(s)? Results of owing students are skipped.'))return;
  for(let i=0;i<r.length;i+=400){const b=db.batch();r.slice(i,i+400).forEach(x=>b.update(db.doc('results/'+x.id),{published:true}));await b.commit()}
  await notify('Pending results validated (owing students skipped)');
- const by={};r.forEach(x=>{(by[x.studentId]=by[x.studentId]||new Set()).add(x.trimester)});
+ const by={};r.forEach(x=>{(by[x.studentId]=by[x.studentId]||new Set()).add(x.term)});
  await Promise.all(Object.entries(by).map(([id,t])=>pushTo(id,'Your results ('+[...t].join(', ')+') have been validated and are now available.')));
  go('pub')}
 {const o=markAtt;markAtt=async function(uid,status,time){await o(uid,status,time);
@@ -1678,8 +1680,8 @@ async function removeClass(){
  }catch(e){m.textContent='Could not remove: '+(e.code||e.message)}}
 </script>
 <script>
-// ===================== TRIMESTER REPORT CARD UPDATE =====================
-// 1) Skills & Behaviour page (Psychomotor + Affective ratings, per student per trimester)
+// ===================== TERM REPORT CARD UPDATE =====================
+// 1) Skills & Behaviour page (Psychomotor + Affective ratings, per student per term)
 // 2) School Administrator signature (uploaded once by management, printed on every report card)
 // 3) New downloadable report card: school logo, student picture, ratings, signature space
 const PSY=[['games','Games / Sport'],['tools','Handling of Tools'],['hand','Handwriting'],['comm','Communication Skills'],['paint','Painting and Drawing'],['music','Musical Skills'],['craft','Crafts'],['dance','Dancing Skills']];
@@ -1701,11 +1703,11 @@ V.traits=async function(){
   try{const[own,sj]=await Promise.all([list('classes',['teacherId','==',me.uid]),list('subjects',['teacherId','==',me.uid])]);
    if(own.length)cl=own.map(x=>x.name);else if(sj.length)cl=CLASSES.filter(c=>sj.some(x=>x.class==c))}catch(e){}
  }
- set(`<div class="card"><h3>Skills & Behaviour Ratings</h3><p class="mut">Rate each learner for the trimester: <b>5</b> Excellent · <b>4</b> Very Good · <b>3</b> Good · <b>2</b> Fair · <b>1</b> Poor. The ratings print on the student's trimester report card.</p><div class="row"><select id="tr_c" onchange="trLoad()">${opts(cl)}</select><select id="tr_t" onchange="trLoad()">${opts(TRIS)}</select></div><div class="row"><select id="tr_s" onchange="trForm()"></select></div></div><div id="tr_form"></div>`);
+ set(`<div class="card"><h3>Skills & Behaviour Ratings</h3><p class="mut">Rate each learner for the term: <b>5</b> Excellent · <b>4</b> Very Good · <b>3</b> Good · <b>2</b> Fair · <b>1</b> Poor. The ratings print on the student's term report card.</p><div class="row"><select id="tr_c" onchange="trLoad()">${opts(cl)}</select><select id="tr_t" onchange="trLoad()">${opts(TRIS)}</select></div><div class="row"><select id="tr_s" onchange="trForm()"></select></div></div><div id="tr_form"></div>`);
  trLoad()};
 async function trLoad(keep){
  const c=v('tr_c'),t=v('tr_t');if(!c){$('#tr_s').innerHTML='<option value="">No class available</option>';$('#tr_form').innerHTML='';return}
- const[st,tr]=await Promise.all([list('students',['class','==',c]),list('traits',['class','==',c],['trimester','==',t])]);
+ const[st,tr]=await Promise.all([list('students',['class','==',c]),list('traits',['class','==',c],['term','==',t])]);
  st.sort((a,b)=>(a.surname||'').localeCompare(b.surname||''));
  TR.st=st;TR.map={};tr.forEach(x=>TR.map[x.studentId]=x);
  trList(keep);trForm()}
@@ -1718,9 +1720,9 @@ function trForm(){
  o.innerHTML=`<div class="card"><h4>Psychomotor Trait / Skill</h4>${tb('psy',PSY)}</div><div class="card"><h4>Affective Trait / Behaviour</h4>${tb('aff',AFF)}</div><div class="card"><button onclick="trSave(false)">Save</button> <button class="g" onclick="trSave(true)">Save & next student</button><p id="tr_m"></p></div>`}
 async function trSave(next){
  const id=v('tr_s'),st=TR.st.find(x=>x.id==id),m=$('#tr_m');if(!st)return;
- const d={studentId:id,studentName:(st.surname||'')+' '+(st.firstName||''),class:v('tr_c'),trimester:v('tr_t'),psy:{},aff:{},by:me.uid,byName:me.name,at:Date.now()};
+ const d={studentId:id,studentName:(st.surname||'')+' '+(st.firstName||''),class:v('tr_c'),term:v('tr_t'),psy:{},aff:{},by:me.uid,byName:me.name,at:Date.now()};
  document.querySelectorAll('#tr_form select[data-g]').forEach(s=>{if(s.value)d[s.dataset.g][s.dataset.k]=+s.value});
- try{await db.doc('traits/'+trId(id,d.trimester)).set(d);TR.map[id]=d;
+ try{await db.doc('traits/'+trId(id,d.term)).set(d);TR.map[id]=d;
   const i=TR.st.findIndex(x=>x.id==id),nx=next&&TR.st[i+1]?TR.st[i+1].id:id;
   trList(nx);trForm();const mm=$('#tr_m');if(mm){mm.className='green';mm.textContent=next&&nx==id?'Saved. That was the last student in the class.':'Saved.'}
   if(next&&nx!=id)window.scrollTo(0,0)}
@@ -1729,7 +1731,7 @@ async function trSave(next){
 // ---- School Administrator signature (management Overview page) ----
 {const o=V.mgmt;V.mgmt=async function(){await o();
  let s={};try{const d=await db.doc('settings/school').get();if(d.exists)s=d.data()}catch(e){}
- const card=`<div class="card"><h3>Report Card Signature</h3><p class="mut">The School Administrator's signature and name print at the bottom of every trimester report card. Upload a clear photo or scan of the signature on white paper.</p><div id="sg_pv">${s.signature?`<img src="${esc(s.signature)}" alt="signature" style="max-height:70px;background:#fff;border:1px solid var(--bd);padding:4px;border-radius:6px">`:'<p class="mut">No signature uploaded yet.</p>'}</div><div class="row"><input id="sg_n" value="${esc(s.signName||'')}" placeholder="Administrator's full name (printed under the signature)"></div><div class="row"><label class="pbtn">✍ Upload signature<input type="file" accept="image/*" hidden onchange="sigUpload(this)"></label><button class="g" onclick="sigName()">Save name</button>${s.signature?' <button class="s" onclick="sigRemove()">Remove signature</button>':''}</div><p id="sg_m"></p></div>`;
+ const card=`<div class="card"><h3>Report Card Signature</h3><p class="mut">The School Administrator's signature and name print at the bottom of every term report card. Upload a clear photo or scan of the signature on white paper.</p><div id="sg_pv">${s.signature?`<img src="${esc(s.signature)}" alt="signature" style="max-height:70px;background:#fff;border:1px solid var(--bd);padding:4px;border-radius:6px">`:'<p class="mut">No signature uploaded yet.</p>'}</div><div class="row"><input id="sg_n" value="${esc(s.signName||'')}" placeholder="Administrator's full name (printed under the signature)"></div><div class="row"><label class="pbtn">✍ Upload signature<input type="file" accept="image/*" hidden onchange="sigUpload(this)"></label><button class="g" onclick="sigName()">Save name</button>${s.signature?' <button class="s" onclick="sigRemove()">Remove signature</button>':''}</div><p id="sg_m"></p></div>`;
  const h=[...mainEl.querySelectorAll('h3')].find(x=>x.textContent==='Students'),c=h&&h.closest('.card');
  if(c)c.insertAdjacentHTML('beforebegin',card);else mainEl.insertAdjacentHTML('beforeend',card)}}
 function sigMsg(t,ok){const m=$('#sg_m');if(m){m.className=ok?'green':'red';m.textContent=t}}
@@ -1751,7 +1753,7 @@ async function slip(t){
  let sch={},tr={};
  try{const d=await db.doc('settings/school').get();if(d.exists)sch=d.data()}catch(e){console.warn('school settings',e.code)}
  try{const d=await db.doc('traits/'+trId(SD.id,t)).get();if(d.exists)tr=d.data()}catch(e){console.warn('traits',e.code)}
- const s=SD.s,cl=SD.cl||{},rows=SD.r.filter(x=>x.trimester==t).sort((a,b)=>(a.subject||'').localeCompare(b.subject||'')),
+ const s=SD.s,cl=SD.cl||{},rows=SD.r.filter(x=>x.term==t).sort((a,b)=>(a.subject||'').localeCompare(b.subject||'')),
  gk=n=>KEY[n>=90?0:n>=80?1:n>=70?2:n>=60?3:n>=50?4:5],
  tot=rows.reduce((a,x)=>a+x.test+x.exam,0),avg=rows.length?tot/rows.length:0,
  nm=[s.surname,s.firstName,s.middleName].filter(Boolean).join(' '),
@@ -1776,7 +1778,7 @@ async function slip(t){
  <div class="pg"><div class="hd"><img class="lg" src="${esc(logo)}" alt="" onerror="this.style.visibility='hidden'">
  <div class="ti"><h1>PRINCESS JASMINE INTERNATIONAL SCHOOL</h1><p><i>Godly Foundation for Excellence</i></p><p>${esc(SCHOOL.loc[CAMPUS]||CAMPUS)} · ${esc(SCHOOL.phone||'')} · ${esc(SCHOOL.email||'')}</p><h2>STUDENT ${esc(t.toUpperCase())} REPORT CARD</h2></div>
  ${s.photo?`<img class="ph" src="${esc(s.photo)}" alt="">`:'<div class="phx">Student<br>photo</div>'}</div>
- <div class="info">${info('Student name',nm)}${info('Student ID',s.regNo)}${info('Class',s.class)}${info('Session',s.session)}${info('Trimester',t)}${info('Gender',s.gender)}</div>
+ <div class="info">${info('Student name',nm)}${info('Student ID',s.regNo)}${info('Class',s.class)}${info('Session',s.session)}${info('Term',t)}${info('Gender',s.gender)}</div>
  <table><tr><th class="l">Subject</th><th class="c">Test /40</th><th class="c">Exam /60</th><th class="c">Total /100</th><th class="c">Grade</th><th class="l">Remark</th></tr>
  ${rows.map(x=>{const n=x.test+x.exam;return`<tr><td class="l">${esc(x.subject)}</td><td class="c">${x.test}</td><td class="c">${x.exam}</td><td class="c"><b>${n}</b></td><td class="c">${grade(n)}</td><td class="l">${gk(n)[2]}</td></tr>`}).join('')||'<tr><td colspan="6" class="c">No validated results.</td></tr>'}
  <tr class="sum"><td class="l">Total / Average</td><td colspan="2" class="c">Subjects: ${rows.length}</td><td class="c">${tot} / ${rows.length*100}</td><td class="c">${rows.length?grade(avg):'-'}</td><td class="l">Average: ${rows.length?avg.toFixed(1)+' · '+gk(avg)[2]:'-'}</td></tr></table>
