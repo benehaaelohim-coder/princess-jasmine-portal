@@ -132,11 +132,11 @@ function togglePw(){const i=$('#p'),s=i.type=='password';i.type=s?'text':'passwo
 // Apps Script runs pages in a sandboxed iframe, so fall back if browser storage is blocked
 const P=firebase.auth.Auth.Persistence;const ready=(async()=>{for(const m of [P.LOCAL,P.SESSION,P.NONE]){try{await auth.setPersistence(m);return}catch(e){}}})();
 
-const MENU={student:['dash:Dashboard','news:Announcements','acct:My Account'],
+const MENU={student:['dash:Dashboard','news:Announcements','bank:Bank Statement Attachment','acct:My Account'],
 teacher:['dash:My Dashboard','comp:Compute Results','roll:Class Attendance','attend:Attendance','news:Announcements','acct:My Account'],
 staff:['dash:My Dashboard','attend:Attendance','news:Announcements','acct:My Account'],
-accountant:['fees:Fees & Payments','dash:My Dashboard','attend:Attendance','news:Announcements','acct:My Account'],
-principal:['mgmt:Overview','reg:Registration','fees:Fees & Payments','fin:Financial','setup:Classes & Teachers','subj:Subjects Template','comp:Compute Results','pub:Validate Results','events:Events Calendar','news:Post Announcement','roll:Take Attendance','attend:Attendance','notes:Notifications','dash:My Profile','acct:My Account']};
+accountant:['fees:Fees & Payments','bank:Bank Statement Attachment','dash:My Dashboard','attend:Attendance','news:Announcements','acct:My Account'],
+principal:['mgmt:Overview','reg:Registration','fees:Fees & Payments','fin:Financial Report','bank:Bank Statement Attachment','setup:Classes & Teachers','subj:Subjects Template','comp:Compute Results','pub:Validate Results','events:Events Calendar','news:Post Announcement','roll:Take Attendance','attend:Attendance','notes:Notifications','dash:My Profile','acct:My Account']};
 MENU.proprietor=MENU.admin=[...MENU.principal,'staffreg:Staff & Roles','stat:Stationery','reset:Reset'];
 // Chairman and School Administrator: everything except Reset
 MENU.chairman=MENU.administrator=[...MENU.principal,'staffreg:Staff & Roles','stat:Stationery'];
@@ -239,7 +239,13 @@ function disableBio(){bioSet(me.uid,null);$('#lockBtn').style.display='none';V.a
 
 // ---------- Helpers ----------
 const add=(c,o)=>db.collection(c).add({...o,by:me.uid,byName:me.name,at:Date.now()});
-const list=async(c,...f)=>{let q=db.collection(c);f.forEach(x=>q=q.where(...x));const sc=CAMPUS_SCOPE();if(c==='students'&&sc)q=q.where('campus','==',sc);let r=(await q.get()).docs.map(d=>({id:d.id,...d.data()}));if(sc)r=await scFilter(c,r,sc);return r};
+const list0=async(c,...f)=>{let q=db.collection(c);f.forEach(x=>q=q.where(...x));const sc=CAMPUS_SCOPE();if(c==='students'&&sc)q=q.where('campus','==',sc);let r=(await q.get()).docs.map(d=>({id:d.id,...d.data()}));if(sc)r=await scFilter(c,r,sc);return r};
+let MYCLS={u:'',c:''};
+async function myClass(){if(MYCLS.u===me.uid)return MYCLS.c;let c='';try{const d=await db.doc('students/'+me.uid).get();if(d.exists)c=d.data().class||''}catch(e){}MYCLS={u:me.uid,c};return c}
+const list=async(c,...f)=>{
+ if(c==='announcements'&&me&&me.role==='student'&&f.some(x=>x[0]==='audience'&&x[2]==='students')){
+  const cls=await myClass(),[a,b]=await Promise.all([list0(c,...f),cls?list0(c,['audience','==','class'],['targetClass','==',cls]):Promise.resolve([])]);return a.concat(b)}
+ return list0(c,...f)};
 const notify=m=>add('notifications',{msg:m,to:MG});
 const set=h=>mainEl.innerHTML=h;
 const opts=a=>a.map(x=>`<option>${esc(x)}</option>`).join('');
@@ -326,9 +332,9 @@ async fin(){
  const ses=[...new Set([...fs,...ex].map(x=>x.session).filter(Boolean))].sort().reverse();
  FIN={fs,ex:ex.sort((a,b)=>(b.date||'')>(a.date||'')?1:-1),ses};
  set(`<div class="card"><h3>Income, Expenses & Balance per Term</h3><select id="fn_s" onchange="drawFin()"><option value="">All sessions</option>${opts(ses)}</select><div id="fn_sum"></div></div>
- <div class="card"><h3>Download transactions (CSV)</h3><p class="mut">Pick a period from the calendar. Leave both dates empty to download everything.</p>
+ <div class="card"><h3>Download Financial Report (CSV)</h3><p class="mut">Pick a period from the calendar. Leave both dates empty to download everything.</p>
  <div class="row"><div><small>From date</small><input id="dl1" type="date"></div><div><small>To date</small><input id="dl2" type="date"></div><div><small>Include</small><select id="dl_k"><option value="all">Income and expenses</option><option value="in">Income only</option><option value="out">Expenses only</option></select></div></div>
- <button onclick="dlFin(v('dl1'),v('dl2'),v('dl_k'))">⬇ Download CSV</button></div>
+ <button onclick="dlFin(v('dl1'),v('dl2'),v('dl_k'))">⬇ Download CSV (also emailed to the school e-mail)</button></div>
  <div class="card"><h3>Record expense</h3><div class="row"><input id="ex_d" type="date" value="${today()}"><select id="ex_t">${opts([...TRIS,'Full session'])}</select><select id="ex_c">${opts(EXP_CATS)}</select></div>
  <input id="ex_n" placeholder="Description e.g. October electricity bill"><div class="row"><input id="ex_a" type="number" min="0" placeholder="Amount (₦)"><input id="ex_s" placeholder="Session e.g. 2026/2027" value="${esc(ses[0]||'')}"></div><button onclick="saveExpense()">Save expense</button></div>
  <div class="card"><h3>Expenses</h3><table><tr><th>Date</th><th>Term</th><th>Category</th><th>Description</th><th>Amount</th><th>By</th><th></th></tr><tbody id="exTb"></tbody></table></div>`);
@@ -444,8 +450,13 @@ async function clock(){
  go('attend')}
 async function postNews(){
  if(!v('ann_t')||!v('ann_b'))return alert('Enter a title and message.');
- await add('announcements',{audience:v('aud'),title:v('ann_t'),body:v('ann_b')});
- await notify('New announcement for '+v('aud')+': '+v('ann_t'));go('news')}
+ const au=v('aud'),cls=au=='class'?v('aud_c'):'',d={audience:au,title:v('ann_t'),body:v('ann_b')};
+ if(au=='class'&&!cls)return alert('Choose the class.');
+ if(cls)d.targetClass=cls;
+ try{await add('announcements',d);await notify('New announcement for '+(cls||au)+': '+d.title)}catch(e){return alert('Could not publish: '+(e.code||e.message))}
+ go('news')}
+function audPick(){const c=$('#aud_c');if(c)c.style.display=v('aud')=='class'?'block':'none'}
+let ANNC=[];
 async function publish(id){await db.doc('results/'+id).update({published:true});await notify('Results validated');go('pub')}
 async function publishAll(){
  if(!confirm('Validate ALL pending results?'))return;
@@ -606,11 +617,11 @@ async function dlFin(a,b,k){
   if(!R.length)return alert('No transactions found for that period.');
   R.sort((x,y)=>x.d<y.d?-1:x.d>y.d?1:0);
   const TI=R.reduce((s,r)=>s+r.i,0),TO=R.reduce((s,r)=>s+r.o,0);
-  saveCSV(`DSIS_financial_${a||'start'}_to_${b||'latest'}.csv`,[
+  finOut(`PJIS_financial_report_${a||'start'}_to_${b||'latest'}.csv`,[
    ['Princess Jasmine International School - Financial transactions'],['Period',(a||'beginning')+' to '+(b||'latest')],['Downloaded by',me.name],[],
    ['Date','Type','Receipt / Ref','Student / Description','Category','Term','Method','Income (NGN)','Expense (NGN)','Recorded by'],
    ...R.map(r=>[r.d,r.t,r.ref,r.n,r.c,r.tri,r.m,r.i||'',r.o||'',r.by]),[],
-   ['','','','','','','TOTAL',TI,TO],['','','','','','','BALANCE',TI-TO]]);
+   ['','','','','','','TOTAL',TI,TO],['','','','','','','BALANCE',TI-TO]],{TI,TO,a,b});
  }catch(e){alert('Could not download: '+(e.code||e.message))}}
 
 // ----- Classes, subjects, events, compute -----
@@ -804,7 +815,7 @@ V.req=async function(){
  <p><b>Items</b></p><div id="rq_items"></div><button type="button" class="g" onclick="reqRow()">+ Add item</button>
  <p>Total: <b id="rq_tot">₦0</b></p><button onclick="saveReq()">Submit requisition</button></div>
  <div class="card"><h3>Requisitions</h3><table><tr><th>No</th><th>Date</th><th>Category</th><th>Purpose</th><th>Total</th><th>By</th><th>Status</th><th></th></tr>${REQ.map(x=>{const i=`data-id="${esc(x.id)}"`;return`<tr><td>${esc(x.no)}</td><td>${esc(x.date)}</td><td>${esc(x.category)}</td><td>${esc((x.purpose||'').slice(0,40))}</td><td>${money(x.total)}</td><td>${esc(x.byName)}</td><td><span class="tag" style="background:${RQC[x.status]||'#888'}">${esc(x.status)}</span></td><td><button class="g" ${i} onclick="reqPrint(this.dataset.id)">Print</button>${fin&&x.status=='Pending'?` <button ${i} onclick="reqAct(this.dataset.id,'Approved')">Approve</button> <button class="s" ${i} onclick="reqAct(this.dataset.id,'Rejected')">Reject</button>`:''}${fin&&x.status=='Approved'?` <button ${i} onclick="reqAct(this.dataset.id,'Paid')">Mark paid</button>`:''}${fin&&x.status!='Paid'?` <button class="s" ${i} onclick="reqAct(this.dataset.id,'Void')">Void</button>`:''}</td></tr>`}).join('')||'<tr><td>No requisitions yet.</td></tr>'}</table>
- <p class="mut">Marking a requisition as Paid automatically records it as an expense in the Financial tab.</p></div>`);
+ <p class="mut">Marking a requisition as Paid automatically records it as an expense in the Financial Report tab.</p></div>`);
  reqRow()};
 async function saveReq(){
  const items=[...document.querySelectorAll('.rq')].map(r=>({d:r.querySelector('.rd').value.trim(),q:+r.querySelector('.rq_q').value||0,p:+r.querySelector('.rq_p').value||0})).filter(i=>i.d&&i.q>0&&i.p>0);
@@ -838,7 +849,7 @@ function reqPrint(id){
 const BUILT=Object.keys(RL);
 let CUSTOM=[],MYSUBJ=null,MSG={th:'',name:'',all:[],pp:[]};
 const LV={std:'Standard staff',mgt:'Management (like Principal)',top:'Senior management (like Chairman)'};
-const PAGES=[['dash','Dashboard'],['news','Announcements'],['msg','Messages'],['acct','My Account'],['attend','Attendance (clock-in)'],['roll','Take Attendance'],['fees','Fees & Payments'],['fin','Financial'],['req','Requisitions'],['stat','Stationery'],['comp','Compute Results'],['mgmt','Overview'],['events','Events Calendar'],['notes','Notifications']];
+const PAGES=[['dash','Dashboard'],['news','Announcements'],['msg','Messages'],['acct','My Account'],['attend','Attendance (clock-in)'],['roll','Take Attendance'],['fees','Fees & Payments'],['fin','Financial Report'],['req','Requisitions'],['stat','Stationery'],['comp','Compute Results'],['mgmt','Overview'],['events','Events Calendar'],['notes','Notifications']];
 const SAFE=['dash','news','msg','acct','attend','fees'];
 
 {const st=document.createElement('style');st.textContent='.just{text-align:justify;line-height:1.75;white-space:pre-line}';document.head.appendChild(st)}
@@ -1104,11 +1115,11 @@ async function sendMsg(){
 V.news=async function(){
  const mg=MG.includes(me.role),aud=me.role=='student'?'students':'staff',a=(await list('announcements',...(mg?[]:[['audience','==',aud]]))).sort((x,y)=>y.at-x.at);
  let rd=[],tot={},fresh=new Set();
- if(mg){const[r,s,t]=await Promise.all([list('annReads'),list('students'),list('staff')]);rd=r;tot={students:s.length,staff:t.length}}
+ if(mg){const[r,s,t,cc]=await Promise.all([list('annReads'),list('students'),list('staff'),list('classes')]);rd=r;tot={students:s.length,staff:t.length};s.forEach(z=>{const k='class:'+(z.class||'');tot[k]=(tot[k]||0)+1});ANNC=(cc.length?cc.map(c=>c.name):[...CLASSES]).sort((p,q)=>CLASSES.indexOf(p)-CLASSES.indexOf(q))}
  else{const r=await list('annReads',['uid','==',me.uid]),seen=new Set(r.map(x=>x.annId)),nw=a.filter(x=>!seen.has(x.id));nw.forEach(x=>fresh.add(x.id));
   if(nw.length){const b=db.batch();nw.forEach(x=>b.set(db.doc('annReads/'+x.id+'_'+me.uid),{annId:x.id,uid:me.uid,name:me.name,role:me.role,at:Date.now()}));try{await b.commit();badge()}catch(e){console.warn(e.code)}}}
- set((mg?`<div class="card"><h3>Post Announcement</h3><select id="aud"><option value="students">Students</option><option value="staff">Teachers & Staff</option></select><input id="ann_t" placeholder="Title"><textarea id="ann_b" rows="4" placeholder="Message"></textarea><button onclick="postNews()">Publish</button></div>`:'')+
- (a.map(x=>{const rs=rd.filter(r=>r.annId==x.id);return`<div class="card nw"><b>${esc(x.title)}</b> <span class="tag" style="background:var(--acc)">${esc(x.audience)}</span> ${fresh.has(x.id)?'<span class="tag" style="background:var(--ok)">NEW</span>':''}<p class="just">${esc(x.body)}</p><small class="mut">${esc(x.byName)} · ${new Date(x.at).toLocaleString()}</small>${mg?`<details style="margin-top:8px"><summary class="rd ok">👁 Seen by ${rs.length} of ${tot[x.audience]||0}</summary>${rs.map(r=>`<div class="rd">✓ ${esc(r.name)} · ${new Date(r.at).toLocaleString()}</div>`).join('')||'<div class="rd">Nobody yet.</div>'}</details>`:''}</div>`}).join('')||'<div class="card">No announcements yet.</div>'))};
+ set((mg?`<div class="card"><h3>Post Announcement</h3><select id="aud" onchange="audPick()"><option value="students">All Students</option><option value="class">A particular class</option><option value="staff">Teachers & Staff</option></select><select id="aud_c" style="display:none">${opts(ANNC)}</select><input id="ann_t" placeholder="Title"><textarea id="ann_b" rows="4" placeholder="Message"></textarea><button onclick="postNews()">Publish</button></div>`:'')+
+ (a.map(x=>{const rs=rd.filter(r=>r.annId==x.id);return`<div class="card nw"><b>${esc(x.title)}</b> <span class="tag" style="background:var(--acc)">${esc(x.audience=='class'?'Class: '+(x.targetClass||''):x.audience)}</span> ${fresh.has(x.id)?'<span class="tag" style="background:var(--ok)">NEW</span>':''}<p class="just">${esc(x.body)}</p><small class="mut">${esc(x.byName)} · ${new Date(x.at).toLocaleString()}</small>${mg?`<details style="margin-top:8px"><summary class="rd ok">👁 Seen by ${rs.length} of ${tot[x.audience=='class'?'class:'+x.targetClass:x.audience]||0}</summary>${rs.map(r=>`<div class="rd">✓ ${esc(r.name)} · ${new Date(r.at).toLocaleString()}</div>`).join('')||'<div class="rd">Nobody yet.</div>'}</details>`:''}</div>`}).join('')||'<div class="card">No announcements yet.</div>'))};
 
 // ---------- Validate results: owing students blocked; correct results after computing ----------
 async function owingMap(){
@@ -1292,6 +1303,7 @@ async function saveFeeMulti(){
   const what=[...new Set(L.map(x=>x.type))].join(', ');
   await notify('Fee recorded: '+money(tot)+' from '+s.surname+' '+s.firstName+' ('+what+')');
   await pushTo(sid,'Payment received: '+money(tot)+' ('+what+'). Receipt '+no+'.');
+  emailReceipt(s,L,no,at,v('fee_m'),v('fee_r').trim(),(FEE.paid[sid]||0)+tot);
   go('fees');
  }catch(e){btn.disabled=false;alert('Could not save payment: '+(e.code||e.message))}}
 async function receipt(id){
@@ -1343,7 +1355,7 @@ function ntOpen(){try{window.focus()}catch(e){}if(me)go(NT.dest||'msg');NT.dest=
   if(NT.un1===me.uid+'ok')s.docChanges().forEach(c=>{if(c.type!='added')return;const m=c.doc.data();if(m.by!==me.uid)ntAlert('New activity on your account',m.msg||'','myn')});
   NT.un1=me.uid+'ok'},e=>console.warn('userNotes live',e.code)));
  if(MG.includes(me.role))NT.unsubs.push(db.collection('notifications').where('at','>',Date.now()).onSnapshot(s=>{
-  s.docChanges().forEach(c=>{if(c.type!='added')return;const m=c.doc.data();if(m.by===me.uid)return;NT.dest='notes';ntBanner('Activity',m.msg||'');if(document.hidden)ntSys('Activity',m.msg||'');badge()})},e=>console.warn('activity live',e.code)))}}
+  s.docChanges().forEach(c=>{if(c.type!='added')return;const m=c.doc.data();if(m.by===me.uid||m.kind==='bank')return;NT.dest='notes';ntBanner('Activity',m.msg||'');if(document.hidden)ntSys('Activity',m.msg||'');badge()})},e=>console.warn('activity live',e.code)))}}
 
 async function postComment(id){
  const t=v('cm').trim();if(!t)return;
@@ -1355,6 +1367,7 @@ async function publish(id){
  if(b)return alert('Blocked: this student owes '+money(b)+'. Clear the fees first.');
  await db.doc('results/'+id).update({published:true});await notify('Results validated');
  await pushTo(x.studentId,'Your '+x.subject+' result ('+x.term+') has been validated and is now available.');
+ emailTermResults([[x.studentId,x.term]]);
  go('pub')}
 async function publishAll(){
  const ow=await owingMap(),r=(await list('results',['published','==',false])).filter(x=>!ow[x.studentId]);
@@ -1364,6 +1377,7 @@ async function publishAll(){
  await notify('Pending results validated (owing students skipped)');
  const by={};r.forEach(x=>{(by[x.studentId]=by[x.studentId]||new Set()).add(x.term)});
  await Promise.all(Object.entries(by).map(([id,t])=>pushTo(id,'Your results ('+[...t].join(', ')+') have been validated and are now available.')));
+ emailTermResults(Object.entries(by).flatMap(([id,t])=>[...t].map(z=>[id,z])));
  go('pub')}
 {const o=markAtt;markAtt=async function(uid,status,time){await o(uid,status,time);
  const r=ROLL.rec[uid];if(NOPUSH||!r||uid===me.uid||Date.now()-(r.at||0)>5000)return;
@@ -1791,5 +1805,229 @@ async function slip(t){
  <script>window.onload=()=>setTimeout(()=>print(),500)<\/script></body></html>`;
  w.document.open();w.document.write(html);w.document.close()}
 // ===================== END REPORT CARD UPDATE =====================
+
+// ===================== UPDATE 8 : class messages, student search, bank statements, automatic e-mails =====================
+// >>> After deploying Mailer.gs (Google Apps Script) paste its Web App URL between the quotes below <<<
+const MAIL_URL='';
+
+PAGES.push(['bank','Bank Statement Attachment']);
+{const st=document.createElement('style');st.textContent='aside a[data-n]:not([data-n="0"])::after{content:attr(data-n);background:var(--bad);color:#fff;border-radius:10px;font-size:11px;padding:1px 7px;margin-left:8px}';document.head.appendChild(st)}
+
+// ---------- small toast ----------
+function toast(t,ok){let d=$('#tst');if(!d){d=document.createElement('div');d.id='tst';d.style.cssText='position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:400;max-width:min(380px,92vw);padding:12px 16px;border-radius:12px;color:#fff;font-size:14px;box-shadow:0 8px 30px #0006;transition:opacity .3s';document.body.appendChild(d)}
+ d.style.background=ok?'#12a150':'#e5313d';d.textContent=t;d.style.opacity=1;clearTimeout(d._t);d._t=setTimeout(()=>d.style.opacity=0,7000)}
+
+// ---------- e-mail sender (talks to Mailer.gs) ----------
+async function sendMail(o){
+ if(!MAIL_URL||MAIL_URL.indexOf('script.google.com')<0)return{ok:false,error:'e-mail is not set up yet (MAIL_URL is empty)'};
+ let res;
+ try{const tok=await auth.currentUser.getIdToken();
+  res=await fetch(MAIL_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({...o,token:tok})})}
+ catch(e){return{ok:false,error:'could not reach the mail service'}}
+ try{return await res.json()}catch(e){return{ok:false,error:'unexpected reply from the mail service'}}}
+const b64utf8=t=>btoa(unescape(encodeURIComponent(t)));
+function mailShell(h){const logo=new URL(LOGO_URL,location.href).href;
+ return`<div style="font-family:Arial,Helvetica,sans-serif;max-width:640px;margin:auto;border:1px solid #dfe5f1;border-radius:10px;overflow:hidden;color:#10213f"><div style="background:#10213f;color:#fff;padding:16px;text-align:center"><img src="${esc(logo)}" width="64" height="64" alt="" style="display:block;margin:0 auto 6px"><div style="font-size:18px;font-weight:bold">PRINCESS JASMINE INTERNATIONAL SCHOOL</div><div style="font-size:12px;color:#f5b700;font-style:italic">Godly Foundation for Excellence</div></div><div style="padding:18px">${h}</div><div style="background:#f3f6fb;padding:12px 18px;font-size:12px;color:#6b7a96;text-align:center">${esc(SCHOOL.loc[CAMPUS]||CAMPUS)} · ${esc(SCHOOL.phone||'')} · ${esc(SCHOOL.email||'')}<br>This is an automatic message from the school portal.</div></div>`}
+const TD='style="border:1px solid #c9d3e6;padding:6px 8px;font-size:13px"',TH='style="border:1px solid #c9d3e6;padding:6px 8px;font-size:13px;background:#dfe7f8;text-align:left"';
+
+// ---------- payment receipt -> parent e-mail ----------
+async function emailReceipt(s,L,no,at,method,ref,paidAfter){
+ try{
+  const to=(s.guardianEmail||s.parentEmail||'').trim();
+  if(!to){toast('Payment saved. No parent e-mail on file, so the receipt was not e-mailed.',false);return}
+  const tot=L.reduce((z,x)=>z+(+(x.a??x.amount)||0),0),due=+s.feeDue||0,nm=(s.surname||'')+' '+(s.firstName||'');
+  const html=mailShell(`<h2 style="margin:0 0 8px">Payment Receipt</h2><p style="font-size:14px"><b>Receipt no:</b> ${esc(no)}<br><b>Date:</b> ${esc(new Date(at).toLocaleString())}</p><p style="font-size:14px">Dear Parent/Guardian, we have received a payment for <b>${esc(nm.trim())}</b> (${esc(s.regNo||'')}) · ${esc(s.class||'')}.</p>
+  <table style="border-collapse:collapse;width:100%"><tr><th ${TH}>Item</th><th ${TH}>Term</th><th ${TH}>Amount</th></tr>${L.map(x=>`<tr><td ${TD}>${esc(x.type)}</td><td ${TD}>${esc(x.tri||x.term||'')}</td><td ${TD}>${money(x.a??x.amount)}</td></tr>`).join('')}<tr><td ${TD} colspan="2"><b>Total paid</b></td><td ${TD}><b>${money(tot)}</b></td></tr></table>
+  <p style="font-size:14px">Method: ${esc(method||'-')}${ref?' · Ref: '+esc(ref):''}<br>Received by: ${esc(me.name)}</p>
+  ${due>0?`<p style="font-size:14px;background:#f3f6fb;padding:10px;border-radius:8px">Total fees due: <b>${money(due)}</b><br>Total paid to date: <b>${money(paidAfter)}</b><br>Outstanding balance: <b>${money(Math.max(due-paidAfter,0))}</b></p>`:''}<p style="font-size:13px;color:#6b7a96">Thank you. Keep this e-mail as your proof of payment.</p>`);
+  const r=await sendMail({kind:'receipt',to,subject:'Payment receipt '+no+' - Princess Jasmine International School',html});
+  toast(r.ok?'Receipt e-mailed to '+to:'Payment saved, but the receipt could not be e-mailed: '+r.error,!!r.ok)
+ }catch(e){console.warn('emailReceipt',e);toast('Payment saved, but the receipt could not be e-mailed.',false)}}
+
+// ---------- validated results -> parent e-mail ----------
+async function emailTermResults(pairs){
+ const seen=new Set();pairs=pairs.filter(([a,b])=>a&&b&&!seen.has(a+'|'+b)&&seen.add(a+'|'+b));
+ if(!pairs.length)return;
+ let sent=0,none=0,fail=0,why='';
+ if(!MAIL_URL)toast('Results validated. E-mail is not set up yet, so parents were not e-mailed.',false);
+ else toast('Results validated. E-mailing parents...',true);
+ let sch={};try{const d=await db.doc('settings/school').get();if(d.exists)sch=d.data()}catch(e){}
+ for(const[sid,t]of pairs){
+  try{
+   const sd=await db.doc('students/'+sid).get();if(!sd.exists)continue;const s=sd.data();
+   const[rs,cls,td]=await Promise.all([list('results',['studentId','==',sid],['term','==',t]),list('classes',['name','==',s.class||'']),db.doc('traits/'+trId(sid,t)).get()]);
+   if(!rs.length||rs.some(x=>!x.published))continue;
+   const to=(s.guardianEmail||s.parentEmail||'').trim();if(!to){none++;continue}
+   if(!MAIL_URL)continue;
+   const tr=td.exists?td.data():{},cl=cls[0]||{},rows=rs.sort((a,b)=>(a.subject||'').localeCompare(b.subject||'')),
+   tot=rows.reduce((z,x)=>z+x.test+x.exam,0),avg=rows.length?tot/rows.length:0,gk=n=>KEY[n>=90?0:n>=80?1:n>=70?2:n>=60?3:n>=50?4:5],
+   nm=[s.surname,s.firstName,s.middleName].filter(Boolean).join(' '),
+   rt=(g,k)=>{const n=(tr[g]||{})[k],r=RATE.find(z=>z[0]==n);return r?r[1]:'-'},
+   trt=(title,g,a)=>`<table style="border-collapse:collapse;width:100%;margin-top:6px"><tr><th ${TH}>${title}</th><th ${TH}>Rating</th></tr>${a.map(([k,l])=>`<tr><td ${TD}>${esc(l)}</td><td ${TD}>${esc(rt(g,k))}</td></tr>`).join('')}</table>`;
+   const html=mailShell(`<h2 style="margin:0 0 8px;color:#e0147a">${esc(t)} Report Card</h2><p style="font-size:14px">Dear Parent/Guardian, the ${esc(t)} results of <b>${esc(nm)}</b> have been validated.</p>
+   <p style="font-size:13px;background:#f3f6fb;padding:10px;border-radius:8px">Student ID: <b>${esc(s.regNo||'-')}</b> · Class: <b>${esc(s.class||'-')}</b> · Session: <b>${esc(s.session||'-')}</b> · Term: <b>${esc(t)}</b></p>
+   <table style="border-collapse:collapse;width:100%"><tr><th ${TH}>Subject</th><th ${TH}>Test /40</th><th ${TH}>Exam /60</th><th ${TH}>Total</th><th ${TH}>Grade</th><th ${TH}>Remark</th></tr>${rows.map(x=>{const n=x.test+x.exam;return`<tr><td ${TD}>${esc(x.subject)}</td><td ${TD}>${x.test}</td><td ${TD}>${x.exam}</td><td ${TD}><b>${n}</b></td><td ${TD}>${grade(n)}</td><td ${TD}>${gk(n)[2]}</td></tr>`}).join('')}
+   <tr><td ${TD}><b>Total / Average</b></td><td ${TD} colspan="2">Subjects: ${rows.length}</td><td ${TD}><b>${tot}/${rows.length*100}</b></td><td ${TD}>${rows.length?grade(avg):'-'}</td><td ${TD}>Average ${avg.toFixed(1)} · ${gk(avg)[2]}</td></tr></table>
+   <p style="font-size:12px;color:#334"><b>Grading:</b> ${KEY.map(k=>k[0]+' = '+k[1]+' ('+k[2]+')').join(' · ')}</p>
+   ${td.exists?`<h4 style="margin:14px 0 0">Psychomotor / Skills</h4>${trt('Skill','psy',PSY)}<h4 style="margin:14px 0 0">Affective / Behaviour</h4>${trt('Behaviour','aff',AFF)}`:''}
+   <p style="font-size:13px">Class Teacher: <b>${esc(cl.teacherName||'-')}</b>${sch.signName?' · School Administrator: <b>'+esc(sch.signName)+'</b>':''}</p>
+   <p style="font-size:13px;color:#6b7a96">The full printable report card (with photo and signature) is available on the school portal under your child's account.</p>`);
+   const r=await sendMail({kind:'results',to,subject:t+' results - '+nm+' - Princess Jasmine International School',html});
+   if(r.ok)sent++;else{fail++;why=r.error}
+  }catch(e){console.warn('emailTermResults',e);fail++}}
+ if(MAIL_URL)toast('Results e-mailed to '+sent+' parent(s)'+(none?'; '+none+' had no parent e-mail on file':'')+(fail?'; '+fail+' failed'+(why?' ('+why+')':''):'')+'.',!fail)}
+
+// ---------- financial report -> school e-mail ----------
+const csvC=x=>{let s=String(x??'');if(typeof x!=='number'&&/^[=+\-@\t\r]/.test(s))s="'"+s;return'"'+s.replace(/"/g,'""')+'"'};
+function finOut(name,rows,o){
+ saveCSV(name,rows);
+ const to=(SCHOOL.email||'').trim();
+ if(!to){toast('Downloaded. No school e-mail address is set, so the report was not e-mailed.',false);return}
+ const csv='\ufeff'+rows.map(r=>r.map(csvC).join(',')).join('\r\n'),bc=o.TI-o.TO<0?'#e5313d':'#12a150';
+ const html=mailShell(`<h2 style="margin:0 0 8px">Financial Report</h2><p style="font-size:14px">Period: <b>${esc(o.a||'beginning')}</b> to <b>${esc(o.b||'latest')}</b><br>Downloaded by: <b>${esc(me.name)}</b> (${esc(RL[me.role]||me.role)}) on ${esc(new Date().toLocaleString())}</p>
+  <table style="border-collapse:collapse;width:100%"><tr><td ${TD}>Total income</td><td ${TD}><b style="color:#12a150">${money(o.TI)}</b></td></tr><tr><td ${TD}>Total expenses</td><td ${TD}><b style="color:#e5313d">${money(o.TO)}</b></td></tr><tr><td ${TD}>Balance</td><td ${TD}><b style="color:${bc}">${money(o.TI-o.TO)}</b></td></tr></table>
+  <p style="font-size:13px;color:#6b7a96">The full list of transactions is attached as a CSV file (opens in Excel).</p>`);
+ sendMail({kind:'finreport',to,subject:'Financial Report ('+(o.a||'start')+' to '+(o.b||'latest')+') - Princess Jasmine International School',html,attachments:[{name,type:'text/csv',data:b64utf8(csv)}]})
+  .then(r=>toast(r.ok?'Financial report downloaded and e-mailed to '+to:'Report downloaded, but could not be e-mailed: '+r.error,!!r.ok))}
+
+// ---------- Overview: search students ----------
+{const o=V.mgmt;V.mgmt=async function(){await o();
+ const h=[...mainEl.querySelectorAll('h3')].find(x=>x.textContent==='Students');if(!h)return;
+ h.insertAdjacentHTML('afterend','<input id="st_q" type="search" placeholder="🔍 Search students by name, ID or class" oninput="stFilter()" autocomplete="off"><small id="st_n" class="mut"></small>');stFilter()}}
+function stFilter(){
+ const q=v('st_q').trim().toLowerCase().split(/\s+/).filter(Boolean),h=[...mainEl.querySelectorAll('h3')].find(x=>x.textContent==='Students'),t=h&&h.closest('.card').querySelector('table');if(!t)return;
+ const rows=[...t.querySelectorAll('tr')].slice(1);let n=0;
+ rows.forEach(r=>{const x=[...r.cells].slice(0,3).map(c=>c.textContent).join(' ').toLowerCase(),ok=q.every(w=>x.includes(w));r.style.display=ok?'':'none';if(ok)n++});
+ const e=$('#st_n');if(e)e.textContent=q.length?'Showing '+n+' of '+rows.length+' students':'Total: '+rows.length+' students'}
+
+// ---------- Messages: send to a whole class ----------
+{const o=V.msg;V.msg=async function(){await o();
+ if(!MG.includes(me.role))return;
+ let cc=[];try{cc=(await list('classes')).map(c=>c.name)}catch(e){}if(!cc.length)cc=[...CLASSES];cc.sort((p,q)=>CLASSES.indexOf(p)-CLASSES.indexOf(q));
+ mainEl.insertAdjacentHTML('afterbegin',`<div class="card"><h3>Message a whole class</h3><p class="mut">Sends the same private message to every student (parent) in the chosen class. Each one can reply.</p><select id="mc_cls"><option value="">Choose class</option>${opts(cc)}</select><textarea id="mc_txt" rows="3" placeholder="Write the message for the whole class"></textarea><button id="mc_btn" onclick="sendClassMsg()">Send to class</button></div>`)}}
+async function sendClassMsg(){
+ const cls=v('mc_cls'),t=v('mc_txt').trim();
+ if(!cls)return alert('Choose a class.');if(!t)return alert('Write the message first.');
+ const s=await list('students',['class','==',cls]);
+ if(!s.length)return alert('There are no students in '+cls+'.');
+ if(!confirm('Send this message to all '+s.length+' student(s) in '+cls+'?'))return;
+ const btn=$('#mc_btn');btn.disabled=true;
+ try{const at=Date.now();
+  for(let i=0;i<s.length;i+=400){const b=db.batch();
+   s.slice(i,i+400).forEach((x,j)=>b.set(db.collection('messages').doc(),{thread:x.id,threadName:((x.surname||'')+' '+(x.firstName||'')).trim(),text:t,fromRole:me.role,mgmt:true,read:false,classMsg:cls,by:me.uid,byName:me.name,at:at+i+j}));await b.commit()}
+  await notify('Message sent to '+s.length+' student(s) in '+cls+' by '+me.name);
+  toast('Message sent to '+s.length+' student(s) in '+cls,true);go('msg')
+ }catch(e){btn.disabled=false;alert('Could not send: '+(e.code||e.message))}}
+
+// live alert for students when a new class announcement arrives
+{const o=ntStart;ntStart=function(){o();if(!me||me.role!=='student')return;
+ myClass().then(cls=>{if(!cls||!me)return;let f=true;
+  NT.unsubs.push(db.collection('announcements').where('audience','==','class').where('targetClass','==',cls).onSnapshot(s=>{
+   if(f){f=false;return}
+   s.docChanges().forEach(c=>{if(c.type!='added')return;const m=c.doc.data();if(m.by==me.uid)return;ntAlert('New announcement: '+(m.title||''),m.body||'','news')})},e=>console.warn('class ann',e.code)))})}}
+
+// ---------- Bank Statement Attachment ----------
+let BK=[],BKS={};
+const BKC={Pending:'#f5b700',Confirmed:'#12a150',Rejected:'#e5313d'},isBankMgr=()=>me&&(MG.includes(me.role)||me.role==='accountant');
+V.bank=async function(){
+ if(me.role==='student')return bankStudent();
+ if(!isBankMgr())return set('<div class="card">You are not allowed to open this page.</div>');
+ return bankMgmt()};
+async function bankStudent(){
+ const sd=await db.doc('students/'+me.uid).get();BKS=sd.exists?sd.data():{};
+ BK=(await list('bankStatements',['studentId','==',me.uid])).sort((a,b)=>b.at-a.at);
+ set(`<div class="card"><h3>Attach Bank Statement / Evidence of Payment</h3><p class="mut">Paid into the school's bank account? Attach the bank teller, transfer receipt or bank statement here. The school management is notified immediately and will confirm your payment.</p>
+ <div class="row"><input id="bk_a" type="number" min="1" placeholder="Amount paid (₦)"><input id="bk_d" type="date" value="${today()}" max="${today()}"></div>
+ <div class="row"><input id="bk_b" placeholder="Bank (e.g. GTBank)"><input id="bk_r" placeholder="Teller no. / transaction reference"></div>
+ <div class="row"><select id="bk_t">${opts(PAYTYPES)}</select><select id="bk_i">${opts([...TRIS,'Full session'])}</select></div>
+ <input id="bk_n" placeholder="Note to the school (optional)">
+ <p class="mut" style="margin-bottom:0">Attach photo / screenshot or PDF of the payment evidence</p><input id="bk_f" type="file" accept="image/*,application/pdf">
+ <button id="bk_go" onclick="bankSubmit()">Submit to school</button><p id="bk_m"></p></div>
+ <div class="card"><h3>My submitted statements</h3><table><tr><th>Submitted</th><th>Amount</th><th>Paid on</th><th>Bank / Ref</th><th>For</th><th>Status</th><th></th></tr><tbody id="bkTb"></tbody></table></div>`);
+ drawBank()}
+async function bankMgmt(){
+ BK=(await list('bankStatements')).sort((a,b)=>b.at-a.at);
+ const p=BK.filter(x=>x.status=='Pending');
+ set(`<div class="grid"><div class="card stat"><span>Waiting for review</span><b class="${p.length?'red':''}">${p.length}</b></div><div class="card stat"><span>Amount waiting</span><b>${money(p.reduce((z,x)=>z+(+x.amount||0),0))}</b></div><div class="card stat"><span>Total attachments</span><b>${BK.length}</b></div></div>
+ <div class="card"><h3>Bank statements attached by parents</h3><p class="mut">Check the evidence against the school bank account, then tap Confirm or Reject. After confirming, record the payment under Fees &amp; Payments to issue the official receipt.</p>
+ <div class="row"><input id="bk_q" placeholder="🔍 Search student, ID, class, bank or reference" oninput="drawBank()"><select id="bk_s" onchange="drawBank()"><option value="">All statuses</option><option>Pending</option><option>Confirmed</option><option>Rejected</option></select></div>
+ <table><tr><th>Student</th><th>Class</th><th>Submitted</th><th>Amount</th><th>Paid on</th><th>Bank / Ref</th><th>For</th><th>Status</th><th></th></tr><tbody id="bkTb"></tbody></table></div>`);
+ drawBank()}
+function drawBank(){
+ const el=$('#bkTb');if(!el)return;const mg=me.role!=='student',q=mg?v('bk_q').toLowerCase():'',st=mg?v('bk_s'):'';
+ const l=BK.filter(x=>(!st||x.status==st)&&(!q||((x.studentName||'')+' '+(x.regNo||'')+' '+(x.class||'')+' '+(x.ref||'')+' '+(x.bank||'')).toLowerCase().includes(q)));
+ el.innerHTML=l.map(x=>{const id=esc(x.id);return`<tr>${mg?`<td>${esc(x.studentName)}<br><small class="mut">${esc(x.regNo||'')}</small></td><td>${esc(x.class||'')}</td>`:''}<td>${new Date(x.at).toLocaleString()}</td><td><b>${money(x.amount)}</b></td><td>${esc(x.paidOn||'')}</td><td>${esc(x.bank||'-')}${x.ref?'<br><small class="mut">Ref: '+esc(x.ref)+'</small>':''}</td><td>${esc(x.purpose||'')}${x.term?' · '+esc(x.term):''}${x.note?'<br><small class="mut">'+esc(x.note)+'</small>':''}</td>
+ <td><span class="tag" style="background:${BKC[x.status]||'#667'}">${esc(x.status)}</span>${x.reviewedBy?'<br><small class="mut">by '+esc(x.reviewedBy)+'</small>':''}${x.reviewNote?'<br><small class="mut">'+esc(x.reviewNote)+'</small>':''}</td>
+ <td style="white-space:nowrap"><button class="g" data-id="${id}" onclick="bankView(this.dataset.id)">View</button> <button data-id="${id}" onclick="bankDl(this.dataset.id)">⬇ Download</button>${mg&&x.status!=='Confirmed'?` <button data-id="${id}" onclick="bankSet(this.dataset.id,'Confirmed')">Confirm</button>`:''}${mg&&x.status!=='Rejected'?` <button class="s" data-id="${id}" onclick="bankSet(this.dataset.id,'Rejected')">Reject</button>`:''}${FULL.includes(me.role)?` <button class="s" data-id="${id}" onclick="bankDel(this.dataset.id)">Delete</button>`:''}</td></tr>`}).join('')||'<tr><td>Nothing found.</td></tr>'}
+function bankPrep(f){return new Promise((res,rej)=>{
+ const nm=f.name||'statement';
+ if(f.type==='application/pdf'){
+  if(f.size>600000)return rej(new Error('This PDF is larger than 600 KB. Please attach a photo or screenshot of the teller / transfer instead, or compress the PDF.'));
+  const r=new FileReader();r.onload=()=>res({name:nm,type:f.type,size:f.size,data:r.result});r.onerror=()=>rej(new Error('Could not read the file.'));r.readAsDataURL(f);return}
+ if(!/^image\//.test(f.type))return rej(new Error('Attach a photo, screenshot or PDF.'));
+ const im=new Image();im.onerror=()=>rej(new Error('That image could not be read. Try a screenshot or PDF.'));
+ im.onload=()=>{let W=Math.min(1600,im.width),q=.8,out='';
+  for(let k=0;k<10;k++){const H=Math.round(im.height*W/im.width),c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,W,H);x.drawImage(im,0,0,W,H);out=c.toDataURL('image/jpeg',q);if(out.length<=850000)break;if(q>.5)q-=.1;else W=Math.round(W*.8)}
+  if(out.length>850000)return rej(new Error('The image is too large. Please attach a smaller one.'));
+  res({name:nm.replace(/\.[^.]+$/,'')+'.jpg',type:'image/jpeg',size:Math.round(out.length*.75),data:out})};
+ im.src=URL.createObjectURL(f)})}
+async function bankSubmit(){
+ const m=$('#bk_m'),a=+v('bk_a'),f=$('#bk_f').files[0];m.className='red';
+ if(!(a>0)){m.textContent='Enter the amount you paid.';return}
+ if(!v('bk_d')){m.textContent='Choose the payment date.';return}
+ if(!f){m.textContent='Attach the bank statement / teller / transfer receipt.';return}
+ const btn=$('#bk_go');btn.disabled=true;m.className='mut';m.textContent='Uploading...';
+ try{
+  const file=await bankPrep(f),id=db.collection('bankStatements').doc().id,at=Date.now(),
+  nm=((BKS.surname||'')+' '+(BKS.firstName||'')).trim()||me.name,
+  meta={studentId:me.uid,studentName:nm,regNo:BKS.regNo||'',class:BKS.class||'',amount:a,paidOn:v('bk_d'),bank:v('bk_b').trim(),ref:v('bk_r').trim(),purpose:v('bk_t'),term:v('bk_i'),note:v('bk_n').trim(),fileName:file.name,fileType:file.type,fileSize:file.size,status:'Pending',by:me.uid,byName:me.name,at},
+  b=db.batch();
+  b.set(db.doc('bankStatements/'+id),meta);
+  b.set(db.doc('bankFiles/'+id),{studentId:me.uid,by:me.uid,data:file.data,fileName:file.name,fileType:file.type,at});
+  await b.commit();
+  try{await add('notifications',{msg:'💳 Bank statement attached by '+nm+' ('+(BKS.class||'')+'): '+money(a),to:MG,kind:'bank'})}catch(e){console.warn(e.code)}
+  sendMail({kind:'bank',subject:'Bank statement received: '+nm+' - '+money(a),html:mailShell(`<h2 style="margin:0 0 8px">New bank statement attached</h2><p style="font-size:14px"><b>${esc(nm)}</b> (${esc(BKS.regNo||'')}) · ${esc(BKS.class||'')} has attached evidence of payment.</p><table style="border-collapse:collapse;width:100%"><tr><td ${TD}>Amount</td><td ${TD}><b>${money(a)}</b></td></tr><tr><td ${TD}>Paid on</td><td ${TD}>${esc(v('bk_d'))}</td></tr><tr><td ${TD}>Bank</td><td ${TD}>${esc(v('bk_b')||'-')}</td></tr><tr><td ${TD}>Reference</td><td ${TD}>${esc(v('bk_r')||'-')}</td></tr><tr><td ${TD}>For</td><td ${TD}>${esc(v('bk_t'))} · ${esc(v('bk_i'))}</td></tr><tr><td ${TD}>Note</td><td ${TD}>${esc(v('bk_n')||'-')}</td></tr></table><p style="font-size:13px">The attachment is included. Please open the portal → Bank Statement Attachment to confirm or reject it.</p>`),attachments:[{name:file.name,type:file.type,data:file.data.split(',')[1]}]}).catch(()=>{});
+  toast('Submitted. The school has been notified.',true);go('bank')
+ }catch(e){btn.disabled=false;m.className='red';m.textContent='Could not submit: '+(e.message||e.code)}}
+const dUrlBlob=u=>{const[h,b]=u.split(','),t=(h.match(/:(.*?);/)||[])[1]||'application/octet-stream',s=atob(b),a=new Uint8Array(s.length);for(let i=0;i<s.length;i++)a[i]=s.charCodeAt(i);return new Blob([a],{type:t})};
+async function bankFile(id){const d=await db.doc('bankFiles/'+id).get();if(!d.exists)throw new Error('The attached file could not be found.');const x=d.data();return{b:dUrlBlob(x.data),x}}
+async function bankView(id){
+ const w=window.open('','_blank');
+ try{const{b}=await bankFile(id),u=URL.createObjectURL(b);if(w)w.location=u;else location.href=u;setTimeout(()=>URL.revokeObjectURL(u),60000)}
+ catch(e){if(w)w.close();alert('Could not open: '+(e.code||e.message))}}
+async function bankDl(id){
+ try{const{b,x}=await bankFile(id),m=BK.find(r=>r.id==id)||{},ext=((x.fileName||'').match(/\.(\w+)$/)||[])[1]||(x.fileType=='application/pdf'?'pdf':'jpg'),
+  nm=('BankStatement_'+(m.regNo||m.studentName||'student')+'_'+(m.paidOn||'')).replace(/[^\w.-]+/g,'_')+'.'+ext,
+  a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=nm;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),3000)}
+ catch(e){alert('Could not download: '+(e.code||e.message))}}
+async function bankSet(id,st){
+ const x=BK.find(r=>r.id==id);if(!x)return;
+ let note='';if(st==='Rejected'){note=prompt('Reason for rejecting (the parent will see this):','');if(note===null)return}
+ try{await db.doc('bankStatements/'+id).update({status:st,reviewedBy:me.name,reviewedAt:Date.now(),reviewNote:note||''});
+  await pushTo(x.studentId,'Your bank statement of '+money(x.amount)+' was '+st.toLowerCase()+' by the school'+(note?': '+note:'.'));go('bank')}
+ catch(e){alert('Could not update: '+(e.code||e.message))}}
+async function bankDel(id){
+ if(!FULL.includes(me.role)||!confirm('Delete this bank statement and its attachment permanently?'))return;
+ try{const b=db.batch();b.delete(db.doc('bankStatements/'+id));b.delete(db.doc('bankFiles/'+id));await b.commit();go('bank')}catch(e){alert('Could not delete: '+(e.code||e.message))}}
+
+// menu counter + strong alert for management
+{const o=badge;badge=async function(){await o();
+ if(!me||!isBankMgr())return;
+ try{const n=(await list('bankStatements',['status','==','Pending'])).length,a=document.querySelector('aside a[data-k="bank"]');if(a)a.dataset.n=n}catch(e){}}}
+{const o=ntBanner;ntBanner=function(t,x){const b=$('#ntb');if(b)b.style.borderLeftColor='';o(t,x)}}
+function ntStrong(t,x,dest){
+ NT.dest=dest||'msg';ntBeep();setTimeout(ntBeep,350);setTimeout(ntBeep,700);
+ let b=$('#ntb');if(!b){b=document.createElement('div');b.id='ntb';document.body.appendChild(b)}
+ b.style.borderLeftColor='var(--bad)';b.innerHTML=`<i>🚨</i><div><b>${esc(t)}</b><span>${esc(x)}</span></div>`;
+ b.onclick=()=>{b.classList.remove('on');b.style.borderLeftColor='';ntOpen()};
+ requestAnimationFrame(()=>requestAnimationFrame(()=>b.classList.add('on')));clearTimeout(NT.timer);NT.timer=setTimeout(()=>{b.classList.remove('on');b.style.borderLeftColor=''},20000);
+ if(document.hidden)ntSys(t,x);try{navigator.vibrate&&navigator.vibrate([300,120,300,120,300])}catch(e){}badge()}
+{const o=ntStart;ntStart=function(){o();if(!me||!isBankMgr())return;let f=true;
+ NT.unsubs.push(db.collection('bankStatements').where('status','==','Pending').onSnapshot(s=>{
+  if(f){f=false;return}
+  s.docChanges().forEach(c=>{if(c.type!='added')return;const m=c.doc.data();if(m.by===me.uid)return;
+   ntStrong('New bank statement attached',(m.studentName||'A student')+' ('+(m.class||'')+') attached evidence of a '+money(m.amount)+' payment.','bank')})},e=>console.warn('bank live',e.code)))}}
+// ===================== END UPDATE 8 =====================
+
 </script>
 </body></html>
