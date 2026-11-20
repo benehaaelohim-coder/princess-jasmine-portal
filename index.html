@@ -167,7 +167,7 @@ async function enter(user){
     const m=MENU[me.role]||MENU.staff;
     side.innerHTML=`<img src="${esc(LOGO_URL)}" alt="Princess Jasmine logo" onerror="this.style.display='none'"><h4>PRINCESS JASMINE</h4>`+m.map(i=>{const[k,l]=i.split(':');return`<a data-k="${k}" onclick="go('${k}')">${l}</a>`}).join('');
     go(m[0].split(':')[0]);
-  }catch(e){console.error('Profile load failed:',e.code,e.message);err.textContent='Signed in, but could not read your Firestore profile. Check Firestore rules and the users document.';await auth.signOut()}
+  }catch(e){console.error('Profile load failed:',e.code,e.message);err.textContent='Signed in, but could not read your profile. Check your username and password.';await auth.signOut()}
 }
 
 // ---------- Login, recovery ----------
@@ -319,7 +319,7 @@ async fees(){
   owing=st.map(s=>({...s,bal:(+s.feeDue||0)-(paid[s.id]||0)})).filter(s=>s.bal>0).sort((a,b)=>b.bal-a.bal);
  FEE={st,paid,fs,owing};
  set(`<div class="grid"><div class="card stat"><span>Collected today</span><b class="green">${money(sum(x=>day(x)==today()))}</b></div><div class="card stat"><span>This month</span><b>${money(sum(x=>day(x).slice(0,7)==today().slice(0,7)))}</b></div><div class="card stat"><span>All recorded</span><b>${money(sum(()=>true))}</b></div><div class="card stat"><span>Students owing</span><b class="red">${owing.length}</b></div></div>
- <div class="card"><h3>Record Payment</h3><select id="fee_s" onchange="feeInfo()"><option value="">Select student</option>${st.map(s=>`<option value="${s.id}">${esc(s.surname)} ${esc(s.firstName)} (${esc(s.regNo)}) - ${esc(s.class)}</option>`).join('')}</select><p id="fee_info"></p>
+ <div class="card"><h3>Record Payment</h3><input id="fee_q" placeholder="🔍 Search student name, ID or class" oninput="feeSearch()"><select id="fee_s" onchange="feeInfo()"><option value="">Select student</option>${st.map(s=>`<option value="${s.id}">${esc(s.surname)} ${esc(s.firstName)} (${esc(s.regNo)}) - ${esc(s.class)}</option>`).join('')}</select><p id="fee_info"></p>
  <select id="fee_t">${opts(['Tuition','Uniform','Books','Boarding','Transport','Exam','Other'])}</select><select id="fee_tri">${opts([...TRIS,'Full session'])}</select>
  <input id="fee_a" type="number" min="0" placeholder="Amount (₦)"><select id="fee_m">${opts(['Cash','Bank transfer','POS'])}</select><input id="fee_r" placeholder="Reference / teller no (optional)"><button onclick="saveFee()">Save payment</button></div>
  <div class="card"><h3>Search & Filter</h3><input id="fq" placeholder="🔍 Search student name or ID" oninput="drawFees()"><div class="row"><div><small>From date</small><input id="fd1" type="date" onchange="drawFees()"></div><div><small>To date</small><input id="fd2" type="date" onchange="drawFees()"></div><button class="g" style="align-self:end" onclick="['fq','fd1','fd2'].forEach(i=>document.getElementById(i).value='');drawFees()">Clear</button></div>
@@ -1279,7 +1279,7 @@ async function saveStaffCampus(id){
 // ---------- E. Fees & Payments: several items in one payment ----------
 {const o=V.fees;V.fees=async function(){await o();
  const h=[...mainEl.querySelectorAll('h3')].find(x=>x.textContent==='Record Payment');if(!h)return;
- h.closest('.card').innerHTML=`<h3>Record Payment</h3><select id="fee_s" onchange="feeInfo()"><option value="">Select student</option>${FEE.st.map(s=>`<option value="${s.id}">${esc(s.surname)} ${esc(s.firstName)} (${esc(s.regNo)}) - ${esc(s.class)}</option>`).join('')}</select><p id="fee_info"></p>
+ h.closest('.card').innerHTML=`<h3>Record Payment</h3><input id="fee_q" placeholder="🔍 Search student name, ID or class" oninput="feeSearch()"><select id="fee_s" onchange="feeInfo()"><option value="">Select student</option>${FEE.st.map(s=>`<option value="${s.id}">${esc(s.surname)} ${esc(s.firstName)} (${esc(s.regNo)}) - ${esc(s.class)}</option>`).join('')}</select><p id="fee_info"></p>
  <p class="mut">Add one line for each item the parent is paying for (for example Tuition + School Uniform + Stationery). All lines are saved together under one receipt.</p>
  <div id="pl_rows"></div><button type="button" class="g" onclick="plAdd()">+ Add another item</button>
  <p>Total being paid: <b id="pl_tot">₦0</b></p>
@@ -1945,7 +1945,7 @@ async function bankStudent(){
  <input id="bk_n" placeholder="Note to the school (optional)">
  <p class="mut" style="margin-bottom:0">Attach photo / screenshot or PDF of the payment evidence</p><input id="bk_f" type="file" accept="image/*,application/pdf">
  <button id="bk_go" onclick="bankSubmit()">Submit to school</button><p id="bk_m"></p></div>
- <div class="card"><h3>My submitted statements</h3><table><tr><th>Submitted</th><th>Amount</th><th>Paid on</th><th>Bank / Ref</th><th>For</th><th>Status</th><th></th></tr><tbody id="bkTb"></tbody></table></div>`);
+ <div class="card"><h3>My submitted statements</h3><div class=\"tsc\"><table><tr><th>Submitted</th><th>Amount</th><th>Paid on</th><th>Bank / Ref</th><th>For</th><th>Status</th><th></th></tr><tbody id="bkTb"></tbody></table></div></div>`);
  drawBank()}
 async function bankMgmt(){
  BK=(await list('bankStatements')).sort((a,b)=>b.at-a.at);
@@ -1953,7 +1953,7 @@ async function bankMgmt(){
  set(`<div class="grid"><div class="card stat"><span>Waiting for review</span><b class="${p.length?'red':''}">${p.length}</b></div><div class="card stat"><span>Amount waiting</span><b>${money(p.reduce((z,x)=>z+(+x.amount||0),0))}</b></div><div class="card stat"><span>Total attachments</span><b>${BK.length}</b></div></div>
  <div class="card"><h3>Bank statements attached by parents</h3><p class="mut">Check the evidence against the school bank account, then tap Confirm or Reject. After confirming, record the payment under Fees &amp; Payments to issue the official receipt.</p>
  <div class="row"><input id="bk_q" placeholder="🔍 Search student, ID, class, bank or reference" oninput="drawBank()"><select id="bk_s" onchange="drawBank()"><option value="">All statuses</option><option>Pending</option><option>Confirmed</option><option>Rejected</option></select></div>
- <table><tr><th>Student</th><th>Class</th><th>Submitted</th><th>Amount</th><th>Paid on</th><th>Bank / Ref</th><th>For</th><th>Status</th><th></th></tr><tbody id="bkTb"></tbody></table></div>`);
+ <div class="tsc"><table><tr><th>Student</th><th>Class</th><th>Submitted</th><th>Amount</th><th>Paid on</th><th>Bank / Ref</th><th>For</th><th>Status</th><th></th></tr><tbody id="bkTb"></tbody></table></div></div>`);
  drawBank()}
 function drawBank(){
  const el=$('#bkTb');if(!el)return;const mg=me.role!=='student',q=mg?v('bk_q').toLowerCase():'',st=mg?v('bk_s'):'';
@@ -2031,7 +2031,7 @@ function ntStrong(t,x,dest){
    ntStrong('New bank statement attached',(m.studentName||'A student')+' ('+(m.class||'')+') attached evidence of a '+money(m.amount)+' payment.','bank')})},e=>console.warn('bank live',e.code)))}}
 // ===================== END UPDATE 8 =====================
 
-// ===================== UPDATE 9 : STATE/LGA LISTS + ACADEMIC SESSION & TERMS =====================
+// ===================== UPDATE 10 : STATE/LGA LISTS + ACADEMIC SESSION & TERMS =====================
 // ---------- Nigeria: 36 states + FCT and all their Local Government Areas ----------
 const NGRAW={
 "Abia":"Aba North,Aba South,Arochukwu,Bende,Ikwuano,Isiala Ngwa North,Isiala Ngwa South,Isuikwuato,Obi Ngwa,Ohafia,Osisioma,Ugwunagbo,Ukwa East,Ukwa West,Umuahia North,Umuahia South,Umu Nneochi",
@@ -2223,7 +2223,13 @@ async function endSessionNow(){
  for(let i=1;i<=3;i++){if(n['t'+i+'s']>t){n['t'+i+'s']=t;n['t'+i+'e']=t}else if(n['t'+i+'e']>t)n['t'+i+'e']=t}
  try{await db.doc('settings/academic').set({...n,updatedBy:me.name,updatedAt:Date.now()});await notify('Academic session '+SS.name+' was ended on '+t+' by '+me.name);await loadSess();go('events')}
  catch(e){alert('Could not end the session: '+(e.code||e.message))}}
-// ===================== END UPDATE 9 =====================
+function feeSearch(){
+ const q=v('fee_q').trim().toLowerCase(),s=$('#fee_s'),cur=s.value;
+ const a=FEE.st.filter(x=>!q||((x.surname||'')+' '+(x.firstName||'')+' '+(x.regNo||'')+' '+(x.class||'')).toLowerCase().includes(q));
+ s.innerHTML='<option value="">'+(a.length?'Select student ('+a.length+')':'No student found')+'</option>'+a.map(x=>`<option value="${x.id}">${esc(x.surname)} ${esc(x.firstName)} (${esc(x.regNo)}) - ${esc(x.class)}</option>`).join('');
+ if(a.some(x=>x.id===cur))s.value=cur;else if(q&&a.length===1)s.value=a[0].id;
+ feeInfo()}
+// ===================== END UPDATE 10 =====================
 
 </script>
 </body></html>
