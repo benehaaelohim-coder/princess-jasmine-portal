@@ -1128,11 +1128,26 @@ async function owingMap(){
  const[st,fs]=await Promise.all([list('students'),list('fees')]),p={},o={};
  fs.forEach(x=>p[x.studentId]=(p[x.studentId]||0)+(+x.amount||0));
  st.forEach(s=>{const b=(+s.feeDue||0)-(p[s.id]||0);if(b>0)o[s.id]=b});return o}
+// ---------- Term-by-term fee clearance: a term's results are released once THAT term's fees are fully paid ----------
+// Payments tagged to a term count for that term; "Full session" payments (and any overpayment) are used to clear the earliest unpaid terms.
+function termBal(s,pays){
+ const due=[1,2,3].map(i=>+s['feeT'+i]||0),legacy=s.feeT1==null&&s.feeT2==null&&s.feeT3==null,out={};
+ if(legacy){const b=(+s.feeDue||0)-pays.reduce((a,x)=>a+(+x.amount||0),0);if(b>0)TRIS.forEach(t=>out[t]=b);return out}
+ const pd=[0,0,0];let pool=0;
+ pays.forEach(x=>{const i=TRIS.indexOf(x.term),a=+x.amount||0;if(i>=0)pd[i]+=a;else pool+=a});
+ for(let i=0;i<3;i++)if(pd[i]>due[i]){pool+=pd[i]-due[i];pd[i]=due[i]}
+ for(let i=0;i<3;i++){const use=Math.min(Math.max(due[i]-pd[i],0),pool);pd[i]+=use;pool-=use;const b=due[i]-pd[i];if(b>0)out[TRIS[i]]=b}
+ return out}
+async function termOwing(){
+ const[st,fs]=await Promise.all([list('students'),list1('fees')]),by={},r={};
+ fs.filter(x=>!SS||inSess(x,SS.name,SS)).forEach(x=>(by[x.studentId]=by[x.studentId]||[]).push(x));
+ st.forEach(s=>{const b=termBal(s,by[s.id]||[]);if(Object.keys(b).length)r[s.id]=b});return r}
+function owes(ow,sid,t){return((ow||{})[sid]||{})[t]||0}
 let VR=[];
 V.pub=async function(){
- const[r,ow,vr]=await Promise.all([list('results',['published','==',false]),owingMap(),list('results',['published','==',true])]);VR=vr;
- const ok=r.filter(x=>!ow[x.studentId]).length;
- set(`<div class="card"><h3>Results awaiting validation</h3><p class="mut">Results of students who owe fees cannot be validated until the balance is cleared.</p><table><tr><th>Student</th><th>Class</th><th>Subject</th><th>Term</th><th>Total</th><th>Fees</th><th></th></tr>${r.map(x=>`<tr><td>${esc(x.studentName)}</td><td>${esc(x.class||'')}</td><td>${esc(x.subject)}</td><td>${esc(x.term)}</td><td>${x.test+x.exam}</td><td>${ow[x.studentId]?`<span class="tag" style="background:var(--bad)">Owing ${money(ow[x.studentId])}</span>`:'<span class="green">Cleared</span>'}</td><td>${ow[x.studentId]?'':`<button data-id="${esc(x.id)}" onclick="publish(this.dataset.id)">Validate</button>`}</td></tr>`).join('')||'<tr><td>Nothing waiting.</td></tr>'}</table>${ok?`<button class="s" onclick="publishAll()">Validate all cleared (${ok})</button>`:''}</div>
+ const[r,ow,vr]=await Promise.all([list('results',['published','==',false]),termOwing(),list('results',['published','==',true])]);VR=vr;
+ const ok=r.filter(x=>!owes(ow,x.studentId,x.term)).length;
+ set(`<div class="card"><h3>Results awaiting validation</h3><p class="mut">A term's results are released as soon as the school fees of THAT term are fully paid. Unpaid fees of other terms do not block it.</p><table><tr><th>Student</th><th>Class</th><th>Subject</th><th>Term</th><th>Total</th><th>Fees</th><th></th></tr>${r.map(x=>`<tr><td>${esc(x.studentName)}</td><td>${esc(x.class||'')}</td><td>${esc(x.subject)}</td><td>${esc(x.term)}</td><td>${x.test+x.exam}</td><td>${owes(ow,x.studentId,x.term)?`<span class="tag" style="background:var(--bad)">${esc(x.term)} owing ${money(owes(ow,x.studentId,x.term))}</span>`:'<span class="green">Cleared</span>'}</td><td>${owes(ow,x.studentId,x.term)?'':`<button data-id="${esc(x.id)}" onclick="publish(this.dataset.id)">Validate</button>`}</td></tr>`).join('')||'<tr><td>Nothing waiting.</td></tr>'}</table>${ok?`<button class="s" onclick="publishAll()">Validate all cleared (${ok})</button>`:''}</div>
  <div class="card"><h3>Validated results - correct or recall</h3><input id="pv_q" placeholder="🔍 Search student, class or subject" oninput="drawVR()"><table><tr><th>Student</th><th>Class</th><th>Subject</th><th>Term</th><th>Test</th><th>Exam</th><th>Total</th><th></th></tr><tbody id="vrTb"></tbody></table></div>`);drawVR()};
 function drawVR(){const q=v('pv_q').toLowerCase();$('#vrTb').innerHTML=VR.filter(x=>((x.studentName||'')+' '+(x.subject||'')+' '+(x.class||'')).toLowerCase().includes(q)).slice(0,100).map(x=>`<tr><td>${esc(x.studentName)}</td><td>${esc(x.class||'')}</td><td>${esc(x.subject)}</td><td>${esc(x.term)}</td><td>${x.test}</td><td>${x.exam}</td><td>${x.test+x.exam}</td><td><button class="g" data-id="${esc(x.id)}" onclick="fixRes(this.dataset.id)">Correct</button> <button class="s" data-id="${esc(x.id)}" onclick="unval(this.dataset.id)">Recall</button></td></tr>`).join('')||'<tr><td>None found.</td></tr>'}
 async function fixRes(id){
@@ -1365,18 +1380,18 @@ async function postComment(id){
  if(id!==me.uid)await pushTo(id,me.name+' commented on your profile: '+t.slice(0,80));else await notify('New comment from '+me.name);
  studentDash(id,'ac')}
 async function publish(id){
- const d=await db.doc('results/'+id).get(),x=d.data()||{},b=(await owingMap())[x.studentId];
- if(b)return alert('Blocked: this student owes '+money(b)+'. Clear the fees first.');
+ const d=await db.doc('results/'+id).get(),x=d.data()||{},b=owes(await termOwing(),x.studentId,x.term);
+ if(b)return alert('Blocked: the '+x.term+' school fees are not fully paid (balance '+money(b)+'). Clear this term\'s fees first.');
  await db.doc('results/'+id).update({published:true});await notify('Results validated');
  await pushTo(x.studentId,'Your '+x.subject+' result ('+x.term+') has been validated and is now available.');
  emailTermResults([[x.studentId,x.term]]);
  go('pub')}
 async function publishAll(){
- const ow=await owingMap(),r=(await list('results',['published','==',false])).filter(x=>!ow[x.studentId]);
- if(!r.length)return alert('Nothing to validate (owing students are blocked).');
- if(!confirm('Validate '+r.length+' result(s)? Results of owing students are skipped.'))return;
+ const ow=await termOwing(),r=(await list('results',['published','==',false])).filter(x=>!owes(ow,x.studentId,x.term));
+ if(!r.length)return alert('Nothing to validate (terms with unpaid fees are blocked).');
+ if(!confirm('Validate '+r.length+' result(s)? Results of terms whose fees are not fully paid are skipped.'))return;
  for(let i=0;i<r.length;i+=400){const b=db.batch();r.slice(i,i+400).forEach(x=>b.update(db.doc('results/'+x.id),{published:true}));await b.commit()}
- await notify('Pending results validated (owing students skipped)');
+ await notify('Pending results validated (terms with unpaid fees skipped)');
  const by={};r.forEach(x=>{(by[x.studentId]=by[x.studentId]||new Set()).add(x.term)});
  await Promise.all(Object.entries(by).map(([id,t])=>pushTo(id,'Your results ('+[...t].join(', ')+') have been validated and are now available.')));
  emailTermResults(Object.entries(by).flatMap(([id,t])=>[...t].map(z=>[id,z])));
@@ -1809,8 +1824,9 @@ async function slip(t){
 // ===================== END REPORT CARD UPDATE =====================
 
 // ===================== UPDATE 8 : class messages, student search, bank statements, automatic e-mails =====================
-// >>> After deploying Mailer.gs (Google Apps Script) paste its Web App URL between the quotes below <<<
-const MAIL_URL='';
+// >>> STEP REQUIRED FOR E-MAIL: deploy Mailer.gs as a Web App (Deploy > New deployment > Web app,
+// >>> Execute as: Me, Who has access: Anyone), then paste the Web App URL (it ends with /exec) between the quotes below <<<
+const MAIL_URL='https://script.google.com/macros/s/AKfycbzDKs0ro1BGSHFwwBm7noZvaeuEzf5bLS1XETh2pYN-iQcYlGWX7tXOL4S81Cak4d9O/exec';
 
 PAGES.push(['bank','Bank Statement Attachment']);
 {const st=document.createElement('style');st.textContent='aside a[data-n]:not([data-n="0"])::after{content:attr(data-n);background:var(--bad);color:#fff;border-radius:10px;font-size:11px;padding:1px 7px;margin-left:8px}';document.head.appendChild(st)}
@@ -1821,7 +1837,7 @@ function toast(t,ok){let d=$('#tst');if(!d){d=document.createElement('div');d.id
 
 // ---------- e-mail sender (talks to Mailer.gs) ----------
 async function sendMail(o){
- if(!MAIL_URL||MAIL_URL.indexOf('script.google.com')<0)return{ok:false,error:'e-mail is not set up yet (MAIL_URL is empty)'};
+ if(!MAIL_URL||MAIL_URL.indexOf('script.google.com')<0)return{ok:false,error:'e-mail is not set up yet. Paste the Mailer.gs Web App URL into MAIL_URL in index.html'};
  let res;
  try{const tok=await auth.currentUser.getIdToken();
   res=await fetch(MAIL_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({...o,token:tok})})}
@@ -2111,15 +2127,16 @@ function ssGuard(){
  if(ssStatus()==='ended'){alert('The academic session '+SS.name+' has ended and its financial records are closed. Management must set the new academic session under Events Calendar before anything new can be recorded.');return false}
  return true}
 function ssLine(){
- if(!SS)return{c:'#fff6dc',h:'No academic session has been set yet.'};
+ if(!SS)return{c:'#fff6dc',a:'#f5b700',h:'No academic session has been set yet.'};
  const st=ssStatus(),t=ssTerm(),n=ssNext();
- if(st==='ended')return{c:'#fdecee',h:`Session <b>${esc(SS.name)}</b> ended on ${esc(SS.end)}. All its fees, payments and expenses are now <b>past records</b> (read-only).`};
- if(st==='upcoming')return{c:'#fff6dc',h:`Session <b>${esc(SS.name)}</b> starts on ${esc(SS.start)} and ends on ${esc(SS.end)}.`};
- return{c:'#e8f7ee',h:`Session <b>${esc(SS.name)}</b> is in progress (${esc(SS.start)} to ${esc(SS.end)}). ${t?`<b>${t}</b> is running until ${esc(SS['t'+(TRIS.indexOf(t)+1)+'e'])}.`:'The school is between terms.'}${n?` Next: <b>${n.name}</b> starts on ${esc(n.date)}.`:''}`}}
+ if(st==='ended')return{c:'#fdecee',a:'#e5313d',h:`Session <b>${esc(SS.name)}</b> ended on ${esc(SS.end)}. All its fees, payments and expenses are now <b>past records</b> (read-only).`};
+ if(st==='upcoming')return{c:'#fff6dc',a:'#f5b700',h:`Session <b>${esc(SS.name)}</b> starts on ${esc(SS.start)} and ends on ${esc(SS.end)}.`};
+ return{c:'#e8f7ee',a:'#12a150',h:`Session <b>${esc(SS.name)}</b> is in progress (${esc(SS.start)} to ${esc(SS.end)}). ${t?`<b>${t}</b> is running until ${esc(SS['t'+(TRIS.indexOf(t)+1)+'e'])}.`:'The school is between terms.'}${n?` Next: <b>${n.name}</b> starts on ${esc(n.date)}.`:''}`}}
 function ssBanner(mg){
  const m=mg&&MG.includes(me.role),L=ssLine();
  if(!SS&&!m)return'';
- return`<div class="card" style="background:${L.c};color:#10213f"><h4 style="color:#10213f">📅 Academic Session</h4><p>${L.h}${!SS?' Set it under Events Calendar.':ssStatus()==='ended'&&m?' Set the new session to continue.':''}</p>${m?`<button class="g" onclick="go('events')">${SS?'Manage':'Set up'} in Events Calendar</button>`:''}</div>`}
+ const sty=m?`background:${L.c};color:#10213f`:`background:var(--card);color:var(--tx);border-left:4px solid ${L.a||'var(--gold)'}`,hc=m?'color:#10213f':'color:var(--pri)';
+ return`<div class="card" style="${sty}"><h4 style="${hc}">📅 Academic Session</h4><p>${L.h}${!SS?' Set it under Events Calendar.':ssStatus()==='ended'&&m?' Set the new session to continue.':''}</p>${m?`<button class="g" onclick="go('events')">${SS?'Manage':'Set up'} in Events Calendar</button>`:''}</div>`}
 function ssClosedCard(){const m=MG.includes(me.role);return`<div class="card" style="background:#fdecee;color:#10213f"><h3 style="color:#10213f">Session closed</h3><p>${ssLine().h}</p><p>Nothing new can be recorded until the next academic session is set.${m?'':' Please wait for the school management.'} Use the box above to look at the records of a past session.</p>${m?`<button onclick="go('events')">Set the new session</button>`:''}</div>`}
 function ssBar(){
  if(!SS)return'';
