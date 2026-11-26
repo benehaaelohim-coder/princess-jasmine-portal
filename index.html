@@ -247,7 +247,7 @@ const list1=async(c,...f)=>{
   const cls=await myClass(),[a,b]=await Promise.all([list0(c,...f),cls?list0(c,['audience','==','class'],['targetClass','==',cls]):Promise.resolve([])]);return a.concat(b)}
  return list0(c,...f)};
 // payments and expenses only show the session being viewed (current by default); older sessions are read-only history
-const list=async(c,...f)=>{const r=await list1(c,...f);return(SS&&(c==='fees'||c==='expenses'))?r.filter(ssKeep):r};
+const list=async(c,...f)=>{let r=await list1(c,...f);if(c==='fees')r=r.map(x=>x.type==='Tuition'?{...x,type:'School Fee'}:x);return(SS&&(c==='fees'||c==='expenses'))?r.filter(ssKeep):r};
 const notify=m=>add('notifications',{msg:m,to:MG});
 const set=h=>mainEl.innerHTML=h;
 const opts=a=>a.map(x=>`<option>${esc(x)}</option>`).join('');
@@ -320,7 +320,7 @@ async fees(){
  FEE={st,paid,fs,owing};
  set(`<div class="grid"><div class="card stat"><span>Collected today</span><b class="green">${money(sum(x=>day(x)==today()))}</b></div><div class="card stat"><span>This month</span><b>${money(sum(x=>day(x).slice(0,7)==today().slice(0,7)))}</b></div><div class="card stat"><span>All recorded</span><b>${money(sum(()=>true))}</b></div><div class="card stat"><span>Students owing</span><b class="red">${owing.length}</b></div></div>
  <div class="card"><h3>Record Payment</h3><input id="fee_q" placeholder="🔍 Search student name, ID or class" oninput="feeSearch()"><select id="fee_s" onchange="feeInfo()"><option value="">Select student</option>${st.map(s=>`<option value="${s.id}">${esc(s.surname)} ${esc(s.firstName)} (${esc(s.regNo)}) - ${esc(s.class)}</option>`).join('')}</select><p id="fee_info"></p>
- <select id="fee_t">${opts(['Tuition','Uniform','Books','Boarding','Transport','Exam','Other'])}</select><select id="fee_tri">${opts([...TRIS,'Full session'])}</select>
+ <select id="fee_t">${opts(['School Fee','Uniform','Books','Boarding','Transport','Exam','Other'])}</select><select id="fee_tri">${opts([...TRIS,'Full session'])}</select>
  <input id="fee_a" type="number" min="0" placeholder="Amount (₦)"><select id="fee_m">${opts(['Cash','Bank transfer','POS'])}</select><input id="fee_r" placeholder="Reference / teller no (optional)"><button onclick="saveFee()">Save payment</button></div>
  <div class="card"><h3>Search & Filter</h3><input id="fq" placeholder="🔍 Search student name or ID" oninput="drawFees()"><div class="row"><div><small>From date</small><input id="fd1" type="date" onchange="drawFees()"></div><div><small>To date</small><input id="fd2" type="date" onchange="drawFees()"></div><button class="g" style="align-self:end" onclick="['fq','fd1','fd2'].forEach(i=>document.getElementById(i).value='');drawFees()">Clear</button></div>
  ${MG.includes(me.role)?`<button style="margin-top:8px" onclick="dlFin(v('fd1'),v('fd2'),'all')">⬇ Download transactions for this period (CSV)</button>`:''}</div>
@@ -359,7 +359,7 @@ async setup(){
 async subj(){
  const s=await list('subjects');
  set(`<div class="card"><h3>Subject Template (per class)</h3><select id="sj_c">${opts(CLASSES)}</select><input id="sj_n" placeholder="Subject e.g. Mathematics"><button onclick="addSubj()">Add subject</button>
- <p><small>Scoring: Test 40 + Exam 60 = 100. Grades: A 70+, B 60+, C 50+, D 40+, F below 40.</small></p></div>`+
+ <p><small>Scoring: CAT 1 20 + CAT 2 20 + Exam 60 = 100. Grades: A 70+, B 60+, C 50+, D 40+, F below 40.</small></p></div>`+
  CLASSES.map(c=>{const l=s.filter(x=>x.class==c);return l.length?`<div class="card"><b>${c}</b><br>${l.map(x=>`<span class="tag" style="background:var(--acc);display:inline-block;margin:3px">${esc(x.name)} <a onclick="delSubj('${x.id}')" style="cursor:pointer">✕</a></span>`).join('')}</div>`:''}).join(''))},
 // ----- Compute results -----
 async comp(){
@@ -638,16 +638,18 @@ async function loadComp(){
  const c=v('cp_c'),t=v('cp_t'),sj=v('cp_s'),o=$('#cp_out');if(!sj){o.innerHTML='<div class="card">No subjects for this class yet. Add them under Subjects Template.</div>';return}
  const[st,r]=await Promise.all([list('students',['class','==',c]),list('results',['class','==',c],['term','==',t],['subject','==',sj])]),m={};
  st.sort((a,b)=>(a.surname||'').localeCompare(b.surname||''));r.forEach(x=>m[x.studentId]=x);
- o.innerHTML=`<div class="card"><table><tr><th>Student</th><th>Test /40</th><th>Exam /60</th><th>Total</th><th>Grade</th><th>Status</th></tr>${st.map(s=>{const x=m[s.id]||{};return`<tr><td>${esc(s.surname+' '+s.firstName)}</td><td><input class="cs" data-i="${s.id}" data-k="test" data-n="${esc(s.surname+' '+s.firstName)}" type="number" min="0" max="40" value="${x.test??''}" oninput="rowTot(this)" style="width:80px"></td><td><input class="cs" data-i="${s.id}" data-k="exam" type="number" min="0" max="60" value="${x.exam??''}" oninput="rowTot(this)" style="width:80px"></td><td id="t_${s.id}"></td><td id="g_${s.id}"></td><td>${x.published?'<span class="green">Validated</span>':x.studentId?'Pending':''}</td></tr>`}).join('')||'<tr><td>No students in this class.</td></tr>'}</table><button onclick="saveComp()">Save scores</button> <button class="g" onclick="rank()">Class ranking</button></div><div id="rk"></div>`;
+ o.innerHTML=`<div class="card"><table><tr><th>Student</th><th>CAT 1 /20</th><th>CAT 2 /20</th><th>Exam /60</th><th>Total</th><th>Grade</th><th>Status</th></tr>${st.map(s=>{const x=m[s.id]||{};return`<tr><td>${esc(s.surname+' '+s.firstName)}</td><td><input class="cs" data-i="${s.id}" data-k="cat1" data-n="${esc(s.surname+' '+s.firstName)}" type="number" min="0" max="20" value="${x.cat1??''}" oninput="rowTot(this)" style="width:80px"></td><td><input class="cs" data-i="${s.id}" data-k="cat2" type="number" min="0" max="20" value="${x.cat2??''}" oninput="rowTot(this)" style="width:80px"></td><td><input class="cs" data-i="${s.id}" data-k="exam" type="number" min="0" max="60" value="${x.exam??''}" oninput="rowTot(this)" style="width:80px"></td><td id="t_${s.id}"></td><td id="g_${s.id}"></td><td>${x.published?'<span class="green">Validated</span>':x.studentId?'Pending':''}</td></tr>`}).join('')||'<tr><td>No students in this class.</td></tr>'}</table><button onclick="saveComp()">Save scores</button> <button class="g" onclick="rank()">Class ranking</button></div><div id="rk"></div>`;
  st.forEach(s=>rowTot(document.querySelector(`.cs[data-i="${s.id}"]`)))}
-function rowTot(e){if(!e)return;const i=e.dataset.i,q=k=>document.querySelector(`.cs[data-i="${i}"][data-k="${k}"]`).value,a=q('test'),b=q('exam'),T=$('#t_'+i),Gd=$('#g_'+i);if(a===''&&b===''){T.textContent=Gd.textContent='';return}const n=(+a||0)+(+b||0);T.textContent=n;Gd.textContent=grade(n)}
+function rowTot(e){if(!e)return;const i=e.dataset.i,q=k=>document.querySelector(`.cs[data-i="${i}"][data-k="${k}"]`).value,a=q('cat1'),a2=q('cat2'),b=q('exam'),T=$('#t_'+i),Gd=$('#g_'+i);if(a===''&&a2===''&&b===''){T.textContent=Gd.textContent='';return}const n=(+a||0)+(+a2||0)+(+b||0);T.textContent=n;Gd.textContent=grade(n)}
+function C1(x){return x.cat1==null?'-':x.cat1}
+function C2(x){return x.cat2==null?'-':x.cat2}
 async function saveComp(){
  const c=v('cp_c'),t=v('cp_t'),sj=v('cp_s'),b=db.batch(),ids=new Set();
  document.querySelectorAll('.cs').forEach(e=>ids.add(e.dataset.i));
  let n=0;
- for(const i of ids){const q=k=>document.querySelector(`.cs[data-i="${i}"][data-k="${k}"]`),a=q('test').value,x=q('exam').value;if(a===''&&x==='')continue;
-  if(+a<0||+a>40||+x<0||+x>60)return alert('Test must be 0-40 and exam 0-60.');
-  b.set(db.doc('results/'+subId(i,sj+'_'+t)),{studentId:i,studentName:q('test').dataset.n,class:c,subject:sj,term:t,test:+a||0,exam:+x||0,published:false,by:me.uid,byName:me.name,at:Date.now()});n++}
+ for(const i of ids){const q=k=>document.querySelector(`.cs[data-i="${i}"][data-k="${k}"]`),a=q('cat1').value,a2=q('cat2').value,x=q('exam').value;if(a===''&&a2===''&&x==='')continue;
+  if(+a<0||+a>20||+a2<0||+a2>20||+x<0||+x>60)return alert('CAT 1 and CAT 2 must each be 0-20, and exam 0-60.');
+  b.set(db.doc('results/'+subId(i,sj+'_'+t)),{studentId:i,studentName:q('cat1').dataset.n,class:c,subject:sj,term:t,cat1:+a||0,cat2:+a2||0,test:(+a||0)+(+a2||0),exam:+x||0,published:false,by:me.uid,byName:me.name,at:Date.now()});n++}
  if(!n)return alert('Nothing to save.');
  await b.commit();alert(n+' score(s) saved. Management can validate them under "Validate Results".');loadComp()}
 async function rank(){
@@ -692,13 +694,13 @@ function sdTab(k){
  ${acSum}
  <div class="card"><h4>Contact Info</h4><p style="line-height:1.9;margin:0">School E-mail: <b>${esc(SCHOOL.email)}</b><br>Phone: <b>${esc(SCHOOL.phone)}</b><br>Location: <b>${esc(SCHOOL.loc[CAMPUS]||CAMPUS)}</b></p></div>`,
  sb:`<div class="card"><h4>Subjects - ${esc(s.class||'')}</h4><table><tr><th>Subject</th><th>Latest total</th><th>Grade</th></tr>${sj.map(x=>{const l=r.filter(y=>y.subject==x.name).sort((a,b)=>TRIS.indexOf(b.term)-TRIS.indexOf(a.term))[0],n=l?l.test+l.exam:null;return`<tr><td>${esc(x.name)}</td><td>${n==null?'-':n}</td><td>${n==null?'-':grade(n)}</td></tr>`}).join('')||'<tr><td>No subjects set for this class yet.</td></tr>'}</table></div>`,
- rs:TRIS.map(t=>{const l=r.filter(x=>x.term==t);if(!l.length)return'';const tot=l.reduce((a,x)=>a+x.test+x.exam,0);return`<div class="card"><h4>${t} <small>(Total ${tot} · Avg ${(tot/l.length).toFixed(1)} · ${gradeInfo(tot/l.length)})</small></h4><table><tr><th>Subject</th><th>Test</th><th>Exam</th><th>Total</th><th>Grade</th></tr>${l.map(x=>{const n=x.test+x.exam;return`<tr><td>${esc(x.subject)}</td><td>${x.test}</td><td>${x.exam}</td><td class="${n<50?'red':'green'}">${n}</td><td>${grade(n)}</td></tr>`}).join('')}</table></div>`}).join('')||'<div class="card">Results not yet released.</div>',
+ rs:TRIS.map(t=>{const l=r.filter(x=>x.term==t);if(!l.length)return'';const tot=l.reduce((a,x)=>a+x.test+x.exam,0);return`<div class="card"><h4>${t} <small>(Total ${tot} · Avg ${(tot/l.length).toFixed(1)} · ${gradeInfo(tot/l.length)})</small></h4><table><tr><th>Subject</th><th>CAT 1 (20%)</th><th>CAT 2 (20%)</th><th>Exam (60%)</th><th>Total</th><th>Grade</th></tr>${l.map(x=>{const n=x.test+x.exam;return`<tr><td>${esc(x.subject)}</td><td>${C1(x)}</td><td>${C2(x)}</td><td>${x.exam}</td><td class="${n<50?'red':'green'}">${n}</td><td>${grade(n)}</td></tr>`}).join('')}</table></div>`}).join('')||'<div class="card">Results not yet released.</div>',
  ac:acSum+`<div class="card"><h4>Attendance</h4><p>Days attended <b>${here}/${at.length}</b></p></div><div class="card"><h4>Fees</h4><p>Paid <b>${money(paid)}</b> · Balance <b>${money(Math.max(due-paid,0))}</b> · Status <b class="${fit?'green':'red'}">${fit?'Fit':'Owing'}</b></p></div><div class="card"><h4>Comments</h4>${c.map(x=>`<p><b>${esc(x.byName)}</b>: ${esc(x.text)}</p>`).join('')}<input id="cm" placeholder="Write a comment"><button onclick="postComment('${id}')">Post</button></div>`,
  dc:`<div class="card"><h4>Payment Receipts</h4><table>${f.map(x=>`<tr><td>${new Date(x.at).toLocaleDateString()}</td><td>${esc(x.type)}</td><td>${money(x.amount)}</td><td><button class="g" onclick="receipt('${x.id}')">Print</button></td></tr>`).join('')||'<tr><td>No receipts.</td></tr>'}</table></div><div class="card"><h4>Result Slips</h4>${TRIS.filter(t=>r.some(x=>x.term==t)).map(t=>`<button class="g" onclick="slip('${t}')">${t}</button> `).join('')||'No released results yet.'}</div>`};
  $('#sdt').innerHTML=H[k]}
 async function saveAbout(){const t=v('ab').trim();await db.doc('students/'+SD.id).update({about:t});SD.s.about=t;sdTab('ov')}
 function slip(t){const l=SD.r.filter(x=>x.term==t),s=SD.s,w=window.open('');if(!w)return alert('Allow pop-ups.');
- w.document.write(`<body style="font-family:Arial;padding:30px;max-width:700px"><img src="${esc(new URL(LOGO_URL,location.href).href)}" width=80><h2>Result Slip - ${esc(t)}</h2><p>${esc(s.surname)} ${esc(s.firstName)} · ${esc(s.regNo)} · ${esc(s.class)} · ${esc(s.session||'')}</p><table border=1 cellpadding=6 style="border-collapse:collapse;width:100%"><tr><th>Subject</th><th>Test</th><th>Exam</th><th>Total</th><th>Grade</th></tr>${l.map(x=>`<tr><td>${esc(x.subject)}</td><td>${x.test}</td><td>${x.exam}</td><td>${x.test+x.exam}</td><td>${grade(x.test+x.exam)}</td></tr>`).join('')}</table><script>print()<\/script>`)}
+ w.document.write(`<body style="font-family:Arial;padding:30px;max-width:700px"><img src="${esc(new URL(LOGO_URL,location.href).href)}" width=80><h2>Result Slip - ${esc(t)}</h2><p>${esc(s.surname)} ${esc(s.firstName)} · ${esc(s.regNo)} · ${esc(s.class)} · ${esc(s.session||'')}</p><table border=1 cellpadding=6 style="border-collapse:collapse;width:100%"><tr><th>Subject</th><th>CAT 1 (20%)</th><th>CAT 2 (20%)</th><th>Exam (60%)</th><th>Total</th><th>Grade</th></tr>${l.map(x=>`<tr><td>${esc(x.subject)}</td><td>${C1(x)}</td><td>${C2(x)}</td><td>${x.exam}</td><td>${x.test+x.exam}</td><td>${grade(x.test+x.exam)}</td></tr>`).join('')}</table><script>print()<\/script>`)}
 async function receipt(id){
  const f=(await db.doc('fees/'+id).get()).data(),s=(await db.doc('students/'+f.studentId).get()).data()||{};
  const w=window.open('');if(!w)return alert('Allow pop-ups to print the receipt.');
@@ -721,7 +723,7 @@ V.pub=async function(){
 V.subj=async function(){
  const s=await list('subjects');
  set(`<div class="card"><h3>Subject Template (per class)</h3><select id="sj_c">${opts(CLASSES)}</select><input id="sj_n" placeholder="Subject e.g. Mathematics"><button onclick="addSubj()">Add subject</button>
- <p><small>Scoring: Test 40 + Exam 60 = 100. Grades: A 70+, B 60+, C 50+, D 40+, F below 40.</small></p></div>`+
+ <p><small>Scoring: CAT 1 20 + CAT 2 20 + Exam 60 = 100. Grades: A 70+, B 60+, C 50+, D 40+, F below 40.</small></p></div>`+
  CLASSES.map(c=>{const l=s.filter(x=>x.class==c);return l.length?`<div class="card"><b>${c}</b><br>${l.map(x=>`<span class="tag" style="background:var(--acc);display:inline-block;margin:3px">${esc(x.name)} <a data-id="${esc(x.id)}" onclick="delSubj(this.dataset.id)" style="cursor:pointer">✕</a></span>`).join('')}</div>`:''}).join(''))};
 
 // 4. Hide the "admin" role unless the user is Proprietor/Admin
@@ -794,10 +796,43 @@ async function delPerson(kind,id){
   if(un)b.delete(db.doc('usernames/'+String(un).toLowerCase()));
   await b.commit();await notify(nm+' ('+kind+') was deleted by '+me.name);go(kind=='staff'?'staffreg':'mgmt');
  }catch(e){alert('Could not delete: '+(e.code||e.message))}}
+let MGS=[];
 V.mgmt=async function(){
- const[s,t,n]=await Promise.all([list('students'),list('staff'),list('attendance',['date','==',today()])]),can=DEL.includes(me.role),att=ATT.includes(me.role);
+ const[s,t,n]=await Promise.all([list('students'),list('staff'),list('attendance',['date','==',today()])]),can=DEL.includes(me.role),att=ATT.includes(me.role);MGS=s;
  set(`<div class="grid"><div class="card stat"><span>Students</span><b>${s.length}</b></div><div class="card stat"><span>Staff</span><b>${t.length}</b></div>${att?`<div class="card stat"><span>Staff present today</span><b class="green">${n.filter(x=>x.status=='Present'&&x.kind=='staff').length}</b></div>`:''}</div>
- <div class="card"><h3>Students</h3><table><tr><th>ID</th><th>Name</th><th>Class</th><th>Campus</th><th></th></tr>${s.map(x=>`<tr><td>${esc(x.regNo)}</td><td>${esc(x.surname)} ${esc(x.firstName)}</td><td>${esc(x.class)}</td><td>${esc(CAMPUS)}</td><td><button class="g" data-id="${esc(x.id)}" onclick="studentDash(this.dataset.id)">Open</button>${can?` <button class="s" data-id="${esc(x.id)}" onclick="delPerson('student',this.dataset.id)">Delete</button>`:''}</td></tr>`).join('')}</table></div>`)};
+ <div class="card"><h3>Students</h3><table><tr><th>ID</th><th>Name</th><th>Class</th><th>Campus</th><th></th></tr>${s.map(x=>`<tr><td>${esc(x.regNo)}</td><td>${esc(x.surname)} ${esc(x.firstName)}</td><td>${esc(x.class)}</td><td>${esc(CAMPUS)}</td><td><button class="g" data-id="${esc(x.id)}" onclick="studentDash(this.dataset.id)">Open</button> <button data-id="${esc(x.id)}" onclick="dlProfile(this.dataset.id)">⬇ Profile</button>${can?` <button class="s" data-id="${esc(x.id)}" onclick="delPerson('student',this.dataset.id)">Delete</button>`:''}</td></tr>`).join('')}</table></div>`)};
+// Download / print a student's full profile as a PDF (opens a clean page; choose "Save as PDF" in the print window)
+function dlProfile(id){
+ const s=MGS.find(x=>x.id===id);if(!s)return alert('Student not found. Refresh the page and try again.');
+ const w=window.open('');if(!w)return alert('Allow pop-ups to download the profile.');
+ const nm=[s.firstName,s.middleName,s.surname].filter(Boolean).join(' '),
+ fee=k=>['feeDue','feeT1','feeT2','feeT3'].includes(k),
+ grp=(t,a)=>`<h3>${t}</h3><table>${a.map(([k,l])=>`<tr><th>${l}</th><td>${esc(fee(k)?money(s[k]||0):(s[k]||'-'))}</td></tr>`).join('')}</table>`,
+ logo=new URL(LOGO_URL,location.href).href;
+ w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Student Profile - ${esc(nm)} - ${esc(s.regNo||'')}</title><style>
+ body{font-family:Arial,sans-serif;color:#10213f;max-width:760px;margin:0 auto;padding:24px}
+ .hd{display:flex;align-items:center;gap:14px;border-bottom:3px solid #e0147a;padding-bottom:10px;margin-bottom:14px}
+ .hd img.lg{width:70px}.hd h1{font-size:18px;margin:0}.hd p{margin:2px 0;font-size:12px;color:#556}
+ .pb{display:flex;gap:16px;align-items:center;margin-bottom:6px}.pb img{width:110px;height:130px;object-fit:cover;border:1px solid #ccd}
+ .pb .ph{width:110px;height:130px;border:1px solid #ccd;display:grid;place-items:center;font-size:40px;background:#f3f6fb}
+ .pb h2{margin:0 0 4px}.pb span{display:inline-block;background:#f3f6fb;border-radius:12px;padding:3px 10px;font-size:12px;margin:2px 4px 2px 0}
+ h3{background:#10213f;color:#fff;font-size:13px;padding:5px 9px;margin:14px 0 0}
+ table{border-collapse:collapse;width:100%}th,td{border:1px solid #ccd;padding:5px 8px;font-size:13px;text-align:left;vertical-align:top}
+ th{width:34%;background:#f3f6fb}.ab{border:1px solid #ccd;padding:8px;font-size:13px;white-space:pre-wrap}
+ .ft{margin-top:16px;font-size:11px;color:#667;text-align:center}
+ @media print{@page{margin:14mm}h3{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+ </style></head><body>
+ <div class="hd"><img class="lg" src="${esc(logo)}" alt=""><div><h1>PRINCESS JASMINE INTERNATIONAL SCHOOL</h1><p>${esc(SCHOOL.loc[CAMPUS]||CAMPUS)} · ${esc(SCHOOL.phone||'')} · ${esc(SCHOOL.email||'')}</p><p><b>STUDENT PROFILE</b></p></div></div>
+ <div class="pb">${s.photo?`<img src="${esc(s.photo)}" alt="">`:`<div class="ph">${esc((s.firstName||'?')[0])}</div>`}<div><h2>${esc(nm)}</h2><span>${esc(s.regNo||'')}</span><span>${esc(s.class||'')}</span><span>${esc(s.campus||CAMPUS)}</span><span>${esc(s.session||'')}</span></div></div>
+ ${grp('Personal Information',EF.slice(0,13))}
+ ${grp('School Details',[['regNo','Student ID'],...EF.slice(13,18),...EF.slice(28,31),['feeDue','Total fees due (₦)']])}
+ ${grp('Parent / Guardian',EF.slice(18,23))}
+ ${grp('Emergency Contact',EF.slice(23,25))}
+ ${grp('Health Information',EF.slice(25,28))}
+ <h3>About</h3><div class="ab">${esc(s.about||'No story added yet.')}</div>
+ <div class="ft">Printed ${new Date().toLocaleString()} · ${esc(me.name||'')}</div>
+ <script>onload=function(){setTimeout(function(){print()},400)}<\/script></body></html>`);
+ w.document.close()}
 {const o=V.staffreg;V.staffreg=async function(){o();
  const s=(await list('staff')).sort((a,b)=>(a.name||'').localeCompare(b.name||''));
  mainEl.insertAdjacentHTML('beforeend',`<div class="card"><h3>All staff (${s.length})</h3><table><tr><th>Name</th><th>ID</th><th>Role</th><th>Position</th><th>Campus</th><th></th></tr>${s.map(x=>`<tr><td>${esc(x.name)}</td><td>${esc(x.staffId||'')}</td><td>${esc(RL[x.role]||x.role||'')}</td><td>${esc(x.position||'')}</td><td>${esc(x.campus||'')}</td><td>${DEL.includes(me.role)&&x.id!==me.uid?`<button class="s" data-id="${esc(x.id)}" onclick="delPerson('staff',this.dataset.id)">Delete</button>`:''}</td></tr>`).join('')}</table></div>`)}}
@@ -1044,7 +1079,7 @@ PAGES.push(['cls','Class Lists'],['tt','School Time Table']);SAFE.push('tt');
 
 // ---------- Grading key (new scale) ----------
 const KEY=[['A','90.00 - 100.00','Excellent'],['B','80.00 - 89.99','Very Good'],['C','70.00 - 79.99','Good'],['D','60.00 - 69.99','Fairly Good'],['E','50.00 - 59.99','Pass'],['F','0.00 - 49.99','Fail']];
-{const o=V.subj;V.subj=async function(){await o();document.querySelectorAll('#main small').forEach(x=>{if(x.textContent.startsWith('Scoring'))x.textContent='Scoring: Test 40 + Exam 60 = 100. Grades: A 90+, B 80+, C 70+, D 60+, E 50+, F below 50.'})}}
+{const o=V.subj;V.subj=async function(){await o();document.querySelectorAll('#main small').forEach(x=>{if(x.textContent.startsWith('Scoring'))x.textContent='Scoring: CAT 1 20 + CAT 2 20 + Exam 60 = 100. Grades: A 90+, B 80+, C 70+, D 60+, E 50+, F below 50.'})}}
 
 // ---------- Profile photo (after registration) ----------
 function setPhoto(kind,id,inp){const f=inp.files[0];if(!f)return;const im=new Image();
@@ -1148,13 +1183,14 @@ V.pub=async function(){
  const[r,ow,vr]=await Promise.all([list('results',['published','==',false]),termOwing(),list('results',['published','==',true])]);VR=vr;
  const ok=r.filter(x=>!owes(ow,x.studentId,x.term)).length;
  set(`<div class="card"><h3>Results awaiting validation</h3><p class="mut">A term's results are released as soon as the school fees of THAT term are fully paid. Unpaid fees of other terms do not block it.</p><table><tr><th>Student</th><th>Class</th><th>Subject</th><th>Term</th><th>Total</th><th>Fees</th><th></th></tr>${r.map(x=>`<tr><td>${esc(x.studentName)}</td><td>${esc(x.class||'')}</td><td>${esc(x.subject)}</td><td>${esc(x.term)}</td><td>${x.test+x.exam}</td><td>${owes(ow,x.studentId,x.term)?`<span class="tag" style="background:var(--bad)">${esc(x.term)} owing ${money(owes(ow,x.studentId,x.term))}</span>`:'<span class="green">Cleared</span>'}</td><td>${owes(ow,x.studentId,x.term)?'':`<button data-id="${esc(x.id)}" onclick="publish(this.dataset.id)">Validate</button>`}</td></tr>`).join('')||'<tr><td>Nothing waiting.</td></tr>'}</table>${ok?`<button class="s" onclick="publishAll()">Validate all cleared (${ok})</button>`:''}</div>
- <div class="card"><h3>Validated results - correct or recall</h3><input id="pv_q" placeholder="🔍 Search student, class or subject" oninput="drawVR()"><table><tr><th>Student</th><th>Class</th><th>Subject</th><th>Term</th><th>Test</th><th>Exam</th><th>Total</th><th></th></tr><tbody id="vrTb"></tbody></table></div>`);drawVR()};
-function drawVR(){const q=v('pv_q').toLowerCase();$('#vrTb').innerHTML=VR.filter(x=>((x.studentName||'')+' '+(x.subject||'')+' '+(x.class||'')).toLowerCase().includes(q)).slice(0,100).map(x=>`<tr><td>${esc(x.studentName)}</td><td>${esc(x.class||'')}</td><td>${esc(x.subject)}</td><td>${esc(x.term)}</td><td>${x.test}</td><td>${x.exam}</td><td>${x.test+x.exam}</td><td><button class="g" data-id="${esc(x.id)}" onclick="fixRes(this.dataset.id)">Correct</button> <button class="s" data-id="${esc(x.id)}" onclick="unval(this.dataset.id)">Recall</button></td></tr>`).join('')||'<tr><td>None found.</td></tr>'}
+ <div class="card"><h3>Validated results - correct or recall</h3><input id="pv_q" placeholder="🔍 Search student, class or subject" oninput="drawVR()"><table><tr><th>Student</th><th>Class</th><th>Subject</th><th>Term</th><th>CAT 1</th><th>CAT 2</th><th>Exam</th><th>Total</th><th></th></tr><tbody id="vrTb"></tbody></table></div>`);drawVR()};
+function drawVR(){const q=v('pv_q').toLowerCase();$('#vrTb').innerHTML=VR.filter(x=>((x.studentName||'')+' '+(x.subject||'')+' '+(x.class||'')).toLowerCase().includes(q)).slice(0,100).map(x=>`<tr><td>${esc(x.studentName)}</td><td>${esc(x.class||'')}</td><td>${esc(x.subject)}</td><td>${esc(x.term)}</td><td>${C1(x)}</td><td>${C2(x)}</td><td>${x.exam}</td><td>${x.test+x.exam}</td><td><button class="g" data-id="${esc(x.id)}" onclick="fixRes(this.dataset.id)">Correct</button> <button class="s" data-id="${esc(x.id)}" onclick="unval(this.dataset.id)">Recall</button></td></tr>`).join('')||'<tr><td>None found.</td></tr>'}
 async function fixRes(id){
- const x=VR.find(r=>r.id==id),t=prompt('Test score (0-40): '+x.studentName+' - '+x.subject,x.test);if(t===null)return;
+ const x=VR.find(r=>r.id==id),t=prompt('CAT 1 score (0-20): '+x.studentName+' - '+x.subject,x.cat1??'');if(t===null)return;
+ const t2=prompt('CAT 2 score (0-20)',x.cat2??'');if(t2===null)return;
  const e=prompt('Exam score (0-60)',x.exam);if(e===null)return;
- if(t===''||e===''||+t<0||+t>40||+e<0||+e>60)return alert('Test must be 0-40 and exam 0-60.');
- try{await db.doc('results/'+id).update({test:+t,exam:+e,correctedBy:me.name,correctedAt:Date.now()});await notify('Result corrected: '+x.studentName+' ('+x.subject+') by '+me.name);go('pub')}catch(err){alert('Could not save: '+(err.code||err.message))}}
+ if(t===''||t2===''||e===''||+t<0||+t>20||+t2<0||+t2>20||+e<0||+e>60)return alert('CAT 1 and CAT 2 must each be 0-20, and exam 0-60.');
+ try{await db.doc('results/'+id).update({cat1:+t,cat2:+t2,test:(+t)+(+t2),exam:+e,correctedBy:me.name,correctedAt:Date.now()});await notify('Result corrected: '+x.studentName+' ('+x.subject+') by '+me.name);go('pub')}catch(err){alert('Could not save: '+(err.code||err.message))}}
 async function unval(id){if(!confirm('Recall this result for re-computation? The student will not see it until you validate again.'))return;try{await db.doc('results/'+id).update({published:false});go('pub')}catch(e){alert(e.code||e.message)}}
 async function publish(id){
  const d=await db.doc('results/'+id).get(),b=(await owingMap())[(d.data()||{}).studentId];
@@ -1225,7 +1261,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&me)badge(
 
 // ===================== UPDATE 7 =====================
 let MYC='',UNN=0,ACT=0,NOPUSH=false,SCC={t:0,p:null};
-const PAYTYPES=['Tuition','School Uniform','Stationery','Books','Boarding','Transport','School Bus','Exam','Other'];
+const PAYTYPES=['School Fee','School Uniform','Stationery','Books','Boarding','Transport','School Bus','Exam','Other'];
 
 // ---------- A. Campus scope ----------
 function CAMPUS_SCOPE(){return''} // single campus: no per-campus filtering needed
@@ -1295,7 +1331,7 @@ async function saveStaffCampus(id){
 {const o=V.fees;V.fees=async function(){await o();
  const h=[...mainEl.querySelectorAll('h3')].find(x=>x.textContent==='Record Payment');if(!h)return;
  h.closest('.card').innerHTML=`<h3>Record Payment</h3><input id="fee_q" placeholder="🔍 Search student name, ID or class" oninput="feeSearch()"><select id="fee_s" onchange="feeInfo()"><option value="">Select student</option>${FEE.st.map(s=>`<option value="${s.id}">${esc(s.surname)} ${esc(s.firstName)} (${esc(s.regNo)}) - ${esc(s.class)}</option>`).join('')}</select><p id="fee_info"></p>
- <p class="mut">Add one line for each item the parent is paying for (for example Tuition + School Uniform + Stationery). All lines are saved together under one receipt.</p>
+ <p class="mut">Add one line for each item the parent is paying for (for example School Fee + School Uniform + Stationery). All lines are saved together under one receipt.</p>
  <div id="pl_rows"></div><button type="button" class="g" onclick="plAdd()">+ Add another item</button>
  <p>Total being paid: <b id="pl_tot">₦0</b></p>
  <div class="row"><select id="fee_m">${opts(['Cash','Bank transfer','POS'])}</select><input id="fee_r" placeholder="Reference / teller no (optional)"></div>
@@ -1325,7 +1361,7 @@ async function saveFeeMulti(){
  }catch(e){btn.disabled=false;alert('Could not save payment: '+(e.code||e.message))}}
 async function receipt(id){
  const f=(await db.doc('fees/'+id).get()).data(),s=(await db.doc('students/'+f.studentId).get()).data()||{};
- let L=[f];
+ let L=[{...f,type:f.type==='Tuition'?'School Fee':f.type}];
  if(f.receiptNo){try{const r=(await list('fees',['studentId','==',f.studentId],['receiptNo','==',f.receiptNo])).sort((a,b)=>a.at-b.at);if(r.length)L=r}catch(e){}}
  const tot=L.reduce((z,x)=>z+(+x.amount||0),0),w=window.open('');if(!w)return alert('Allow pop-ups to print the receipt.');
  w.document.write(`<body style="font-family:Arial;padding:30px;max-width:600px"><img src="${esc(new URL(LOGO_URL,location.href).href)}" width=80>${s.photo?`<img src="${esc(s.photo)}" width=90 style="float:right">`:''}<h2>Payment Receipt</h2><p><b>No:</b> ${esc(f.receiptNo||'-')}<br><b>Date:</b> ${new Date(f.at).toLocaleString()}</p><p>${esc(s.surname)} ${esc(s.firstName)} (${esc(s.regNo)}) · ${esc(s.class||'')}</p><table border=1 cellpadding=6 style="border-collapse:collapse;width:100%"><tr><th>Item</th><th>Term</th><th>Amount</th></tr>${L.map(x=>`<tr><td>${esc(x.type)}</td><td>${esc(x.term||'')}</td><td>${money(x.amount)}</td></tr>`).join('')}<tr><td colspan=2><b>Total</b></td><td><b>${money(tot)}</b></td></tr></table><p>Method: ${esc(f.method||'-')}${f.ref?' · Ref: '+esc(f.ref):''}<br>Received by: ${esc(f.byName||'')}</p><script>print()<\/script>`)}
@@ -1810,9 +1846,9 @@ async function slip(t){
  <div class="ti"><h1>PRINCESS JASMINE INTERNATIONAL SCHOOL</h1><p><i>Godly Foundation for Excellence</i></p><p>${esc(SCHOOL.loc[CAMPUS]||CAMPUS)} · ${esc(SCHOOL.phone||'')} · ${esc(SCHOOL.email||'')}</p><h2>STUDENT ${esc(t.toUpperCase())} REPORT CARD</h2></div>
  ${s.photo?`<img class="ph" src="${esc(s.photo)}" alt="">`:'<div class="phx">Student<br>photo</div>'}</div>
  <div class="info">${info('Student name',nm)}${info('Student ID',s.regNo)}${info('Class',s.class)}${info('Session',s.session)}${info('Term',t)}${info('Gender',s.gender)}</div>
- <table><tr><th class="l">Subject</th><th class="c">Test /40</th><th class="c">Exam /60</th><th class="c">Total /100</th><th class="c">Grade</th><th class="l">Remark</th></tr>
- ${rows.map(x=>{const n=x.test+x.exam;return`<tr><td class="l">${esc(x.subject)}</td><td class="c">${x.test}</td><td class="c">${x.exam}</td><td class="c"><b>${n}</b></td><td class="c">${grade(n)}</td><td class="l">${gk(n)[2]}</td></tr>`}).join('')||'<tr><td colspan="6" class="c">No validated results.</td></tr>'}
- <tr class="sum"><td class="l">Total / Average</td><td colspan="2" class="c">Subjects: ${rows.length}</td><td class="c">${tot} / ${rows.length*100}</td><td class="c">${rows.length?grade(avg):'-'}</td><td class="l">Average: ${rows.length?avg.toFixed(1)+' · '+gk(avg)[2]:'-'}</td></tr></table>
+ <table><tr><th class="l">Subject</th><th class="c">CAT 1 /20</th><th class="c">CAT 2 /20</th><th class="c">Exam /60</th><th class="c">Total /100</th><th class="c">Grade</th><th class="l">Remark</th></tr>
+ ${rows.map(x=>{const n=x.test+x.exam;return`<tr><td class="l">${esc(x.subject)}</td><td class="c">${C1(x)}</td><td class="c">${C2(x)}</td><td class="c">${x.exam}</td><td class="c"><b>${n}</b></td><td class="c">${grade(n)}</td><td class="l">${gk(n)[2]}</td></tr>`}).join('')||'<tr><td colspan="7" class="c">No validated results.</td></tr>'}
+ <tr class="sum"><td class="l">Total / Average</td><td colspan="3" class="c">Subjects: ${rows.length}</td><td class="c">${tot} / ${rows.length*100}</td><td class="c">${rows.length?grade(avg):'-'}</td><td class="l">Average: ${rows.length?avg.toFixed(1)+' · '+gk(avg)[2]:'-'}</td></tr></table>
  <div class="key"><b>Grading:</b> ${KEY.map(k=>k[0]+' = '+k[1]+' ('+k[2]+')').join(' · ')}</div>
  <div class="two"><div><h3 style="margin-top:0">PSYCHOMOTOR TRAIT / SKILL</h3>${trt('Skill','psy',PSY)}</div><div><h3 style="margin-top:0">AFFECTIVE TRAIT / BEHAVIOUR</h3>${trt('Behaviour','aff',AFF)}</div></div>
  <div class="key"><b>Rating key:</b> ${RATE.map(([n,l])=>n+' = '+l).join(' · ')}</div>
@@ -1884,8 +1920,8 @@ async function emailTermResults(pairs){
    trt=(title,g,a)=>`<table style="border-collapse:collapse;width:100%;margin-top:6px"><tr><th ${TH}>${title}</th><th ${TH}>Rating</th></tr>${a.map(([k,l])=>`<tr><td ${TD}>${esc(l)}</td><td ${TD}>${esc(rt(g,k))}</td></tr>`).join('')}</table>`;
    const html=mailShell(`<h2 style="margin:0 0 8px;color:#e0147a">${esc(t)} Report Card</h2><p style="font-size:14px">Dear Parent/Guardian, the ${esc(t)} results of <b>${esc(nm)}</b> have been validated.</p>
    <p style="font-size:13px;background:#f3f6fb;padding:10px;border-radius:8px">Student ID: <b>${esc(s.regNo||'-')}</b> · Class: <b>${esc(s.class||'-')}</b> · Session: <b>${esc(s.session||'-')}</b> · Term: <b>${esc(t)}</b></p>
-   <table style="border-collapse:collapse;width:100%"><tr><th ${TH}>Subject</th><th ${TH}>Test /40</th><th ${TH}>Exam /60</th><th ${TH}>Total</th><th ${TH}>Grade</th><th ${TH}>Remark</th></tr>${rows.map(x=>{const n=x.test+x.exam;return`<tr><td ${TD}>${esc(x.subject)}</td><td ${TD}>${x.test}</td><td ${TD}>${x.exam}</td><td ${TD}><b>${n}</b></td><td ${TD}>${grade(n)}</td><td ${TD}>${gk(n)[2]}</td></tr>`}).join('')}
-   <tr><td ${TD}><b>Total / Average</b></td><td ${TD} colspan="2">Subjects: ${rows.length}</td><td ${TD}><b>${tot}/${rows.length*100}</b></td><td ${TD}>${rows.length?grade(avg):'-'}</td><td ${TD}>Average ${avg.toFixed(1)} · ${gk(avg)[2]}</td></tr></table>
+   <table style="border-collapse:collapse;width:100%"><tr><th ${TH}>Subject</th><th ${TH}>CAT 1 /20</th><th ${TH}>CAT 2 /20</th><th ${TH}>Exam /60</th><th ${TH}>Total</th><th ${TH}>Grade</th><th ${TH}>Remark</th></tr>${rows.map(x=>{const n=x.test+x.exam;return`<tr><td ${TD}>${esc(x.subject)}</td><td ${TD}>${C1(x)}</td><td ${TD}>${C2(x)}</td><td ${TD}>${x.exam}</td><td ${TD}><b>${n}</b></td><td ${TD}>${grade(n)}</td><td ${TD}>${gk(n)[2]}</td></tr>`}).join('')}
+   <tr><td ${TD}><b>Total / Average</b></td><td ${TD} colspan="3">Subjects: ${rows.length}</td><td ${TD}><b>${tot}/${rows.length*100}</b></td><td ${TD}>${rows.length?grade(avg):'-'}</td><td ${TD}>Average ${avg.toFixed(1)} · ${gk(avg)[2]}</td></tr></table>
    <p style="font-size:12px;color:#334"><b>Grading:</b> ${KEY.map(k=>k[0]+' = '+k[1]+' ('+k[2]+')').join(' · ')}</p>
    ${td.exists?`<h4 style="margin:14px 0 0">Psychomotor / Skills</h4>${trt('Skill','psy',PSY)}<h4 style="margin:14px 0 0">Affective / Behaviour</h4>${trt('Behaviour','aff',AFF)}`:''}
    <p style="font-size:13px">Class Teacher: <b>${esc(cl.teacherName||'-')}</b>${sch.signName?' · School Administrator: <b>'+esc(sch.signName)+'</b>':''}</p>
